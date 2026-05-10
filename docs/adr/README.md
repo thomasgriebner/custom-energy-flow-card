@@ -54,3 +54,7 @@ siehe [`0000-template.md`](./0000-template.md).
 | [0008](./0008-manual-list-editor.md) | Editor-Listen manuell mit Lit (statt ha-form-Listen) | accepted |
 | [0009](./0009-eslint-enforced-layer-boundaries.md) | Layer-Grenzen via ESLint erzwingen | accepted |
 | [0010](./0010-shared-util-module.md) | Single-Source-Util-Modul gegen Code-Doppelungen | accepted |
+| [0011](./0011-shouldupdate-over-property-haschanged.md) | `shouldUpdate` statt `@property({ hasChanged })` | accepted |
+| [0012](./0012-headless-smoke-test-pre-release-gate.md) | Headless Smoke-Test als Pre-Release-Gate | accepted |
+| [0013](./0013-v0-9-0-first-release-strategy.md) | v0.9.0 als erstes Live-Release, v1.0.0 nach Stabilisierung | accepted |
+| [0014](./0014-stub-config-validates-as-valid.md) | HA-Stub-Config wird als valide Config behandelt | accepted |

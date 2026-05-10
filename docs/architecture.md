@@ -108,6 +108,10 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 | [0008](./adr/0008-manual-list-editor.md) | Listen im Editor manuell mit Lit | `ha-form` unterstützt Listen-Editing nicht zuverlässig |
 | [0009](./adr/0009-eslint-enforced-layer-boundaries.md) | ESLint `no-restricted-paths` als CI-Gate | Layer-Boundaries dokumentieren *und* erzwingen |
 | [0010](./adr/0010-shared-util-module.md) | Single-Source-Util-Modul | Format-/Sensor-/Color-Logik niemals doppelt |
+| [0011](./adr/0011-shouldupdate-over-property-haschanged.md) | `shouldUpdate` statt `@property hasChanged` | Lit's hasChanged-Callback hat kein `this`-Binding |
+| [0012](./adr/0012-headless-smoke-test-pre-release-gate.md) | Headless Smoke-Test als Pre-Release-Gate | Class-Load-Crashes vor Live-Install fangen, da kein HA-Test-Environment |
+| [0013](./adr/0013-v0-9-0-first-release-strategy.md) | v0.9.0 first, v1.0.0 nach Stabilisierung | Realistische Erwartungen + semver-konforme Bug-Fix-Releases |
+| [0014](./adr/0014-stub-config-validates-as-valid.md) | HA-Stub-Config gilt als valide | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor |
 
 ## 5. Konventionen kurz
 

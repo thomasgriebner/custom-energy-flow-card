@@ -5263,7 +5263,7 @@ veröffentlicht.
 | §5.4 Anteils-Ring | Task 2.3 |
 | §5.5 Animation | Tasks 2.3a (edge-color shared), 2.5 |
 | §5.6 Theme-Mapping | Task 2.1 |
-| §5.7 Update-Strategie | Task 3.2 (`@property hasChanged`, `firstUpdated` + ResizeObserver, `disconnectedCallback`, memo mit viewBox) |
+| §5.7 Update-Strategie | Task 3.2 (`shouldUpdate`-Override, `firstUpdated` + ResizeObserver, `disconnectedCallback`, memoize) — siehe ADR-0011 |
 | §5.8 Reduced Motion | Task 2.5 (CSS) |
 | §5.9 UX-Zustände | Task 3.2 (loading-skeleton, stub-hint, error-banner, narrow-banner, mount fade-in, hover/focus) + Task 2.4 (per-node sensor-unavailable) |
 | §5.10 Crash-Resilienz | Task 3.2 (try/catch in `willUpdate` + Fallback-UI) |
