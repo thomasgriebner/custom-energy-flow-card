@@ -1,0 +1,23 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+      - name: Bundle size check
+        run: |
+          SIZE=$(stat -c%s dist/custom-energy-flow-card.js)
+          echo "Bundle: $SIZE bytes"
+          [ "$SIZE" -le 61440 ] || (echo "Bundle exceeds 60 kB (61440 bytes)" && exit 1)
