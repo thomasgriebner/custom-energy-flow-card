@@ -73,19 +73,20 @@ const server = createServer((req, res) => {
     res.end('Forbidden');
     return;
   }
+  let body;
+  let type;
   try {
     const stat = statSync(filePath);
-    if (stat.isDirectory()) {
-      filePath = join(filePath, 'preview.html');
-    }
-    const ext = extname(filePath);
-    const type = MIME[ext] ?? 'application/octet-stream';
-    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-store' });
-    res.end(readFileSync(filePath));
+    if (stat.isDirectory()) filePath = join(filePath, 'preview.html');
+    body = readFileSync(filePath);
+    type = MIME[extname(filePath)] ?? 'application/octet-stream';
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not found');
+    return;
   }
+  res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-store' });
+  res.end(body);
 });
 
 server.listen(PORT, '127.0.0.1', () => {
