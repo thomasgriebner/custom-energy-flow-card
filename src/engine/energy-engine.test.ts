@@ -126,7 +126,7 @@ describe('Engine — Source attribution + Reconcile (steps 4–7)', () => {
     expect(r.homeW).toBe(1200);
     expect(r.flows.pvToHome.reduce((s, f) => s + f.powerW, 0)).toBeCloseTo(1200, 1);
     expect(r.flows.pvToGrid.reduce((s, f) => s + f.powerW, 0)).toBeCloseTo(600, 1);
-    expect(r.flows.batteryToHome).toEqual([]);
+    expect(r.flows.batteryToHome.every((f) => f.powerW === 0)).toBe(true);
   });
 
   it('Edge case 3: evening, batteries supply home + grid, no PV', () => {
@@ -221,5 +221,108 @@ describe('Engine — Source attribution + Reconcile (steps 4–7)', () => {
     const totalPvToGrid = r.flows.pvToGrid.reduce((s, f) => s + f.powerW, 0);
     expect(totalPvToGrid).toBeCloseTo(1500, 0);
     expect(r.warnings.some((w) => w.code === 'EXPORT_INCONSISTENT')).toBe(true);
+  });
+});
+
+describe('Engine — Consumer + Home-Attribution (steps 8 + ring)', () => {
+  it('home-to-consumer mirrors consumer power', () => {
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 2000 }],
+      battery: [],
+      grid: { powerW: -500 },
+      consumer: [
+        { id: 'wp', powerW: 400 },
+        { id: 'wb', powerW: 1100 },
+      ],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.flows.homeToConsumer).toEqual([
+      { sourceId: 'wp', powerW: 400 },
+      { sourceId: 'wb', powerW: 1100 },
+    ]);
+  });
+
+  it('Edge case 14: Σ consumers > home triggers BALANCE_DRIFT', () => {
+    const s: SystemState = {
+      pv: [],
+      battery: [],
+      grid: { powerW: 100 },
+      consumer: [{ id: 'wp', powerW: 500 }],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.warnings.some((w) => w.code === 'BALANCE_DRIFT')).toBe(true);
+  });
+
+  it('home attribution shares sum to ~1 when home > 0', () => {
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 1000 }],
+      battery: [],
+      grid: { powerW: 500 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    const total = r.homeAttribution.shares.reduce((s, x) => s + x.share, 0);
+    expect(total).toBeCloseTo(1, 3);
+  });
+
+  it('home attribution all zero when home is 0', () => {
+    const s: SystemState = {
+      pv: [],
+      battery: [],
+      grid: { powerW: 0 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.homeAttribution.shares.every((s) => s.share === 0)).toBe(true);
+  });
+
+  it('Edge case 6: home_override skips balance', () => {
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 5000 }],
+      battery: [],
+      grid: { powerW: 0 },
+      consumer: [],
+      home: { powerOverrideW: 800 },
+    };
+    expect(compute(s).homeW).toBe(800);
+  });
+
+  it('Edge case 11: no PVs', () => {
+    const s: SystemState = {
+      pv: [],
+      battery: [],
+      grid: { powerW: 300 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.flows.pvToHome).toEqual([]);
+    expect(r.flows.gridToHome).toBe(300);
+  });
+
+  it('Edge case 16: 5 PV + 5 batteries stress test, completes < 5 ms', () => {
+    const s: SystemState = {
+      pv: Array.from({ length: 5 }, (_, i) => ({ id: `pv${i}`, powerW: 500 + i * 100 })),
+      battery: Array.from({ length: 5 }, (_, i) => ({
+        id: `b${i}`,
+        pairedPvId: `pv${i}`,
+        powerW: 100 + i * 50,
+        socPct: 50,
+      })),
+      grid: { powerW: -200 },
+      consumer: Array.from({ length: 3 }, (_, i) => ({ id: `c${i}`, powerW: 100 })),
+      home: {},
+    };
+    const start = performance.now();
+    const r = compute(s);
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(5);
+    expect(r.flows.pvToHome).toHaveLength(5);
+    expect(r.flows.batteryToHome).toHaveLength(5);
+    expect(r.flows.homeToConsumer).toHaveLength(3);
   });
 });

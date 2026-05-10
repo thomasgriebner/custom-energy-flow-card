@@ -53,7 +53,6 @@ export function compute(state: SystemState): FlowResult {
   const pvIndexById = new Map(pv.map((p, i) => [p.id, i]));
   const pvRemaining = pv.map((p) => p.powerW);
   const pvToBattery: PerSourceFlow[] = [];
-  const gridToBattery: PerSourceFlow[] = [];
   const pairingDeficit: PairingDeficit[] = [];
 
   state.battery.forEach((b, j) => {
@@ -69,7 +68,6 @@ export function compute(state: SystemState): FlowResult {
       const deficit = (charge[j] ?? 0) - fromPv;
       if (deficit > 0.5) {
         pairingDeficit.push({ batteryId: b.id, deficitW: deficit });
-        gridToBattery.push({ sourceId: b.id, powerW: deficit });
         warnings.push({
           code: 'PAIRING_DEFICIT',
           detail: `Battery ${b.id} charges ${charge[j]} W but paired PV ${b.pairedPvId} provides only ${fromPv} W`,
@@ -100,20 +98,14 @@ export function compute(state: SystemState): FlowResult {
     sourceId: p.id,
     powerW: sumPvRemaining > 0 ? ((pvRemaining[i] ?? 0) / sumPvRemaining) * totalPvToGrid : 0,
   }));
-  const batteryToHome: PerSourceFlow[] =
-    sumDischarge > 0
-      ? state.battery.map((b, j) => ({
-          sourceId: b.id,
-          powerW: ((discharge[j] ?? 0) / sumDischarge) * totalBattToHome,
-        }))
-      : [];
-  const batteryToGrid: PerSourceFlow[] =
-    sumDischarge > 0
-      ? state.battery.map((b, j) => ({
-          sourceId: b.id,
-          powerW: ((discharge[j] ?? 0) / sumDischarge) * totalBattToGrid,
-        }))
-      : [];
+  const batteryToHome: PerSourceFlow[] = state.battery.map((b, j) => ({
+    sourceId: b.id,
+    powerW: sumDischarge > 0 ? ((discharge[j] ?? 0) / sumDischarge) * totalBattToHome : 0,
+  }));
+  const batteryToGrid: PerSourceFlow[] = state.battery.map((b, j) => ({
+    sourceId: b.id,
+    powerW: sumDischarge > 0 ? ((discharge[j] ?? 0) / sumDischarge) * totalBattToGrid : 0,
+  }));
 
   // Step 7: Reconcile with grid sensor (export side) — pure: returns new arrays.
   const calcExport = totalPvToGrid + totalBattToGrid;
@@ -162,6 +154,55 @@ export function compute(state: SystemState): FlowResult {
     });
   }
 
+  // Step 8: Home → Consumer
+  const homeToConsumer: PerSourceFlow[] = state.consumer.map((c) => ({
+    sourceId: c.id,
+    powerW: c.powerW,
+  }));
+  const sumConsumers = sum(state.consumer.map((c) => c.powerW));
+  if (sumConsumers > homeW + 0.5) {
+    warnings.push({
+      code: 'BALANCE_DRIFT',
+      detail: `Σ consumers (${sumConsumers.toFixed(0)} W) exceeds home (${homeW.toFixed(0)} W)`,
+      magnitudeW: sumConsumers - homeW,
+    });
+  }
+
+  // Home-Attribution shares
+  const shares =
+    homeW > 0
+      ? [
+          ...pvToHome.map((f) => ({
+            sourceKind: 'pv' as const,
+            sourceId: f.sourceId,
+            share: f.powerW / homeW,
+          })),
+          ...batteryToHome.map((f) => ({
+            sourceKind: 'battery' as const,
+            sourceId: f.sourceId,
+            share: f.powerW / homeW,
+          })),
+          { sourceKind: 'grid' as const, share: gridToHome / homeW },
+        ]
+      : [
+          ...pvToHome.map((f) => ({
+            sourceKind: 'pv' as const,
+            sourceId: f.sourceId,
+            share: 0,
+          })),
+          ...batteryToHome.map((f) => ({
+            sourceKind: 'battery' as const,
+            sourceId: f.sourceId,
+            share: 0,
+          })),
+          { sourceKind: 'grid' as const, share: 0 },
+        ];
+
+  // Pairing-Defizit als sichtbare Grid → Battery Flows (siehe ADR-0007 v2):
+  const gridToBattery: PerSourceFlow[] = pairingDeficit
+    .filter((d) => d.deficitW > 0.5)
+    .map((d) => ({ sourceId: d.batteryId, powerW: d.deficitW }));
+
   return {
     homeW,
     flows: {
@@ -172,9 +213,9 @@ export function compute(state: SystemState): FlowResult {
       batteryToGrid: battToGridFinal,
       gridToHome,
       gridToBattery,
-      homeToConsumer: [],
+      homeToConsumer,
     },
-    homeAttribution: { shares: [] },
+    homeAttribution: { shares },
     pairingDeficit,
     warnings,
   };
