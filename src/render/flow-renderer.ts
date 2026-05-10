@@ -2,10 +2,17 @@ import { html, svg, type TemplateResult } from 'lit';
 import { DE } from '../i18n/de';
 import { formatPowerW } from '../util/format-power';
 import { edgeColorRole } from './edge-color';
+import { computeAnimationParams, renderDots } from './flow-animation';
 import { renderHomeRing } from './home-ring';
 import { colorFor, HA_CSS_VARS, type ThemeContext } from './theme';
 import type { LayoutEdge, LayoutNode, LayoutResult } from './layout';
-import type { Config, ConsumerConfig, SolarConfig, BatteryConfig } from '../config/types';
+import type {
+  AnimationConfig,
+  Config,
+  ConsumerConfig,
+  SolarConfig,
+  BatteryConfig,
+} from '../config/types';
 import type { FlowResult, PerSourceFlow } from '../engine/types';
 import type { ColorRole } from '../util/resolve-color';
 import type { EngineWarning } from '../util/warning-types';
@@ -18,6 +25,7 @@ export interface RenderContext {
   theme: ThemeContext;
   buildWarnings: EngineWarning[]; // warnings collected in buildSystemState
   unavailableEntities: Set<string>; // entity_ids that are 'unavailable'/'unknown'
+  animation?: AnimationConfig;
   onNodeClick?: (nodeId: string) => void;
 }
 
@@ -83,15 +91,34 @@ function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): T
   const active = power > ctx.activeThresholdW;
   if (!active && !ctx.showInactive) return svg``;
   const color = colorFor(edgeColorRole(edge.kind), ctx.theme);
+  if (!active) {
+    return svg`
+      <g part="flow flow-${edge.kind}">
+        <path
+          d="${edge.d}"
+          class="flow-line idle"
+          stroke="${color}"
+          fill="none"
+          data-power="${power}"
+        ></path>
+      </g>
+    `;
+  }
+  const params = computeAnimationParams(power, edge.kind, ctx.animation, ctx.theme);
   return svg`
-    <path
-      d="${edge.d}"
-      class="flow-line ${active ? 'animated' : 'idle'}"
-      stroke="${color}"
-      fill="none"
+    <g
       part="flow flow-${edge.kind}"
-      data-power="${power}"
-    ></path>
+      style="--dur: ${params.durationS}s; --flow-color: ${color};"
+    >
+      <path
+        d="${edge.d}"
+        class="flow-line animated"
+        stroke="${color}"
+        fill="none"
+        data-power="${power}"
+      ></path>
+      ${renderDots(edge, params)}
+    </g>
   `;
 }
 
