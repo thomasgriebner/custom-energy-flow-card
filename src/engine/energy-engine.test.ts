@@ -106,3 +106,120 @@ describe('Engine — Pairing (step 3)', () => {
     expect(compute(s).flows.pvToBattery).toEqual([]);
   });
 });
+
+describe('Engine — Source attribution + Reconcile (steps 4–7)', () => {
+  it('Edge case 2: sunny day, batteries charging, surplus to grid', () => {
+    const s: SystemState = {
+      pv: [
+        { id: 'dach', powerW: 2000 },
+        { id: 'balkon', powerW: 600 },
+      ],
+      battery: [
+        { id: 'b_dach', pairedPvId: 'dach', powerW: 600, socPct: 75 },
+        { id: 'b_balkon', pairedPvId: 'balkon', powerW: 200, socPct: 42 },
+      ],
+      grid: { powerW: -600 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.homeW).toBe(1200);
+    expect(r.flows.pvToHome.reduce((s, f) => s + f.powerW, 0)).toBeCloseTo(1200, 1);
+    expect(r.flows.pvToGrid.reduce((s, f) => s + f.powerW, 0)).toBeCloseTo(600, 1);
+    expect(r.flows.batteryToHome).toEqual([]);
+  });
+
+  it('Edge case 3: evening, batteries supply home + grid, no PV', () => {
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 0 }],
+      battery: [
+        { id: 'b_dach', pairedPvId: 'dach', powerW: -1100, socPct: 68 },
+        { id: 'b_balkon', pairedPvId: 'balkon', powerW: -400, socPct: 38 },
+      ],
+      grid: { powerW: -300 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.homeW).toBe(1200);
+    expect(r.flows.pvToHome).toEqual([{ sourceId: 'dach', powerW: 0 }]);
+    const bToHome = r.flows.batteryToHome.reduce((s, f) => s + f.powerW, 0);
+    const bToGrid = r.flows.batteryToGrid.reduce((s, f) => s + f.powerW, 0);
+    expect(bToHome).toBeCloseTo(1200, 1);
+    expect(bToGrid).toBeCloseTo(300, 1);
+  });
+
+  it('Edge case 4: night — pure grid import covers home', () => {
+    const s: SystemState = {
+      pv: [],
+      battery: [],
+      grid: { powerW: 500 },
+      consumer: [],
+      home: {},
+    };
+    const r = compute(s);
+    expect(r.homeW).toBe(500);
+    expect(r.flows.gridToHome).toBe(500);
+  });
+
+  it('Edge case 9: untracked_export — sensor exports but no source has excess', () => {
+    const s: SystemState = {
+      pv: [],
+      battery: [],
+      grid: { powerW: -200 },
+      consumer: [],
+      home: { powerOverrideW: 0 },
+    };
+    const r = compute(s);
+    expect(r.flows.pvToGrid).toEqual([]);
+    expect(r.flows.batteryToGrid).toEqual([]);
+    expect(r.warnings.some((w) => w.code === 'EXPORT_INCONSISTENT')).toBe(true);
+  });
+
+  it('Edge case 10: phantom_export — calc shows export but sensor reads 0', () => {
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 1000 }],
+      battery: [],
+      grid: { powerW: 0 },
+      consumer: [],
+      home: { powerOverrideW: 500 },
+    };
+    const r = compute(s);
+    expect(r.flows.pvToGrid.every((f) => f.powerW === 0)).toBe(true);
+    expect(r.warnings.some((w) => w.code === 'EXPORT_INCONSISTENT')).toBe(true);
+  });
+
+  it('proportional split when 2 PVs export', () => {
+    const s: SystemState = {
+      pv: [
+        { id: 'dach', powerW: 1500 },
+        { id: 'balkon', powerW: 500 },
+      ],
+      battery: [],
+      grid: { powerW: -2000 },
+      consumer: [],
+      home: { powerOverrideW: 0 },
+    };
+    const r = compute(s);
+    const dachToGrid = r.flows.pvToGrid.find((f) => f.sourceId === 'dach')?.powerW ?? 0;
+    const balkonToGrid = r.flows.pvToGrid.find((f) => f.sourceId === 'balkon')?.powerW ?? 0;
+    expect(dachToGrid).toBeCloseTo(1500, 1);
+    expect(balkonToGrid).toBeCloseTo(500, 1);
+  });
+
+  it('Edge case 8: Reconcile Fall 1 — calc_export ≠ export triggers scaling + warning', () => {
+    // PV produces 2000W, no battery, home_override 0 → calc_export = 2000W
+    // Sensor says export = 1500W → scale = 0.75 → warning required
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 2000 }],
+      battery: [],
+      grid: { powerW: -1500 },
+      consumer: [],
+      home: { powerOverrideW: 0 },
+    };
+    const r = compute(s);
+    const totalPvToGrid = r.flows.pvToGrid.reduce((s, f) => s + f.powerW, 0);
+    expect(totalPvToGrid).toBeCloseTo(1500, 0);
+    expect(r.warnings.some((w) => w.code === 'EXPORT_INCONSISTENT')).toBe(true);
+  });
+});
