@@ -57,7 +57,52 @@ export function renderCard(
     >
       ${layout.edges.map((e) => renderEdge(e, result, ctx))}
       ${orderedNodes.map((n) => renderNode(n, result, ctx))}
+      ${result.warnings.length > 0 ? renderDiagnostics(result, layout, ctx) : svg``}
     </svg>
+  `;
+}
+
+function renderDiagnostics(
+  result: FlowResult,
+  layout: LayoutResult,
+  ctx: RenderContext,
+): TemplateResult {
+  const count = result.warnings.length;
+  const label = `${DE.diagnostics.iconLabel}: ${count} ${DE.diagnostics.pluralize(count)}`;
+  const summary = result.warnings
+    .map(
+      (w) =>
+        `${w.code}: ${w.detail}${w.magnitudeW !== undefined ? ` (~${Math.round(w.magnitudeW)} W)` : ''}`,
+    )
+    .join('\n');
+  const fill = colorFor('warning', ctx.theme); // amber #eab308 default, overridable via display.colors.warning
+  return svg`
+    <g
+      transform="translate(${layout.width - 30} 30)"
+      part="diagnostics"
+      role="button"
+      tabindex="0"
+      aria-label="${label}"
+      style="cursor: help;"
+      @click=${() => {
+        for (const w of result.warnings) {
+          console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);
+        }
+      }}
+      @keydown=${(e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          for (const w of result.warnings) {
+            console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);
+          }
+        }
+      }}
+    >
+      <circle r="12" fill="${fill}" opacity="0.18"></circle>
+      <circle r="12" fill="none" stroke="${fill}" stroke-width="1.5"></circle>
+      <text text-anchor="middle" y="4" font-size="13" font-weight="700" fill="${fill}">!</text>
+      <title>${count} ${DE.diagnostics.title}:\n${summary}</title>
+    </g>
   `;
 }
 
