@@ -54,11 +54,23 @@ die Bilanz schließt nie perfekt. Was tun bei Inkonsistenzen?
 
 * Visualisierte Pfad-Werte sind *Schätzungen* aus der Bilanz, keine direkten
   Messwerte. *Mitigation:* dokumentiert in der README + im Code.
-* Reconcile kann Sensor-Inkonsistenzen verschleiern (z. B. Pairing-Defizit
-  wird in `pairingDeficit[]` gemerkt, aber nicht visuell als „Grid → Battery"
-  gezeigt). *Mitigation:* Diagnose-UX (Spec §5.12), v1.x kann den Pfad ergänzen.
 * Edge-Cases im Reconcile (`untracked_export`, `phantom_export`) sind unvollkommen.
   *Mitigation:* explizit getestet (Spec §4.11 Tests 9–10).
+
+### Update v2 (Risiko-Mitigation M7, 2026-05-10)
+
+Der ursprüngliche v1-ADR sagte: „Pairing-Defizit wird *nicht* als Grid→Battery
+visualisiert; bleibt im Netzbezug verborgen." Bei der Risiko-Analyse stellten
+wir fest, dass dies User-Verwirrung verursacht (Netz-Sensor zeigt 1500 W Bezug,
+sichtbarer Netz→Haus-Pfad nur 1000 W — wo gehen die anderen 500 W hin?).
+
+**Geänderte Entscheidung:** `flows.gridToBattery[]` wird in v1.0 als
+zusätzlicher Pfadtyp gerendert (siehe Spec §5.2). Engine erzeugt einen
+Eintrag pro Battery mit `pairing_deficit > 0.5 W`. Der Pfad nutzt dieselbe
+`grid_import`-Farbrolle wie Netz→Haus.
+
+Topologie der gerenderten Edges in 2-PV/2-Akku/3-Verbraucher-Setup steigt von
+14 auf **16** — die Layout-Tests prüfen das.
 
 ## Pros und Cons der Optionen
 

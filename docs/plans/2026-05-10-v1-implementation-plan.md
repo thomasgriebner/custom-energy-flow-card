@@ -50,7 +50,7 @@
 ```json
 {
   "name": "custom-energy-flow-card",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "type": "module",
   "module": "dist/custom-energy-flow-card.js",
   "scripts": {
@@ -354,6 +354,63 @@ Expected: PASS (no test files; vitest reports "no tests found", exit 0).
 git add -A
 git commit -m "chore: project bootstrap (toolchain, configs, CI workflows)"
 ```
+
+### Task 0.2: Reference-Implementation-Comparison-Pass
+
+Vor Phase 1: Da wir keine HA-Test-Instanz haben, validieren wir alle
+HA-Integrations-Annahmen gegen die aktuelle `power-flow-card-plus` als Referenz.
+Ergebnis ist ein kurzes Memo, das pro HA-Touchpoint dokumentiert: erwartet vs.
+beobachtet, und ggf. notwendige Plan-Anpassungen.
+
+**Files:**
+- Create: `docs/notes/ha-integration-reference.md` (Memo)
+
+- [ ] **Step 1: Klone power-flow-card-plus zur Referenz**
+
+```bash
+git clone --depth 1 https://github.com/flixlix/power-flow-card-plus /tmp/pfcp-ref
+```
+
+- [ ] **Step 2: Touchpoints diffen**
+
+Prüfe in `/tmp/pfcp-ref/src/`:
+
+| Touchpoint | Was im pfcp-ref aktuell verwendet wird? | Im Plan vorgesehen? | Match? |
+|---|---|---|---|
+| `setConfig(config)` | Signatur, Throw-Verhalten | Plan §3.2 | ? |
+| `static getConfigElement()` | Returntyp, Element-Tag | Plan Task 3.2 | ? |
+| `static getStubConfig(hass, entities)` | Args + Return | Plan Task 3.2 | ? |
+| `getCardSize()` | Zahl-Range | Plan Task 3.2 (= 6) | ? |
+| `customCards.push({...})` | Pflichtfelder | Plan Task 3.3 | ? |
+| `<ha-form>`-Schema | Selector-Format | Plan Task 4.x | ? |
+| `<ha-entity-picker>`-Properties | hass, value, includeDomains, weitere? | Plan Task 4.x | ? |
+| `value-changed`-Event | Detail-Shape | Plan Task 4.x | ? |
+| `config-changed`-Event | Detail-Shape | Plan Task 4.x | ? |
+| `fireEvent('hass-more-info')` | Detail.entityId vs entity_id | Plan Task 3.1 | ? |
+| HA-CSS-Variablen | `--ha-card-background`, `--primary-text-color`, `--divider-color`, etc. | Plan Task 2.1 | ? |
+
+- [ ] **Step 3: Memo schreiben**
+
+Erstelle `docs/notes/ha-integration-reference.md` mit:
+- Pro Touchpoint: Code-Snippet aus pfcp-ref, Plan-Status, ggf. Anpassungs-Bedarf
+- Liste der Diffs als Action-Items
+- Datum und commit-Hash der Referenz
+
+- [ ] **Step 4: Plan-Patches einarbeiten**
+
+Falls Diffs gefunden: Plan entsprechend patchen, Begründung in der Memo
+festhalten. Falls Plan korrekt: Memo dokumentiert das.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/notes/
+git commit -m "docs(notes): power-flow-card-plus reference comparison memo"
+```
+
+> **Begründung:** ohne Test-HA ist diese Diff-Übung der billigste Weg, um
+> ~70 % der HA-Form-/Lifecycle-Annahme-Risiken vor der Implementation zu
+> entdecken (statt erst beim Anwender). Aufwand ~2 Std., spart später Tage.
 
 ---
 
@@ -953,7 +1010,9 @@ export const DE = {
 - [ ] **Step 2: Create `src/const.ts`**
 
 ```typescript
-export const CARD_VERSION = '1.0.0';
+// First production install starts at 0.9.x — v1.0.0 nach 1–2 Wochen stabilem
+// Praxis-Betrieb. Reduziert Erwartungsdruck und macht Bug-Fix-Releases erwartbar.
+export const CARD_VERSION = '0.9.0';
 export const CARD_TYPE = 'custom-energy-flow-card';
 export const CARD_NAME = 'Custom Energy Flow Card';
 export const CARD_DOC_URL = 'https://github.com/griebner/custom-energy-flow-card';
@@ -1039,6 +1098,8 @@ export interface FlowSet {
   batteryToHome: PerSourceFlow[];
   batteryToGrid: PerSourceFlow[];
   gridToHome: number;
+  /** Wenn ein Akku aus dem Netz geladen wird (PV reicht nicht): pairing_deficit. */
+  gridToBattery: PerSourceFlow[];
   homeToConsumer: PerSourceFlow[];
 }
 
@@ -1079,6 +1140,7 @@ export type FlowEdgeKind =
   | 'battery-to-home'
   | 'battery-to-grid'
   | 'grid-to-home'
+  | 'grid-to-battery'   // Pairing-Defizit: Akku lädt aus Netz (siehe ADR-0007)
   | 'home-to-consumer';
 
 export const FLOW_EDGE_KINDS: readonly FlowEdgeKind[] = [
@@ -1088,6 +1150,7 @@ export const FLOW_EDGE_KINDS: readonly FlowEdgeKind[] = [
   'battery-to-home',
   'battery-to-grid',
   'grid-to-home',
+  'grid-to-battery',
   'home-to-consumer',
 ] as const;
 ```
@@ -1234,6 +1297,7 @@ export function compute(state: SystemState): FlowResult {
       batteryToHome: [],
       batteryToGrid: [],
       gridToHome: 0,
+      gridToBattery: [],
       homeToConsumer: [],
     },
     homeAttribution: { shares: [] },
@@ -1281,7 +1345,7 @@ describe('Engine — Pairing (step 3)', () => {
     expect(r.flows.pvToBattery).toEqual([{ sourceId: 'dach', powerW: 600 }]);
   });
 
-  it('Edge case 5: pairing deficit (PV 200 W, charge 500 W)', () => {
+  it('Edge case 5: pairing deficit (PV 200 W, charge 500 W) — grid-to-battery flow visible', () => {
     const s: SystemState = {
       pv: [{ id: 'dach', powerW: 200 }],
       battery: [{ id: 'b_dach', pairedPvId: 'dach', powerW: 500, socPct: 50 }],
@@ -1292,6 +1356,7 @@ describe('Engine — Pairing (step 3)', () => {
     const r = compute(s);
     expect(r.flows.pvToBattery).toEqual([{ sourceId: 'dach', powerW: 200 }]);
     expect(r.pairingDeficit).toEqual([{ batteryId: 'b_dach', deficitW: 300 }]);
+    expect(r.flows.gridToBattery).toEqual([{ sourceId: 'b_dach', powerW: 300 }]);
     expect(r.warnings.some((w) => w.code === 'PAIRING_DEFICIT')).toBe(true);
   });
 
@@ -1915,6 +1980,11 @@ Replace the closing `return { … }` block with:
         { sourceKind: 'grid' as const, share: 0 },
       ];
 
+  // Pairing-Defizit als sichtbare Grid → Battery Flows (siehe ADR-0007 v2):
+  const gridToBattery: PerSourceFlow[] = pairingDeficit
+    .filter((d) => d.deficitW > 0.5)
+    .map((d) => ({ sourceId: d.batteryId, powerW: d.deficitW }));
+
   return {
     homeW,
     flows: {
@@ -1924,6 +1994,7 @@ Replace the closing `return { … }` block with:
       batteryToHome,
       batteryToGrid: battToGridFinal,
       gridToHome,
+      gridToBattery,
       homeToConsumer,
     },
     homeAttribution: { shares },
@@ -2008,6 +2079,8 @@ export interface DisplayConfig {
   show_inactive_paths?: boolean;
   animation?: AnimationConfig;
   colors?: Partial<Record<ColorRole, string>>;
+  /** Wenn true: ausführliches console-Logging der HA-Lifecycle-Schritte. Für Bug-Reports. */
+  debug?: boolean;
 }
 
 export interface AnimationConfig {
@@ -2537,7 +2610,7 @@ describe('computeLayout', () => {
     expect(ys[1]).toBeLessThan(ys[2] ?? 0);
   });
 
-  it('produces edge entries for all 14 flow paths in 2-PV/2-batt/3-cons setup', () => {
+  it('produces edge entries for all 16 flow paths in 2-PV/2-batt/3-cons setup', () => {
     const c = baseConfig({
       solar: [
         { id: 'dach', power: 's.d' },
@@ -2561,8 +2634,9 @@ describe('computeLayout', () => {
     expect(kinds.filter((k) => k === 'battery-to-home').length).toBe(2);
     expect(kinds.filter((k) => k === 'battery-to-grid').length).toBe(2);
     expect(kinds.filter((k) => k === 'grid-to-home').length).toBe(1);
+    expect(kinds.filter((k) => k === 'grid-to-battery').length).toBe(2);  // Pairing-Defizit-Pfade
     expect(kinds.filter((k) => k === 'home-to-consumer').length).toBe(3);
-    expect(l.edges).toHaveLength(14);
+    expect(l.edges).toHaveLength(16);
   });
 
   it('handles 0 PVs (config with only grid + consumers)', () => {
@@ -2759,6 +2833,20 @@ export function computeLayout(config: Config): LayoutResult {
     d: straightPath(gridNode, homeNode),
   });
 
+  // Grid → Battery (Pairing-Defizit-Pfad, siehe ADR-0007 v2). Bogen unter dem
+  // Haus durch nach unten zur Battery — gespiegeltes Routing zu battery → grid.
+  for (const b of config.battery) {
+    const battNode = nodes.find((n) => n.kind === 'battery' && n.id === b.id);
+    if (!battNode) continue;
+    edges.push({
+      id: `grid-to-battery-${b.id}`,
+      kind: 'grid-to-battery',
+      fromNodeId: '__grid',
+      toNodeId: b.id,
+      d: bezierPath(gridNode, battNode, { x: gridNode.x - 20, y: battNode.y - 80 }),
+    });
+  }
+
   config.consumers.forEach((c, i) => {
     const consNode = nodes.find((n) => n.kind === 'consumer' && n.id === `c${i}`);
     if (!consNode) return;
@@ -2882,6 +2970,7 @@ export function edgeColorRole(kind: FlowEdgeKind): ColorRole {
     case 'battery-to-home':
       return 'battery';
     case 'grid-to-home':
+    case 'grid-to-battery':   // Strom kommt aus dem Netz → grid_import
       return 'grid_import';
     case 'home-to-consumer':
       return 'consumer';
@@ -2972,6 +3061,7 @@ function edgePower(edge: LayoutEdge, result: FlowResult): number {
     case 'battery-to-home': return findFlow(result.flows.batteryToHome, edge.fromNodeId);
     case 'battery-to-grid': return findFlow(result.flows.batteryToGrid, edge.fromNodeId);
     case 'grid-to-home': return result.flows.gridToHome;
+    case 'grid-to-battery': return findFlow(result.flows.gridToBattery, edge.toNodeId);
     case 'home-to-consumer': return findFlow(result.flows.homeToConsumer, edge.toNodeId);
   }
 }
@@ -3559,6 +3649,64 @@ export const scenarios: MockScenario[] = [
       'sensor.stove': { state: '0', attributes: wAttrs },
     },
   },
+  // Animation-Identity-Test (M4): zwei aufeinanderfolgende Szenarien mit
+  // identischer Topologie aber leicht unterschiedlichen Werten — beim Wechsel
+  // dürfen die Punkte NICHT zurückspringen oder restart-en. Wenn doch:
+  // Lit-Diff ersetzt das gesamte <g>, statt nur das style-Attribut zu patchen.
+  {
+    name: 'Animation-Identity A · sonniger Tag (Wert-Variante 1)',
+    emoji: '🔁',
+    config: baseConfig(),
+    hassStates: {
+      'sensor.s_dach': { state: '2400', attributes: wAttrs },
+      'sensor.s_balkon': { state: '500', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '70', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '500', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '40', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '150', attributes: wAttrs },
+      'sensor.grid_power': { state: '-1000', attributes: wAttrs },
+      'sensor.heatpump': { state: '400', attributes: wAttrs },
+      'sensor.wallbox': { state: '0', attributes: wAttrs },
+      'sensor.stove': { state: '100', attributes: wAttrs },
+    },
+  },
+  {
+    name: 'Animation-Identity B · sonniger Tag (Wert-Variante 2)',
+    emoji: '🔁',
+    config: baseConfig(),
+    hassStates: {
+      'sensor.s_dach': { state: '2700', attributes: wAttrs },
+      'sensor.s_balkon': { state: '650', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '71', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '700', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '41', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '250', attributes: wAttrs },
+      'sensor.grid_power': { state: '-1100', attributes: wAttrs },
+      'sensor.heatpump': { state: '450', attributes: wAttrs },
+      'sensor.wallbox': { state: '0', attributes: wAttrs },
+      'sensor.stove': { state: '100', attributes: wAttrs },
+    },
+  },
+  // Sensor-Jitter (M5): simuliert reale HA-Bedingungen mit Noise auf allen
+  // Sensoren. Engine-Warnings sollten nicht durchgehend feuern. Wird in der
+  // Sandbox per setInterval aktualisiert.
+  {
+    name: 'Sensor-Jitter · echte HA-Realität',
+    emoji: '📡',
+    config: { ...baseConfig(), display: { ...baseConfig().display, debug: true } },
+    hassStates: {
+      'sensor.s_dach': { state: '2050', attributes: wAttrs },
+      'sensor.s_balkon': { state: '510', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '67', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '550', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '39', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '180', attributes: wAttrs },
+      'sensor.grid_power': { state: '-820', attributes: wAttrs },  // leicht inkonsistent zur Bilanz
+      'sensor.heatpump': { state: '410', attributes: wAttrs },
+      'sensor.wallbox': { state: '0', attributes: wAttrs },
+      'sensor.stove': { state: '95', attributes: wAttrs },
+    },
+  },
 ];
 
 export function buildMockHass(scenario: MockScenario): { states: Record<string, MockHassEntity> } {
@@ -3853,6 +4001,9 @@ export class CustomEnergyFlowCard extends LitElement {
     if (!isStubConfig(validated)) {
       this._layout = memoLayout(validated);
     }
+    if (validated.display?.debug) {
+      console.info('[CEFC] setConfig accepted', { stub: isStubConfig(validated), config: validated });
+    }
   }
 
   static getConfigElement(): HTMLElement {
@@ -3876,6 +4027,9 @@ export class CustomEnergyFlowCard extends LitElement {
       }
     });
     this._resizeObs.observe(this);
+    if (this._config?.display?.debug) {
+      console.info('[CEFC] firstUpdated, ResizeObserver attached', { container: this._containerW });
+    }
   }
 
   override disconnectedCallback(): void {
@@ -3906,6 +4060,13 @@ export class CustomEnergyFlowCard extends LitElement {
         warnings: [...built.warnings, ...engineResult.warnings],
       };
       this._renderError = undefined;
+      if (this._config.display?.debug) {
+        console.info('[CEFC] willUpdate', {
+          homeW: engineResult.homeW,
+          warnings: this._flowResult.warnings.length,
+          unavailable: built.unavailableEntities.size,
+        });
+      }
     } catch (err) {
       this._renderError = err instanceof Error ? err.message : String(err);
       console.error('[custom-energy-flow-card] willUpdate error:', err);
@@ -4050,14 +4211,23 @@ Replace content of `src/index.ts` (which currently contains the placeholder from
 ```typescript
 import { CARD_DOC_URL, CARD_NAME, CARD_TYPE, CARD_VERSION } from './const';
 import { CustomEnergyFlowCard } from './card';
+import './editor';   // side-effect import: registriert custom-energy-flow-card-editor
 import { DE } from './i18n/de';
 
+// Side-effect import — Lit's @customElement decorator registriert beim
+// Klassen-Eval. Wir referenzieren den Wert hier explizit, sonst eliminiert
+// Tree-Shaking ihn.
 void CustomEnergyFlowCard;
 
 console.info(
   `%c CUSTOM-ENERGY-FLOW-CARD %c ${CARD_VERSION} `,
   'color: white; background: #f59e0b; padding: 2px 6px; border-radius: 3px;',
   'color: #f59e0b; background: transparent; padding: 2px 6px;',
+);
+
+// Defensive bootstrap-Logs, helfen beim Bug-Triage:
+console.info(
+  `[CEFC] elements registered: ${CARD_TYPE}, ${CARD_TYPE}-editor`,
 );
 
 interface CardEntry {
@@ -4077,6 +4247,8 @@ win.customCards.push({
   preview: true,
   documentationURL: CARD_DOC_URL,
 });
+
+console.info(`[CEFC] customCards entry pushed (${win.customCards.length} cards total)`);
 ```
 
 - [ ] **Step 2: Build and verify the bundle**
@@ -4934,6 +5106,17 @@ Alle `power`/`soc`-Felder erwarten die HA-Standard-Form `domain.object_id`
 Power-Sensoren werden mit `unit_of_measurement` aus den HA-Attributen erkannt
 und automatisch nach W konvertiert (`W`, `kW`, `mW`, `VA` unterstützt).
 
+## Debug-Modus
+
+Falls die Card nicht wie erwartet funktioniert: setze `display.debug: true` in
+der Config. Die Card schreibt dann ausführliche `[CEFC] …`-Logs in die
+Browser-Console (HA-Frontend → DevTools → Console), die uns bei Bug-Triage helfen.
+
+```yaml
+display:
+  debug: true
+```
+
 ## Pairing-Regel
 
 Jeder Akku referenziert genau eine PV via `charged_by`. Eine PV darf
@@ -5027,7 +5210,7 @@ Expected: all paths exist.
 - [ ] **Step 6: Tag the release**
 
 ```bash
-git tag -a v1.0.0 -m "Custom Energy Flow Card v1.0.0"
+git tag -a v0.9.0 -m "Custom Energy Flow Card v0.9.0 (first production install)"
 ```
 
 Push:
@@ -5091,6 +5274,138 @@ veröffentlicht.
 | §7 Build/Tests/Distribution | Phase 0 (CI mit 60-kB-Gate) + Phase 5 |
 | §10 Erfolg | Task 5.3 |
 | §11 Code-Qualität | ESLint zones (Task 0.1) + TDD-Reihenfolge in Phase 1 |
+
+### Task 5.5: Headless-Smoke-Test als CI-Gate (M3)
+
+Da der Anwender keine HA-Test-Instanz hat, fängt dieser Test die häufigsten
+Class-Load-/Render-Crashes (B1/B2-Klassen) **vor** dem ersten Live-Install.
+
+**Files:**
+- Create: `scripts/smoke-test.mjs`
+- Modify: `package.json` (Skript)
+- Modify: `.github/workflows/ci.yml` (Smoke-Test-Step)
+
+- [ ] **Step 1: Add `happy-dom` to devDependencies (already there from Task 0.1)**
+
+Verify:
+```bash
+grep happy-dom package.json
+```
+Expected: present.
+
+- [ ] **Step 2: Create `scripts/smoke-test.mjs`**
+
+```javascript
+import { Window } from 'happy-dom';
+import { readFileSync } from 'node:fs';
+
+const window = new Window();
+const { document } = window;
+
+// Minimal globals so the bundle loads
+globalThis.window = window;
+globalThis.document = document;
+globalThis.HTMLElement = window.HTMLElement;
+globalThis.customElements = window.customElements;
+
+// Stub <ha-card> as a transparent wrapper element
+window.customElements.define('ha-card', class extends window.HTMLElement {});
+
+const bundle = readFileSync('dist/custom-energy-flow-card.js', 'utf8');
+const blob = new Blob([bundle], { type: 'application/javascript' });
+const url = URL.createObjectURL(blob);
+await import(url);
+
+const TYPE = 'custom-energy-flow-card';
+const ctor = window.customElements.get(TYPE);
+if (!ctor) throw new Error(`smoke-test: ${TYPE} not registered`);
+console.log(`✓ ${TYPE} registered`);
+
+const editor = window.customElements.get(`${TYPE}-editor`);
+if (!editor) throw new Error(`smoke-test: ${TYPE}-editor not registered`);
+console.log(`✓ ${TYPE}-editor registered`);
+
+if (!Array.isArray(window.customCards) || window.customCards.length === 0) {
+  throw new Error('smoke-test: window.customCards entry missing');
+}
+console.log(`✓ customCards entry pushed (${window.customCards[0].type})`);
+
+const card = document.createElement(TYPE);
+document.body.appendChild(card);
+
+// Stub-Config darf nicht throwen
+const stub = ctor.getStubConfig();
+card.setConfig(stub);
+console.log('✓ setConfig(stub) accepted');
+
+// Echte Config
+card.setConfig({
+  type: 'custom:custom-energy-flow-card',
+  solar: [{ id: 'dach', power: 'sensor.s_dach' }],
+  battery: [],
+  grid: { power: 'sensor.grid' },
+  consumers: [{ name: 'WP', power: 'sensor.wp' }],
+});
+console.log('✓ setConfig(realistic) accepted');
+
+// hass setzen → render via Lit-Lifecycle
+card.hass = {
+  states: {
+    'sensor.s_dach': { state: '1500', attributes: { unit_of_measurement: 'W' } },
+    'sensor.grid':   { state: '0',    attributes: { unit_of_measurement: 'W' } },
+    'sensor.wp':     { state: '300',  attributes: { unit_of_measurement: 'W' } },
+  },
+};
+await Promise.resolve();   // give Lit a tick
+
+const sr = card.shadowRoot;
+if (!sr) throw new Error('smoke-test: shadowRoot missing after first render');
+const svg = sr.querySelector('svg');
+if (!svg) throw new Error('smoke-test: SVG not rendered');
+console.log('✓ shadow DOM rendered with SVG');
+
+const circles = sr.querySelectorAll('circle');
+if (circles.length === 0) throw new Error('smoke-test: no circles rendered');
+console.log(`✓ ${circles.length} circles rendered`);
+
+console.log('\nALL SMOKE TESTS PASSED');
+```
+
+- [ ] **Step 3: Add `smoke` script to `package.json`**
+
+In the `scripts` block of `package.json` (Task 0.1, Step 1), add:
+
+```json
+"smoke": "pnpm build && node scripts/smoke-test.mjs",
+```
+
+- [ ] **Step 4: Add smoke-step to `.github/workflows/ci.yml`**
+
+After `pnpm build` and the bundle-size check, add:
+
+```yaml
+      - name: Smoke test (bundle loads + renders)
+        run: node scripts/smoke-test.mjs
+```
+
+- [ ] **Step 5: Run smoke test locally**
+
+Run: `pnpm smoke`
+Expected: PASS, all 6 checkmarks printed.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add scripts/smoke-test.mjs package.json .github/workflows/ci.yml
+git commit -m "test: add headless smoke-test as CI gate (M3 risk-mitigation)"
+```
+
+> **Was der Smoke-Test fängt:** Class-Load-Crashes (z. B. fehlerhafte
+> CSS-Interpolation), fehlende customElement-Registrierung, fehlende
+> customCards-Entry, setConfig-Crash bei Stub, Render-Crash beim ersten
+> hass-Update, leerer Shadow-DOM. **Was er nicht fängt:** echte HA-Form-
+> Quirks, ha-entity-picker-Verhalten, Live-CSS-Animation. Dafür ist die
+> Sandbox + die M1-Reference-Comparison da.
 
 ### Task 5.4 (added during self-review): Diagnostik-Icon
 

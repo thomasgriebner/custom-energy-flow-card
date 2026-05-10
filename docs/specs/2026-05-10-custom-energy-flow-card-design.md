@@ -768,12 +768,17 @@ für jede Battery j mit charge[j] > 0:
   P_pv_remaining[i] = pv[i].powerW − P_pv→batt[i]
 
   pairing_deficit_j = charge[j] − P_pv→batt[i]
-  falls pairing_deficit_j > 0:
+  falls pairing_deficit_j > 0.5:
+    pairingDeficit.push({ batteryId: j, deficitW: pairing_deficit_j })
+    flows.gridToBattery.push({ sourceId: j, powerW: pairing_deficit_j })  // sichtbarer Pfad
     warning(PAIRING_DEFICIT, batteryId = j, magnitudeW = pairing_deficit_j)
 
 für PVs ohne gepairte Battery:
   P_pv_remaining[i] = pv[i].powerW
 ```
+
+`flows.gridToBattery[]` wird in §5.2 als sichtbarer Pfad gerendert, sodass
+auch Akku-Ladung aus dem Netz transparent bleibt.
 
 ### 4.5 Schritt 4 — Quellen → Haus (Priorität: PV → Akku → Netz)
 
@@ -930,6 +935,7 @@ auf Mobile — wir akzeptieren kleinere Knoten-Texte.
 | Akku j → Haus | Bogen nach oben Richtung Mitte |
 | Akku j → Netz | Bogen unter dem Haus durch nach links |
 | Netz → Haus | Gerade horizontal |
+| **Netz → Akku j** (Pairing-Defizit, ADR-0007 v2) | Bogen unter dem Haus durch nach unten zur Battery — gespiegeltes Routing zu Akku j → Netz |
 | Haus → Verbraucher k | Gerade horizontal nach rechts |
 
 SVG quadratic-Bezier-Kurven über `util/svg-path.ts.bezierPath()`. Pfade werden
