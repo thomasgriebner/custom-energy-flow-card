@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist/preview",
+    "noEmit": true
+  },
+  "include": ["src/**/*", "examples/**/*", "dist/preview/**/*"],
+  "exclude": ["**/*.test.ts"]
+}

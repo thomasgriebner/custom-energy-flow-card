@@ -1,4 +1,4 @@
-import { build } from 'rollup';
+import { rollup } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import { writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
@@ -6,15 +6,19 @@ import { writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
 const previewSrc = `
 import { scenarios, buildMockHass } from '../../examples/preview-mocks';
 
-const card = document.getElementById('card');
-const list = document.getElementById('scenarios');
+const card = document.getElementById('card') as HTMLElement & {
+  setConfig: (c: unknown) => void;
+  hass: unknown;
+};
+const list = document.getElementById('scenarios') as HTMLElement;
 
-function activate(idx) {
+function activate(idx: number): void {
   const sc = scenarios[idx];
+  if (!sc) return;
   card.setConfig(sc.config);
   card.hass = buildMockHass(sc);
-  for (const btn of list.children) btn.classList.remove('active');
-  list.children[idx].classList.add('active');
+  for (const btn of Array.from(list.children)) btn.classList.remove('active');
+  list.children[idx]?.classList.add('active');
 }
 
 scenarios.forEach((sc, idx) => {
@@ -29,15 +33,11 @@ activate(0);
 mkdirSync('dist/preview', { recursive: true });
 writeFileSync('dist/preview/_preview-entry.ts', previewSrc);
 
-const bundle = await build({
+const bundle = await rollup({
   input: 'dist/preview/_preview-entry.ts',
   plugins: [
     resolve(),
-    typescript({
-      tsconfig: './tsconfig.json',
-      include: ['dist/preview/**/*.ts', 'examples/**/*.ts', 'src/**/*.ts'],
-      compilerOptions: { rootDir: '.', outDir: 'dist/preview' },
-    }),
+    typescript({ tsconfig: './tsconfig.preview.json' }),
   ],
 });
 await bundle.write({ file: 'dist/preview/preview.mjs', format: 'es', sourcemap: true });
