@@ -49,6 +49,37 @@ Alle Compiler-Optionen aus `tsconfig.json` sind verbindlich (siehe Spec §2.6):
 * Pure Functions sind Default (siehe ADR-0004 für Engine)
 * Default-Werte am Funktions-Signatur, nicht erst im Body
 
+### 1.6 Funktionale Iteration
+
+**Bevorzuge funktionale Array-Methoden** über imperative Loops, wenn der Zweck
+eine Transformation ist. Macht die Intention sofort lesbar und passt zur
+pure-functions-Linie (ADR-0004, ADR-0010).
+
+| Zweck | Bevorzugt | Statt |
+|---|---|---|
+| Eingabe → gleichlanger Output | `.map()` | `forEach + result.push` |
+| Filter + Transform | `.filter().map()` oder `.flatMap()` | `forEach + if + push` |
+| Aggregat auf einen Wert | `.reduce()` | `forEach + akk += …` |
+| Existenz-Check | `.some()` / `.every()` | `forEach + return-flag` |
+| Element finden | `.find()` | `forEach + break` |
+| Index finden | `.findIndex()` | `for + index++` |
+| Reine Side-Effects | `for…of` oder `forEach` | (kein Wechsel nötig) |
+
+**Erlaubte Ausnahmen** für `forEach` mit `push`:
+
+* Loop ist gleichzeitig **stateful** (z. B. ein laufendes Akkumulator-Array
+  wird in jedem Durchgang gelesen *und* mutiert). Beispiel: Engine-Pairing-Step
+  konsumiert `pv_remaining[i]` schrittweise — `.reduce()` wäre hier weniger
+  lesbar als die direkte Sequenz.
+* Die Transformation produziert **mehrere unterschiedliche** Outputs in einem
+  Durchgang (z. B. zwei Listen + Warnings). `.flatMap` wäre möglich, aber
+  oft weniger klar.
+
+**Niemals erlaubt:**
+
+* `forEach` mit `push` als reine Transformation 1:1 (was `.map()` ist).
+* Manuelle `for (let i = 0; ...)`-Loops, wenn `.map`/`.filter`/`.find` reichen.
+
 ## 2. Comments-Policy
 
 * **Default: keine Kommentare.** Code soll selbsterklärend sein.
