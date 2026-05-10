@@ -1,9 +1,20 @@
 import { LitElement, css, html, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { CARD_TYPE } from './const';
+import {
+  renderBatterySection,
+  renderConsumersSection,
+  renderSolarSection,
+} from './editor-list-sections';
 import { fireConfigChanged } from './ha/ha-helpers';
 import { DE } from './i18n/de';
-import type { Config, GridConfig } from './config/types';
+import type {
+  BatteryConfig,
+  Config,
+  ConsumerConfig,
+  GridConfig,
+  SolarConfig,
+} from './config/types';
 import type { HomeAssistant } from './ha/ha-types';
 
 @customElement(`${CARD_TYPE}-editor`)
@@ -84,13 +95,33 @@ export class CustomEnergyFlowCardEditor extends LitElement {
   }
 
   override render(): TemplateResult {
-    if (!this._config) return html``;
+    const c = this._config;
+    if (!c) return html``;
     return html`
       ${this._validationError
         ? html` <div class="validation-banner" role="alert">${this._validationError}</div> `
         : ''}
-      ${this._renderGeneral()} ${this._renderSolarSection()} ${this._renderBatterySection()}
-      ${this._renderGridSection()} ${this._renderConsumersSection()}
+      ${this._renderGeneral()}
+      ${renderSolarSection(c.solar, this.hass, {
+        onItemChange: (i, value) => this._onSolarItemChange(i, value),
+        onAdd: () => this._addSolar(),
+        onRemove: (i) => this._removeSolar(i),
+        onMove: (i, delta) => this._moveSolar(i, delta),
+      })}
+      ${renderBatterySection(c.battery, c.solar, this.hass, {
+        onItemChange: (i, value) => this._onBatteryItemChange(i, value),
+        onPairChange: (i, charged_by) => this._onBatteryPairChange(i, charged_by),
+        onAdd: () => this._addBattery(),
+        onRemove: (i) => this._removeBattery(i),
+        onMove: (i, delta) => this._moveBattery(i, delta),
+      })}
+      ${this._renderGridSection()}
+      ${renderConsumersSection(c.consumers, this.hass, {
+        onItemChange: (i, value) => this._onConsumerItemChange(i, value),
+        onAdd: () => this._addConsumer(),
+        onRemove: (i) => this._removeConsumer(i),
+        onMove: (i, delta) => this._moveConsumer(i, delta),
+      })}
     `;
   }
 
@@ -186,7 +217,10 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     const newGrid: GridConfig =
       mode === 'split'
         ? { import: (value['import'] as string) ?? '', export: (value['export'] as string) ?? '' }
-        : { power: (value['power'] as string) ?? '', power_invert: Boolean(value['power_invert']) };
+        : {
+            power: (value['power'] as string) ?? '',
+            power_invert: Boolean(value['power_invert']),
+          };
     this._emitChange({ ...this._config, grid: newGrid });
   }
 
@@ -197,14 +231,117 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     return `${prefix}${n}`;
   }
 
-  private _renderSolarSection(): TemplateResult {
-    return html``;
+  private _onSolarItemChange(i: number, value: SolarConfig): void {
+    if (!this._config) return;
+    const solar = [...this._config.solar];
+    solar[i] = value;
+    this._emitChange({ ...this._config, solar });
   }
-  private _renderBatterySection(): TemplateResult {
-    return html``;
+
+  private _addSolar(): void {
+    if (!this._config) return;
+    const id = this._nextUniqueId(
+      'pv',
+      this._config.solar.map((s) => s.id),
+    );
+    const solar = [...this._config.solar, { id, power: '' }];
+    this._emitChange({ ...this._config, solar });
   }
-  private _renderConsumersSection(): TemplateResult {
-    return html``;
+
+  private _removeSolar(i: number): void {
+    if (!this._config) return;
+    const solar = this._config.solar.filter((_, idx) => idx !== i);
+    this._emitChange({ ...this._config, solar });
+  }
+
+  private _moveSolar(i: number, delta: number): void {
+    if (!this._config) return;
+    const solar = [...this._config.solar];
+    const j = i + delta;
+    if (j < 0 || j >= solar.length) return;
+    const tmp = solar[i];
+    const other = solar[j];
+    if (!tmp || !other) return;
+    solar[i] = other;
+    solar[j] = tmp;
+    this._emitChange({ ...this._config, solar });
+  }
+
+  private _onBatteryItemChange(i: number, value: BatteryConfig): void {
+    if (!this._config) return;
+    const battery = [...this._config.battery];
+    battery[i] = value;
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _onBatteryPairChange(i: number, charged_by: string): void {
+    if (!this._config) return;
+    const battery = [...this._config.battery];
+    const item = battery[i];
+    if (!item) return;
+    battery[i] = { ...item, charged_by };
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _addBattery(): void {
+    if (!this._config) return;
+    const id = this._nextUniqueId(
+      'b',
+      this._config.battery.map((b) => b.id),
+    );
+    const battery = [...this._config.battery, { id, soc: '', power: '', charged_by: '' }];
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _removeBattery(i: number): void {
+    if (!this._config) return;
+    const battery = this._config.battery.filter((_, idx) => idx !== i);
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _moveBattery(i: number, delta: number): void {
+    if (!this._config) return;
+    const battery = [...this._config.battery];
+    const j = i + delta;
+    if (j < 0 || j >= battery.length) return;
+    const tmp = battery[i];
+    const other = battery[j];
+    if (!tmp || !other) return;
+    battery[i] = other;
+    battery[j] = tmp;
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _onConsumerItemChange(i: number, value: ConsumerConfig): void {
+    if (!this._config) return;
+    const consumers = [...this._config.consumers];
+    consumers[i] = value;
+    this._emitChange({ ...this._config, consumers });
+  }
+
+  private _addConsumer(): void {
+    if (!this._config) return;
+    const consumers = [...this._config.consumers, { name: 'Verbraucher', power: '' }];
+    this._emitChange({ ...this._config, consumers });
+  }
+
+  private _removeConsumer(i: number): void {
+    if (!this._config) return;
+    const consumers = this._config.consumers.filter((_, idx) => idx !== i);
+    this._emitChange({ ...this._config, consumers });
+  }
+
+  private _moveConsumer(i: number, delta: number): void {
+    if (!this._config) return;
+    const consumers = [...this._config.consumers];
+    const j = i + delta;
+    if (j < 0 || j >= consumers.length) return;
+    const tmp = consumers[i];
+    const other = consumers[j];
+    if (!tmp || !other) return;
+    consumers[i] = other;
+    consumers[j] = tmp;
+    this._emitChange({ ...this._config, consumers });
   }
 
   private _emitChange(config: Config): void {
