@@ -20,10 +20,38 @@ Alle Compiler-Optionen aus `tsconfig.json` sind verbindlich (siehe Spec §2.6):
 
 * **Kein `any`** ohne `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
   + einzeiliger Begründungs-Kommentar
-* **Kein `as` cast** ohne Kommentar (außer `as const`)
-* **Keine non-null assertion `!`** ohne Kommentar; in `engine/` niemals
 * **Explizite Return-Types** für exportierte Funktionen
 * **`unknown` statt `any`** für externe Daten, dann narrowing
+
+#### `as`-Casts: Boundary vs. Internal
+
+Wir unterscheiden zwei Arten von `as`-Casts:
+
+**Boundary-Casts (kein Kommentar nötig):** Casts an klar definierten externen
+Schnittstellen, wo das External-API selbst untypisiert ist. Erlaubt ohne
+einzelnen Kommentar — die Stelle selbst dokumentiert die Boundary:
+
+* `validateConfig(input: unknown)`-Casts auf Config-Form-Variants
+* `e.target as HTMLSelectElement` in DOM-Event-Handlers
+* `e.detail.value as Partial<…>` in `<ha-form>`-Handlers
+* `changed.get('hass') as HomeAssistant | undefined` in Lit-Lifecycle-Hooks
+* `window as unknown as { customCards }` für globale window-Erweiterungen
+* `entity.attributes?.['x'] as string | undefined` für HA-State-Attribute
+* `config as Partial<Config>` in Card-Helper-Type-Guards
+
+**Internal-Casts (brauchen Kommentar):** alles andere — wenn der Cast Logik
+verschiebt oder eine Type-Lüge ist:
+
+```typescript
+// Map.get returns T | undefined; we delete + re-set so the value is present
+const value = cache.get(key) as R;
+```
+
+* **Niemals** `as any` (durch ESLint geblockt)
+* **`as const`** ohne Kommentar erlaubt — semantik-erhaltend
+* **Niemals non-null assertion `!`** in `engine/`, `config/`, `util/`. In
+  `card.ts`/`editor.ts`/Tests erlaubt, wenn vorher `expect(…).toBeDefined()`
+  oder eine andere Garantie steht — sonst kommentieren.
 
 ### 1.3 Naming
 

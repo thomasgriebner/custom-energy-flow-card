@@ -11,9 +11,29 @@
 **Reference documents (consult before each task):**
 - Full spec: `docs/specs/2026-05-10-custom-energy-flow-card-design.md`
 - Architecture: `docs/architecture.md`
-- ADRs: `docs/adr/`
-- Conventions: `docs/conventions.md`
+- ADRs: `docs/adr/` (14 Stück, alle verbindlich)
+- Conventions: `docs/conventions.md` (verbindlich, jede Code-Zeile)
 - Project quick-ref: `CLAUDE.md`
+
+> **🛑 Standing requirement for every task:** Jede Code-Zeile, die in
+> dieser Plan-Datei als TypeScript/JS-Block steht, ist als Vorschlag zu
+> verstehen, der **conventions.md** und **alle 14 ADRs** einhalten muss.
+> Vor dem `git commit` jeder Task: `pnpm check` läuft grün durch
+> (`lint + typecheck + test`). Lint enforced automatisch:
+> - Layer-Boundaries (ADR-0009)
+> - Imports-Reihenfolge (`import/order`, conventions §4)
+> - `no-console` außer info/warn/error (conventions §7)
+> - `no-explicit-any` ohne expliziten Disable
+> - `no-non-null-assertion` außer in Tests
+>
+> Entwickler-Disziplin enforced manuell:
+> - Pure Functions in `engine/` (ADR-0004)
+> - Keine god-class in `card.ts` (≤ 200 LOC)
+> - Single-Source `util/`-Aufrufe (ADR-0010)
+> - Funktionale Iteration (`.map`/`.filter`/`.reduce` über `forEach + push`,
+>   conventions §1.6 — siehe dort für Ausnahmen)
+> - Conventional-Commit-Format (conventions §8)
+> - Keine WHAT-Kommentare; Strings aus `i18n/de.ts` (conventions §2, §11.5)
 
 **Phases:**
 - 0. Project bootstrap (1 task)
@@ -215,12 +235,25 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': ['error', {
       allowExpressions: true,
     }],
+    'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
+    'import/order': ['error', {
+      groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
+      'newlines-between': 'never',
+      alphabetize: { order: 'asc' },
+    }],
   },
   overrides: [
     {
       files: ['*.test.ts'],
       rules: {
         '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
+    },
+    {
+      files: ['scripts/**', '*.config.ts', '*.config.mjs'],
+      rules: {
+        'no-console': 'off',
       },
     },
   ],
@@ -417,6 +450,12 @@ git commit -m "docs(notes): power-flow-card-plus reference comparison memo"
 ## Phase 1 — Foundation: util, i18n, engine, config
 
 > **Order matters:** Phase 1 builds the type system and pure logic first. Each task locks in API contracts that later layers depend on. Do not skip ahead.
+>
+> **Convention focus this phase:** ADR-0004 (pure functions, no class state in
+> engine), ADR-0010 (single-source util — keine inline-Re-Implementierungen
+> von formatPowerW/readSensorW/colorFor/bezierPath), conventions §1.6
+> (funktionale Iteration), §5 (TDD-Reihenfolge: Test zuerst, dann Code),
+> §6 (Engine wirft niemals — gibt warnings zurück).
 
 ### Task 1.1: `util/format-power.ts`
 
@@ -613,6 +652,7 @@ export function memoize<Args extends unknown[], R>(
   return (...args: Args): R => {
     const key = keyFn(...args);
     if (cache.has(key)) {
+      // Map.get returns R | undefined; cache.has guards above guarantees it's R.
       const value = cache.get(key) as R;
       cache.delete(key);
       cache.set(key, value);
@@ -2481,6 +2521,12 @@ git commit -m "feat(config): add schema validation and buildSystemState mapping"
 
 ## Phase 2 — Renderer + Sandbox
 
+> **Convention focus this phase:** ADR-0005 (CSS offset-path + Lit-Template,
+> kein direktes setProperty), ADR-0010 (Util-Imports konsequent),
+> conventions §11.5 (keine SVG-String-Konkatenation — alles `svg`-Tag),
+> §1.3 (`_`-Prefix bei privaten Lit-Members), Layer-Boundaries (Render darf
+> nicht aus `ha/` importieren).
+
 ### Task 2.1: `render/theme.ts`
 
 **Files:**
@@ -3312,11 +3358,10 @@ export function renderDots(
   // `--dur` is set on the outer wrapper-<g> in flow-renderer.renderEdge so
   // that the line-stream animation and the dot motion stay in sync. Here we
   // only set per-dot offset-path and animation-delay.
-  const dots: SVGTemplateResult[] = [];
   const stride = params.durationS / params.dotCount;
-  for (let i = 0; i < params.dotCount; i++) {
+  const dots = Array.from({ length: params.dotCount }, (_, i) => {
     const delayS = i * stride;
-    dots.push(svg`
+    return svg`
       <circle
         class="flow-dot"
         r="3.5"
@@ -3325,8 +3370,8 @@ export function renderDots(
           animation-delay: ${delayS}s;
         "
       ></circle>
-    `);
-  }
+    `;
+  });
   return svg`
     <g class="flow-dots" part="flow-dots flow-dots-${edge.kind}">
       ${dots}
@@ -3826,6 +3871,13 @@ git commit -m "feat(sandbox): add preview-mocks with 8 scenarios + sandbox HTML/
 
 ## Phase 3 — HA-Integration
 
+> **Convention focus this phase:** ADR-0011 (`shouldUpdate` statt
+> `@property hasChanged`), conventions §6 (Crash-Resilienz: try/catch in
+> willUpdate + Fallback-UI), §7 (Logging mit `[CEFC]`-Prefix),
+> §11.5 (card.ts ≤ 200 LOC, keine god-class — bei Risiko in card-helpers.ts
+> auslagern), ADR-0014 (Stub-Config über validateConfig — keine
+> Sonder-Pfade in setConfig).
+
 ### Task 3.1: `ha/ha-types.ts`, `ha/ha-globals.d.ts`, `ha/ha-helpers.ts`
 
 **Files:**
@@ -4315,6 +4367,12 @@ git tag -a phase-3-complete -m "Phase 3 (HA integration) verified"
 ---
 
 ## Phase 4 — Editor
+
+> **Convention focus this phase:** ADR-0008 (Listen manuell mit Lit, ha-form
+> nur pro Item), conventions §11.5 (editor.ts ≤ 400 LOC — bei Risiko Listen-
+> Render in `editor-list-sections.ts` auslagern), §6 (Try-Catch um
+> `validateConfig`, kein silent swallow — `_validationError`-State + Banner),
+> §11.5 (alle User-Strings aus `i18n/de.ts`).
 
 ### Task 4.1: `editor.ts` — skeleton + general/grid sections
 
@@ -4890,6 +4948,11 @@ git commit -m "feat(editor): gate config-changed on schema validation"
 ---
 
 ## Phase 5 — Polish & Release
+
+> **Convention focus this phase:** ADR-0012 (Smoke-Test als Pre-Release-Gate),
+> ADR-0013 (v0.9.0 first), conventions §12 (Doku-Pflicht: README, ADRs, Spec
+> bei Änderungen aktualisieren), §13 (keine neuen Runtime-Dependencies ohne
+> ADR), Bundle-Schwelle 60 kB streng einhalten.
 
 ### Task 5.1: HACS distribution + example config
 
