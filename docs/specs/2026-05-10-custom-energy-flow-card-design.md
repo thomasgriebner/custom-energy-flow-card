@@ -1,8 +1,14 @@
 # custom-energy-flow-card — Design
 
-**Status:** Spec v3 (post-second-review), ready for implementation planning
+**Status:** Spec v4 (post-implementation-plan-review), ready for execution
 **Datum:** 2026-05-10
 **Autor:** Brainstorming-Session mit @griebner
+
+**Patch v3 → v4:** §5.7 Animation-Update-Strategie präzisiert (Lit reactive
+re-render statt direktem `style.setProperty` für v1.0; `setProperty` als
+optionale v1.x-Optimierung). §2.5 Notiz: `ColorRole` lebt in
+`util/resolve-color.ts` (nicht in `config/types.ts`), weil `util/*` nicht
+aus `config/*` importieren darf — Layer-Boundary über Spec-Idiomatik.
 
 ## 0. Projekt-Kontext
 
@@ -1098,11 +1104,27 @@ Lit auf jedes globale `hass`-Update reagieren — Performance-Killer.
 
 **Re-Render-Pfade:**
 
-- Topologie unverändert (gleiche aktive/inaktive Pfade) → CSS-Custom-Properties
-  `--dur`, `--flow-color` werden via `style.setProperty` aktualisiert.
-  **Kein DOM-Rebuild.** Funktioniert dank `offset-path` (§5.5).
-- Topologie geändert → Lit re-rendert die betroffenen `<g class="flow">` neu
-  (lit-html template caching greift).
+`willUpdate` rebuildet `FlowResult`; `render()` gibt das Lit-Template aus.
+Lit's reactive Diff patcht nur die geänderten Attribute (insbesondere
+`style="--dur: …"`-Strings auf `<g class="flow-dots">`). Dank ADR-0005
+(`offset-path` als CSS-Property statt SVG-XML-Attribut) sind Animations-
+Parameter überhaupt erst per CSS-Variable steuerbar.
+
+**Verbindlich für v1.0:**
+- Lit-Template ist die einzige Render-Quelle.
+- `--dur`, `--flow-color`, `--dot-count` werden via Template-Interpolation
+  aus dem CSS-Variable-Wert in `style="..."` geschrieben.
+- Topologie-Änderungen (Pfad aktiv/inaktiv) → Lit-Template re-rendert
+  betroffene `<g>` neu.
+
+**Optionale v1.x-Optimierung (nicht für v1.0):**
+Direktes `el.style.setProperty('--dur', …)` außerhalb von Lit's Render-Cycle
+würde den Lit-Diff für `style`-Attribute komplett umgehen. Die Einsparung
+liegt bei ~14 Pfaden im Mikrosekundenbereich pro `hass`-Update — das
+rechtfertigt nicht den zusätzlichen Code (Lit `@queryAll`, eigener
+`updated()`-Loop, manuelle Synchronisation außerhalb der Reactivity).
+Falls bei vielen Pfaden (≥ 50) oder hoher Update-Frequenz (≥ 10/s) Profiling
+einen Hotspot zeigt, kann diese Optimierung nachgereicht werden.
 
 **ResizeObserver:**
 

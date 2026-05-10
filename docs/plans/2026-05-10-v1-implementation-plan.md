@@ -3073,6 +3073,16 @@ git commit -m "feat(render): add flow renderer for nodes, edges, ring, a11y"
 **Files:**
 - Create: `src/render/flow-animation.ts`
 
+> **Animation-Update-Strategie (Spec §5.7, ADR-0005):** Wir nutzen CSS
+> `offset-path` (statt SVG `<animateMotion>`), weil das Animations-Parameter
+> via CSS-Variable parametrisierbar macht. Die *konkrete v1.0-Implementation*
+> nutzt **Lit-Template mit `style="--dur: ..."`-Interpolation** — der
+> reaktive Render-Cycle patcht nur den `style`-Attribute-String. Das ist die
+> idiomatic-Lit-Lösung. Eine direkte `el.style.setProperty(...)`-Variante
+> außerhalb von Lit ist eine optionale v1.x-Optimierung mit marginalem
+> Performance-Gewinn bei wenigen Pfaden — siehe Spec §5.7 Abschnitt
+> „Optionale v1.x-Optimierung".
+
 - [ ] **Step 1: Implement `src/render/flow-animation.ts`**
 
 ```typescript

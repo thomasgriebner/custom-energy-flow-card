@@ -30,12 +30,23 @@ flackert die Anzeige bei jedem Sensor-Update.
 
 ### Positive Konsequenzen
 
-* `--dur: 2s` als CSS-Variable kann via `el.style.setProperty('--dur', '1.4s')`
-  bei Leistungs-Änderung aktualisiert werden — kein DOM-Rebuild nötig (siehe
-  Spec §5.7).
+* `animation-duration` ist eine CSS-Property (anders als SVG-`<animateMotion dur=…>`,
+  ein XML-Attribut). Damit lassen sich Animations-Parameter überhaupt erst per
+  CSS-Variable parametrisieren — Voraussetzung dafür, dass Lit die Werte
+  effizient interpolieren oder ein optionaler Optimierungspfad
+  (`el.style.setProperty(...)`) existieren kann.
 * Keine JS-Tick-Last — Browser-Compositor übernimmt die Animation.
 * Einfache Reduced-Motion-Behandlung (Spec §5.8): `animation-duration: 0s` per
   `@media`-Query.
+
+### Was diese ADR NICHT garantiert
+
+Diese ADR sagt **nicht**, dass v1.0 manuelles `el.style.setProperty(...)`
+außerhalb von Lit verwenden muss. Der Standard-Implementations-Pfad bleibt
+Lit's reactive Re-Render mit `style="..."`-Interpolation. Die direkte
+setProperty-Optimierung ist eine optionale v1.x-Variante, falls Profiling
+einen Hotspot bei sehr vielen Pfaden / hoher Update-Frequenz zeigt — siehe
+Spec §5.7 für die Begründung der v1.0-Wahl.
 
 ### Negative Konsequenzen
 
@@ -48,9 +59,10 @@ flackert die Anzeige bei jedem Sensor-Update.
 
 ### Option A — CSS `offset-path`
 
-* ✅ CSS-Variable-Updates ohne DOM-Rebuild
+* ✅ Animations-Parameter (`animation-duration`, Pfad-Geometrie) via CSS-Variable steuerbar
 * ✅ Compositor-Animation, keine JS-Last
 * ✅ Reduced Motion trivial
+* ✅ Setzt setProperty-Optimierung als Tür offen, ohne sie zu erzwingen
 * ❌ Safari < 14 nicht unterstützt (akzeptabel)
 
 ### Option B — SVG `<animateMotion>`
