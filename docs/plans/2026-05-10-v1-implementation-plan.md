@@ -196,15 +196,18 @@ module.exports = {
     'import/no-restricted-paths': ['error', {
       zones: [
         { target: './src/engine', from: './src',
-          except: ['./engine', './util/memo.ts'] },
+          except: ['./engine', './util/memo.ts', './util/warning-types.ts'] },
         { target: './src/config', from: './src',
           except: ['./config', './util', './engine/types.ts', './i18n'] },
         { target: './src/render', from: './src',
-          except: ['./render', './util', './engine/types.ts', './i18n'] },
+          except: ['./render', './util', './engine/types.ts', './engine/flow-graph.ts',
+                   './config/types.ts', './const.ts', './i18n'] },
         { target: './src/util', from: './src', except: ['./util'] },
         { target: './src/i18n', from: './src', except: ['./i18n'] },
         { target: './src/ha', from: './src',
           except: ['./ha', './config/types.ts', './engine/types.ts'] },
+        { target: './src/editor.ts', from: './src',
+          except: ['./config', './ha', './util', './i18n', './const.ts'] },
       ],
     }],
     '@typescript-eslint/no-explicit-any': 'error',
@@ -291,7 +294,7 @@ jobs:
         run: |
           SIZE=$(stat -c%s dist/custom-energy-flow-card.js)
           echo "Bundle: $SIZE bytes"
-          [ "$SIZE" -lt 65536 ] || (echo "Bundle exceeds 60 kB" && exit 1)
+          [ "$SIZE" -le 61440 ] || (echo "Bundle exceeds 60 kB (61440 bytes)" && exit 1)
 ```
 
 - [ ] **Step 11: Create `.github/workflows/release.yml`**
@@ -410,12 +413,17 @@ export interface FormatOpts {
   locale?: string;
 }
 
+function defaultLocale(): string {
+  if (typeof navigator !== 'undefined' && navigator.language) return navigator.language;
+  return 'de-DE';
+}
+
 export function formatPowerW(value: number, opts: FormatOpts = {}): string {
   if (!Number.isFinite(value)) return '— W';
   const rounded = Math.round(value);
   const abs = Math.abs(rounded);
   const grouped = opts.format === 'grouped';
-  const locale = opts.locale ?? 'de-DE';
+  const locale = opts.locale ?? defaultLocale();
   const formatted = grouped
     ? new Intl.NumberFormat(locale, { useGrouping: true }).format(abs)
     : String(abs);
@@ -577,6 +585,13 @@ git commit -m "feat(util): add bezierPath/straightPath and LRU memoize"
 - Create: `src/util/resolve-color.ts`
 - Test: `src/util/resolve-color.test.ts`
 
+> **Layer-Note:** `ColorRole` lebt **hier** in `util/`, nicht (wie Spec §2.5
+> textuell andeutet) in `config/types.ts`. Grund: `util/resolve-color.ts`
+> braucht den Typ als Funktions-Parameter; `util/*` darf laut ESLint-Zones
+> nicht aus `config/*` importieren. `config/types.ts` und `render/theme.ts`
+> importieren `ColorRole` von hier — Layer-Richtung Util → höher passt zu
+> ADR-0002. (Spec §2.5 wird beim ersten Patch-Release angeglichen.)
+
 - [ ] **Step 1: Write the failing tests**
 
 Create `src/util/resolve-color.test.ts`:
@@ -650,25 +665,50 @@ git add src/util/resolve-color.ts src/util/resolve-color.test.ts
 git commit -m "feat(util): add resolveColor with role defaults and overrides"
 ```
 
-### Task 1.4: `util/read-sensor.ts`
+### Task 1.4: `util/warning-types.ts` and `util/read-sensor.ts`
 
-This is the central HA-sensor reader with unit conversion (W/kW/mW/VA) and robustness for missing or invalid states. Spec §2.7.3.
+Central HA-sensor reader with unit conversion (W/kW/mW/VA) and unified warning type. Spec §2.7.3, §2.5.
 
 **Files:**
+- Create: `src/util/warning-types.ts` (shared warning type — siehe Fix-Note)
 - Create: `src/util/read-sensor.ts`
 - Test: `src/util/read-sensor.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+> **Architektur-Note:** Warning-Typen leben in `util/warning-types.ts` als Single
+> Source. `engine/types.ts` re-exportiert daraus. So kann `read-sensor` Warnings
+> direkt im selben Typ liefern, den die Engine konsumiert — keine Konvertierung,
+> keine Doppel-Definition. Die ESLint-Zone für `engine` erlaubt
+> `./util/warning-types.ts` als Ausnahme (Task 0.1).
+
+- [ ] **Step 1: Create `src/util/warning-types.ts`**
+
+```typescript
+export type EngineWarningCode =
+  | 'NEGATIVE_PV'
+  | 'PAIRING_DEFICIT'
+  | 'BALANCE_DRIFT'
+  | 'EXPORT_INCONSISTENT'
+  | 'SENSOR_UNAVAILABLE'
+  | 'UNIT_UNKNOWN';
+
+export interface EngineWarning {
+  code: EngineWarningCode;
+  detail: string;
+  magnitudeW?: number;
+  entityId?: string;
+}
+```
+
+- [ ] **Step 2: Write the failing tests**
 
 Create `src/util/read-sensor.test.ts`:
 
 ```typescript
 import { describe, expect, it } from 'vitest';
-import { readSensorW } from './read-sensor';
-import type { HomeAssistant } from '../ha/ha-types';
+import { readSensorW, type ReadSensorHassShape } from './read-sensor';
 
-const buildHass = (states: Record<string, { state: string; attributes?: Record<string, unknown> }>): HomeAssistant =>
-  ({ states } as unknown as HomeAssistant);
+const buildHass = (states: Record<string, { state: string; attributes?: Record<string, unknown> }>): ReadSensorHassShape =>
+  ({ states });
 
 describe('readSensorW', () => {
   it('reads W sensor as-is', () => {
@@ -730,38 +770,21 @@ describe('readSensorW', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — must fail**
+- [ ] **Step 3: Run tests — must fail**
 
 Run: `pnpm test src/util/read-sensor.test.ts`
 Expected: FAIL (module not found).
 
-- [ ] **Step 3: Create `src/ha/ha-types.ts` (minimal subset needed by util)**
+- [ ] **Step 4: Implement `src/util/read-sensor.ts`**
+
+Hass-Subset wird inline in `util/read-sensor.ts` definiert (`ReadSensorHassShape`).
+`HomeAssistant` aus `ha/ha-types.ts` ist Superset davon — das volle Type kommt
+in Phase 3 (Task 3.1). `util/` darf laut ESLint-Zones nicht aus `ha/` importieren,
+deshalb der lokale Subset-Typ.
 
 ```typescript
-export interface HassEntity {
-  state: string;
-  attributes: Record<string, unknown>;
-  entity_id?: string;
-  last_changed?: string;
-  last_updated?: string;
-}
+import type { EngineWarning } from './warning-types';
 
-export interface HomeAssistant {
-  states: Record<string, HassEntity>;
-  locale?: { language: string };
-  themes?: { darkMode: boolean };
-  callService?: (...args: unknown[]) => Promise<unknown>;
-  callApi?: (...args: unknown[]) => Promise<unknown>;
-}
-```
-
-Note: this file is in the `ha/` layer. `util/read-sensor.ts` would normally not be allowed to import from `ha/` per ESLint zones. But importing only the **type** `HomeAssistant` from `ha/ha-types.ts` is allowed by the zone exception in `.eslintrc.cjs` (line: `target: './src/util', from: './src', except: ['./util']`). Wait — the zones disallow util from importing ha/. We need to adjust: `read-sensor` needs the HA type. Solution: **don't** import from `ha/`. Define a local minimal `HomeAssistant`-shaped type in `util/read-sensor.ts` itself.
-
-Skip Step 3 — instead, inline the type in Step 4.
-
-- [ ] **Step 4: Implement `src/util/read-sensor.ts` (with inline type)**
-
-```typescript
 export interface ReadSensorHassShape {
   states: Record<string, { state: string; attributes?: Record<string, unknown> } | undefined>;
 }
@@ -772,21 +795,9 @@ export interface SensorReadOpts {
   expectedUnit?: 'W' | '%';
 }
 
-export type SensorWarningCode =
-  | 'SENSOR_UNAVAILABLE'
-  | 'UNIT_UNKNOWN'
-  | 'NEGATIVE_PV';
-
-export interface SensorWarning {
-  code: SensorWarningCode;
-  detail: string;
-  entityId?: string;
-  magnitudeW?: number;
-}
-
 export interface SensorReadResult {
   value: number;
-  warning?: SensorWarning;
+  warning?: EngineWarning;
 }
 
 const UNIT_TO_W: Record<string, number> = {
@@ -838,7 +849,7 @@ export function readSensorW(
   const unitRaw = (entity.attributes?.['unit_of_measurement'] as string | undefined) ?? '';
   const unit = unitRaw.toLowerCase().trim();
   let factor = 1;
-  let warning: SensorWarning | undefined;
+  let warning: EngineWarning | undefined;
   if (unit === '') {
     factor = 1;
   } else if (unit in UNIT_TO_W) {
@@ -862,8 +873,8 @@ Expected: PASS, all 10 cases green.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/util/read-sensor.ts src/util/read-sensor.test.ts
-git commit -m "feat(util): add readSensorW with unit conversion and unavailable handling"
+git add src/util/warning-types.ts src/util/read-sensor.ts src/util/read-sensor.test.ts
+git commit -m "feat(util): add EngineWarning + readSensorW with unit conversion"
 ```
 
 ### Task 1.5: `i18n/de.ts` and `const.ts`
@@ -896,6 +907,7 @@ export const DE = {
     sensorUnavailable: 'Sensor nicht verfügbar',
     stubHint: 'Füge Solar, Akku oder Verbraucher hinzu, um das Energie-Diagramm zu sehen.',
     cardError: 'Card-Fehler',
+    narrowBanner: 'Beste Darstellung ab 320 px Breite',
   },
   grid: {
     consumption: 'Bezug',
@@ -908,6 +920,9 @@ export const DE = {
   diagnostics: {
     iconLabel: 'Diagnose-Hinweise',
     title: 'Engine-Warnungen',
+    warningSingular: 'Warnung',
+    warningPlural: 'Warnungen',
+    pluralize: (n: number): string => (n === 1 ? 'Warnung' : 'Warnungen'),
   },
   editor: {
     sectionGeneral: 'Allgemein',
@@ -1041,20 +1056,9 @@ export interface AttributionShare {
   share: number;
 }
 
-export type EngineWarningCode =
-  | 'NEGATIVE_PV'
-  | 'PAIRING_DEFICIT'
-  | 'BALANCE_DRIFT'
-  | 'EXPORT_INCONSISTENT'
-  | 'SENSOR_UNAVAILABLE'
-  | 'UNIT_UNKNOWN';
-
-export interface EngineWarning {
-  code: EngineWarningCode;
-  detail: string;
-  magnitudeW?: number;
-  entityId?: string;
-}
+// Re-export the unified warning types from util as Single-Source.
+// The ESLint zone for `engine` allows `./util/warning-types.ts`.
+export type { EngineWarning, EngineWarningCode } from '../util/warning-types';
 ```
 
 - [ ] **Step 2: Create `src/engine/flow-graph.ts`** (Topology-Konstanten)
@@ -1538,6 +1542,22 @@ describe('Engine — Source attribution + Reconcile (steps 4–7)', () => {
     expect(dachToGrid).toBeCloseTo(1500, 1);
     expect(balkonToGrid).toBeCloseTo(500, 1);
   });
+
+  it('Edge case 8: Reconcile Fall 1 — calc_export ≠ export triggers scaling + warning', () => {
+    // PV produces 2000W, no battery, home_override 0 → calc_export = 2000W
+    // Sensor says export = 1500W → scale = 0.75 → warning required
+    const s: SystemState = {
+      pv: [{ id: 'dach', powerW: 2000 }],
+      battery: [],
+      grid: { powerW: -1500 },
+      consumer: [],
+      home: { powerOverrideW: 0 },
+    };
+    const r = compute(s);
+    const totalPvToGrid = r.flows.pvToGrid.reduce((s, f) => s + f.powerW, 0);
+    expect(totalPvToGrid).toBeCloseTo(1500, 0);
+    expect(r.warnings.some((w) => w.code === 'EXPORT_INCONSISTENT')).toBe(true);
+  });
 });
 ```
 
@@ -1691,18 +1711,16 @@ export function compute(state: SystemState): FlowResult {
     totalBattToGrid = 0;
   }
 
-  // Step 7B: Reconcile import side
-  if (importW > 0) {
-    gridToHome = importW;
-    const totalToHome = totalPvToHome + totalBattToHome + gridToHome;
-    const drift = totalToHome - homeW;
-    if (Math.abs(drift) > Math.max(1, homeW * 0.05)) {
-      warnings.push({
-        code: 'BALANCE_DRIFT',
-        detail: `home in/out drift: ${totalToHome.toFixed(0)} W vs ${homeW.toFixed(0)} W`,
-        magnitudeW: Math.abs(drift),
-      });
-    }
+  // Step 7B: Reconcile import side — Sensor authoritativ, immer.
+  gridToHome = importW;
+  const totalToHome = totalPvToHome + totalBattToHome + gridToHome;
+  const drift = totalToHome - homeW;
+  if (Math.abs(drift) > Math.max(1, homeW * 0.05)) {
+    warnings.push({
+      code: 'BALANCE_DRIFT',
+      detail: `home in/out drift: ${totalToHome.toFixed(0)} W vs ${homeW.toFixed(0)} W`,
+      magnitudeW: Math.abs(drift),
+    });
   }
 
   return {
@@ -2091,9 +2109,11 @@ describe('buildSystemState', () => {
       'sensor.grid': { state: '0', attributes: { unit_of_measurement: 'W' } },
       'sensor.x': { state: '50', attributes: { unit_of_measurement: 'W' } },
     });
-    const state = buildSystemState(config, hass);
-    expect(state.battery[0]?.pairedPvId).toBe('dach');
-    expect(state.pv[0]?.powerW).toBe(1500);
+    const r = buildSystemState(config, hass);
+    expect(r.state.battery[0]?.pairedPvId).toBe('dach');
+    expect(r.state.pv[0]?.powerW).toBe(1500);
+    expect(r.warnings).toEqual([]);
+    expect(r.unavailableEntities.size).toBe(0);
   });
 
   it('inverts battery sign when power_invert: true', () => {
@@ -2111,7 +2131,7 @@ describe('buildSystemState', () => {
       'sensor.grid': { state: '0' },
       'sensor.x': { state: '0' },
     });
-    expect(buildSystemState(config, hass).battery[0]?.powerW).toBe(-500);
+    expect(buildSystemState(config, hass).state.battery[0]?.powerW).toBe(-500);
   });
 
   it('combines import + export grid sensors into signed powerW', () => {
@@ -2121,7 +2141,21 @@ describe('buildSystemState', () => {
       'sensor.ge': { state: '300', attributes: { unit_of_measurement: 'W' } },
       'sensor.x': { state: '0' },
     });
-    expect(buildSystemState(config, hass).grid.powerW).toBe(-300);
+    expect(buildSystemState(config, hass).state.grid.powerW).toBe(-300);
+  });
+
+  it('collects warnings + tracks unavailable entities', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s_dach' }],
+    });
+    const hass = buildHass({
+      'sensor.s_dach': { state: 'unavailable' },
+      'sensor.grid': { state: '0' },
+      'sensor.x': { state: '0' },
+    });
+    const r = buildSystemState(config, hass);
+    expect(r.warnings.some((w) => w.code === 'SENSOR_UNAVAILABLE')).toBe(true);
+    expect(r.unavailableEntities.has('sensor.s_dach')).toBe(true);
   });
 });
 ```
@@ -2135,8 +2169,15 @@ Expected: FAIL (module not found).
 
 ```typescript
 import { readSensorW, type ReadSensorHassShape } from '../util/read-sensor';
+import type { EngineWarning } from '../util/warning-types';
 import type { SystemState } from '../engine/types';
 import type { BatteryConfig, Config, GridConfig, SolarConfig } from './types';
+
+export interface BuildResult {
+  state: SystemState;
+  warnings: EngineWarning[];
+  unavailableEntities: Set<string>;
+}
 
 const ENTITY_RE = /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/i;
 
@@ -2246,41 +2287,47 @@ function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
-export function buildSystemState(config: Config, hass: ReadSensorHassShape): SystemState {
-  const pv = config.solar.map((s) => ({
-    id: s.id,
-    powerW: readSensorW(hass, s.power).value,
-  }));
+export function buildSystemState(config: Config, hass: ReadSensorHassShape): BuildResult {
+  const warnings: EngineWarning[] = [];
+  const unavailable = new Set<string>();
+
+  const read = (entityId: string, opts?: Parameters<typeof readSensorW>[2]): number => {
+    const r = readSensorW(hass, entityId, opts);
+    if (r.warning) {
+      warnings.push(r.warning);
+      if (r.warning.code === 'SENSOR_UNAVAILABLE') unavailable.add(entityId);
+    }
+    return r.value;
+  };
+
+  const pv = config.solar.map((s) => ({ id: s.id, powerW: read(s.power) }));
 
   const battery = config.battery.map((b) => ({
     id: b.id,
     pairedPvId: b.charged_by,
-    powerW: readSensorW(hass, b.power, { invertSign: b.power_invert }).value,
-    socPct: readSensorW(hass, b.soc, { expectedUnit: '%' }).value,
+    powerW: read(b.power, { invertSign: b.power_invert }),
+    socPct: read(b.soc, { expectedUnit: '%' }),
   }));
 
   let gridPowerW = 0;
   if ('power' in config.grid) {
-    gridPowerW = readSensorW(hass, config.grid.power, {
-      invertSign: config.grid.power_invert,
-    }).value;
+    gridPowerW = read(config.grid.power, { invertSign: config.grid.power_invert });
   } else {
-    const imp = readSensorW(hass, config.grid.import).value;
-    const exp = readSensorW(hass, config.grid.export).value;
+    const imp = read(config.grid.import);
+    const exp = read(config.grid.export);
     gridPowerW = imp - exp;
   }
 
-  const consumer = config.consumers.map((c, i) => ({
-    id: `c${i}`,
-    powerW: readSensorW(hass, c.power).value,
-  }));
+  const consumer = config.consumers.map((c, i) => ({ id: `c${i}`, powerW: read(c.power) }));
 
   const home: SystemState['home'] = {};
-  if (config.home?.power) {
-    home.powerOverrideW = readSensorW(hass, config.home.power).value;
-  }
+  if (config.home?.power) home.powerOverrideW = read(config.home.power);
 
-  return { pv, battery, grid: { powerW: gridPowerW }, consumer, home };
+  return {
+    state: { pv, battery, grid: { powerW: gridPowerW }, consumer, home },
+    warnings,
+    unavailableEntities: unavailable,
+  };
 }
 ```
 
@@ -2719,6 +2766,47 @@ git add src/render/home-ring.ts
 git commit -m "feat(render): add home attribution doughnut ring"
 ```
 
+### Task 2.3a: `render/edge-color.ts` (shared edge → color role mapping)
+
+**Files:**
+- Create: `src/render/edge-color.ts`
+
+- [ ] **Step 1: Implement `src/render/edge-color.ts`**
+
+```typescript
+import type { FlowEdgeKind } from '../engine/flow-graph';
+import type { ColorRole } from '../util/resolve-color';
+
+export function edgeColorRole(kind: FlowEdgeKind): ColorRole {
+  switch (kind) {
+    case 'pv-to-home':
+    case 'pv-to-battery':
+      return 'solar';
+    case 'pv-to-grid':
+    case 'battery-to-grid':
+      return 'grid_export';
+    case 'battery-to-home':
+      return 'battery';
+    case 'grid-to-home':
+      return 'grid_import';
+    case 'home-to-consumer':
+      return 'consumer';
+  }
+}
+```
+
+- [ ] **Step 2: Verify typecheck**
+
+Run: `pnpm typecheck`
+Expected: PASS.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/render/edge-color.ts
+git commit -m "feat(render): extract shared edge-to-color mapping (DRY)"
+```
+
 ### Task 2.4: `render/flow-renderer.ts`
 
 **Files:**
@@ -2730,19 +2818,36 @@ git commit -m "feat(render): add home attribution doughnut ring"
 import { html, svg, type TemplateResult } from 'lit';
 import { DE } from '../i18n/de';
 import { formatPowerW } from '../util/format-power';
+import type { Config, ConsumerConfig, SolarConfig, BatteryConfig } from '../config/types';
+import type { ColorRole } from '../util/resolve-color';
+import type { EngineWarning } from '../util/warning-types';
 import type { FlowResult, PerSourceFlow } from '../engine/types';
 import type { LayoutEdge, LayoutNode, LayoutResult } from './layout';
-import { colorFor, type ThemeContext } from './theme';
+import { colorFor, HA_CSS_VARS, type ThemeContext } from './theme';
 import { renderHomeRing } from './home-ring';
-import type { ColorRole } from '../util/resolve-color';
-import type { FlowEdgeKind } from '../engine/flow-graph';
+import { edgeColorRole } from './edge-color';
 
 export interface RenderContext {
+  config: Config;
   formatGrouped: boolean;
   activeThresholdW: number;
   showInactive: boolean;
   theme: ThemeContext;
+  buildWarnings: EngineWarning[];      // warnings collected in buildSystemState
+  unavailableEntities: Set<string>;    // entity_ids that are 'unavailable'/'unknown'
   onNodeClick?: (nodeId: string) => void;
+}
+
+const TAB_ORDER: ReadonlyArray<LayoutNode['kind']> = ['pv', 'grid', 'battery', 'consumer', 'home'];
+
+function sortForTabOrder(nodes: ReadonlyArray<LayoutNode>): LayoutNode[] {
+  return [...nodes].sort((a, b) => {
+    const ka = TAB_ORDER.indexOf(a.kind);
+    const kb = TAB_ORDER.indexOf(b.kind);
+    if (ka !== kb) return ka - kb;
+    if (a.x !== b.x) return a.x - b.x;
+    return a.y - b.y;
+  });
 }
 
 export function renderCard(
@@ -2750,6 +2855,7 @@ export function renderCard(
   result: FlowResult,
   ctx: RenderContext,
 ): TemplateResult {
+  const orderedNodes = sortForTabOrder(layout.nodes);
   return html`
     <svg
       viewBox="0 0 ${layout.width} ${layout.height}"
@@ -2759,7 +2865,7 @@ export function renderCard(
       aria-label="${DE.card.name}"
     >
       ${layout.edges.map((e) => renderEdge(e, result, ctx))}
-      ${layout.nodes.map((n) => renderNode(n, result, ctx))}
+      ${orderedNodes.map((n) => renderNode(n, result, ctx))}
     </svg>
   `;
 }
@@ -2778,23 +2884,6 @@ function edgePower(edge: LayoutEdge, result: FlowResult): number {
 
 function findFlow(flows: PerSourceFlow[], id: string): number {
   return flows.find((f) => f.sourceId === id)?.powerW ?? 0;
-}
-
-function edgeColorRole(kind: FlowEdgeKind): ColorRole {
-  switch (kind) {
-    case 'pv-to-home':
-    case 'pv-to-battery':
-      return 'solar';
-    case 'pv-to-grid':
-    case 'battery-to-grid':
-      return 'grid_export';
-    case 'battery-to-home':
-      return 'battery';
-    case 'grid-to-home':
-      return 'grid_import';
-    case 'home-to-consumer':
-      return 'consumer';
-  }
 }
 
 function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): TemplateResult {
@@ -2825,20 +2914,24 @@ function nodeColorRole(kind: LayoutNode['kind']): ColorRole {
 }
 
 function renderNode(node: LayoutNode, result: FlowResult, ctx: RenderContext): TemplateResult {
+  const unavailable = isNodeUnavailable(node, ctx);
   const color = colorFor(nodeColorRole(node.kind), ctx.theme);
-  const value = nodeValueText(node, result, ctx);
-  const ariaLabel = `${nodeName(node)}: ${value}`;
+  const value = unavailable ? formatPowerW(Number.NaN) : nodeValueText(node, result, ctx);
+  const name = nodeName(node, ctx);
+  const ariaLabel = unavailable
+    ? `${name}: ${DE.states.sensorUnavailable}`
+    : `${name}: ${value}`;
 
   const ring = node.kind === 'home'
     ? renderHomeRing(result.homeAttribution, 0, 0, ctx.theme)
     : svg``;
-
   const labelOffset = labelYOffset(node);
+  const strokeDash = unavailable ? '4 4' : '';
 
   return svg`
     <g
       transform="translate(${node.x} ${node.y})"
-      class="node node--${node.kind}"
+      class="node node--${node.kind} ${unavailable ? 'node--unavailable' : ''}"
       part="node node-${node.kind}"
       role="button"
       tabindex="0"
@@ -2852,18 +2945,40 @@ function renderNode(node: LayoutNode, result: FlowResult, ctx: RenderContext): T
       }}
     >
       ${ring}
-      <circle r="${node.r}" fill="var(--ha-card-background, #fff)" stroke="${color}" stroke-width="2.5"></circle>
+      <circle
+        r="${node.r}"
+        fill="${HA_CSS_VARS.cardBackground}"
+        stroke="${color}"
+        stroke-width="2.5"
+        stroke-dasharray="${strokeDash}"
+      ></circle>
       <text class="node-icon" text-anchor="middle" y="${node.kind === 'home' ? -10 : -4}" font-size="${node.kind === 'home' ? 28 : 22}">
-        ${nodeIconChar(node)}
+        ${nodeIconChar(node, ctx)}
       </text>
       <text class="node-value" text-anchor="middle" y="${node.kind === 'home' ? 14 : 16}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 13}">
         ${value}
       </text>
       <text class="node-name" text-anchor="middle" y="${labelOffset}" font-size="11" font-weight="600">
-        ${nodeName(node)}
+        ${name}
       </text>
     </g>
   `;
+}
+
+function isNodeUnavailable(node: LayoutNode, ctx: RenderContext): boolean {
+  const id = entityIdForNode(node, ctx.config);
+  return id !== undefined && ctx.unavailableEntities.has(id);
+}
+
+function entityIdForNode(node: LayoutNode, config: Config): string | undefined {
+  if (node.kind === 'pv') return config.solar.find((s) => s.id === node.id)?.power;
+  if (node.kind === 'battery') return config.battery.find((b) => b.id === node.id)?.power;
+  if (node.kind === 'grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
+  if (node.kind === 'consumer') {
+    const idx = Number.parseInt(node.id.slice(1), 10);
+    return config.consumers[idx]?.power;
+  }
+  return undefined;
 }
 
 function labelYOffset(node: LayoutNode): number {
@@ -2900,27 +3015,44 @@ function nodeValueText(node: LayoutNode, result: FlowResult, ctx: RenderContext)
   if (node.kind === 'consumer') {
     return formatPowerW(findFlow(result.flows.homeToConsumer, node.id), { format: fmt });
   }
-  return '— W';
+  return formatPowerW(Number.NaN);
 }
 
-function nodeName(node: LayoutNode): string {
+function configEntryForNode(node: LayoutNode, config: Config): SolarConfig | BatteryConfig | ConsumerConfig | undefined {
+  if (node.kind === 'pv') return config.solar.find((s) => s.id === node.id);
+  if (node.kind === 'battery') return config.battery.find((b) => b.id === node.id);
+  if (node.kind === 'consumer') return config.consumers[Number.parseInt(node.id.slice(1), 10)];
+  return undefined;
+}
+
+function nodeName(node: LayoutNode, ctx: RenderContext): string {
+  const entry = configEntryForNode(node, ctx.config);
+  if (entry?.name) return entry.name;
   switch (node.kind) {
     case 'pv': return `${DE.nodes.solar} ${node.id}`;
     case 'battery': return `${DE.nodes.battery} ${node.id}`;
     case 'grid': return DE.nodes.grid;
-    case 'home': return DE.nodes.home;
+    case 'home': return ctx.config.home?.name ?? DE.nodes.home;
     case 'consumer': return `${DE.nodes.consumer} ${node.id}`;
   }
 }
 
-function nodeIconChar(node: LayoutNode): string {
-  switch (node.kind) {
-    case 'pv': return '☀';
-    case 'battery': return '🔋';
-    case 'grid': return '⚡';
-    case 'home': return '🏠';
-    case 'consumer': return '🔌';
-  }
+const DEFAULT_ICONS: Record<LayoutNode['kind'], string> = {
+  pv: '☀',
+  battery: '🔋',
+  grid: '⚡',
+  home: '🏠',
+  consumer: '🔌',
+};
+
+function nodeIconChar(node: LayoutNode, ctx: RenderContext): string {
+  // For v1.0 we use Emoji defaults (Spec §9 acceptable fallback). User-configured
+  // mdi:* icon names are stored in config but not rendered as SVG paths in v1.0;
+  // this is an explicit deferral to v1.x — see Spec §9.
+  const entry = configEntryForNode(node, ctx.config);
+  // If user supplied a non-mdi icon (e.g. an emoji directly), pass through:
+  if (entry?.icon && !entry.icon.startsWith('mdi:')) return entry.icon;
+  return DEFAULT_ICONS[node.kind];
 }
 ```
 
@@ -2946,11 +3078,11 @@ git commit -m "feat(render): add flow renderer for nodes, edges, ring, a11y"
 ```typescript
 import { svg, type SVGTemplateResult } from 'lit';
 import type { LayoutEdge } from './layout';
-import type { ColorRole } from '../util/resolve-color';
 import { colorFor, type ThemeContext } from './theme';
 import type { FlowEdgeKind } from '../engine/flow-graph';
 import type { AnimationConfig } from '../config/types';
 import { DEFAULTS } from '../const';
+import { edgeColorRole } from './edge-color';
 
 export interface AnimationParams {
   durationS: number;
@@ -2970,7 +3102,7 @@ export function computeAnimationParams(
   const durationS = clamp(rawDur, a.min_duration_s, a.base_duration_s * 4);
   const rawDots = Math.ceil((powerW / safeRef) * 2);
   const dotCount = clamp(rawDots, 1, a.max_dots_per_path);
-  const role = animationColorRole(edgeKind);
+  const role = edgeColorRole(edgeKind);
   return { durationS, dotCount, color: colorFor(role, theme) };
 }
 
@@ -3005,23 +3137,6 @@ export function renderDots(
       ${dots}
     </g>
   `;
-}
-
-function animationColorRole(kind: FlowEdgeKind): ColorRole {
-  switch (kind) {
-    case 'pv-to-home':
-    case 'pv-to-battery':
-      return 'solar';
-    case 'pv-to-grid':
-    case 'battery-to-grid':
-      return 'grid_export';
-    case 'battery-to-home':
-      return 'battery';
-    case 'grid-to-home':
-      return 'grid_import';
-    case 'home-to-consumer':
-      return 'consumer';
-  }
 }
 
 function clamp(v: number, lo: number, hi: number): number {
@@ -3059,15 +3174,34 @@ export const ANIMATION_CSS = `
 
 - [ ] **Step 2: Integrate animation into renderer**
 
-Edit `src/render/flow-renderer.ts` — replace the `renderEdge` function with this version that also emits dots when active. Also export `ANIMATION_CSS`:
+Edit `src/render/flow-renderer.ts`:
 
-Find:
+a) Add to imports (top of file, with the other render-imports):
 
 ```typescript
-function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): TemplateResult {
-  const power = edgePower(edge, result);
-  const active = power > ctx.activeThresholdW;
-  if (!active && !ctx.showInactive) return svg``;
+import { computeAnimationParams, renderDots } from './flow-animation';
+import type { AnimationConfig } from '../config/types';
+```
+
+b) Add `animation?: AnimationConfig` to `RenderContext`. The interface becomes:
+
+```typescript
+export interface RenderContext {
+  config: Config;
+  formatGrouped: boolean;
+  activeThresholdW: number;
+  showInactive: boolean;
+  theme: ThemeContext;
+  buildWarnings: EngineWarning[];
+  unavailableEntities: Set<string>;
+  animation?: AnimationConfig;
+  onNodeClick?: (nodeId: string) => void;
+}
+```
+
+c) Replace the body of `renderEdge` to emit dots when active. Find:
+
+```typescript
   const color = colorFor(edgeColorRole(edge.kind), ctx.theme);
   return svg`
     <path
@@ -3085,10 +3219,6 @@ function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): T
 Replace with:
 
 ```typescript
-function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): TemplateResult {
-  const power = edgePower(edge, result);
-  const active = power > ctx.activeThresholdW;
-  if (!active && !ctx.showInactive) return svg``;
   const color = colorFor(edgeColorRole(edge.kind), ctx.theme);
   const dots = active
     ? renderDots(edge, computeAnimationParams(power, edge.kind, ctx.animation, ctx.theme))
@@ -3105,40 +3235,6 @@ function renderEdge(edge: LayoutEdge, result: FlowResult, ctx: RenderContext): T
       ${dots}
     </g>
   `;
-}
-```
-
-Add at the top of `src/render/flow-renderer.ts` (after existing imports):
-
-```typescript
-import { computeAnimationParams, renderDots } from './flow-animation';
-import type { AnimationConfig } from '../config/types';
-```
-
-Extend `RenderContext` interface in the same file to add an `animation` field:
-
-Replace:
-
-```typescript
-export interface RenderContext {
-  formatGrouped: boolean;
-  activeThresholdW: number;
-  showInactive: boolean;
-  theme: ThemeContext;
-  onNodeClick?: (nodeId: string) => void;
-}
-```
-
-With:
-
-```typescript
-export interface RenderContext {
-  formatGrouped: boolean;
-  activeThresholdW: number;
-  showInactive: boolean;
-  theme: ThemeContext;
-  animation?: AnimationConfig;
-  onNodeClick?: (nodeId: string) => void;
 }
 ```
 
@@ -3552,7 +3648,11 @@ git commit -m "feat(ha): add HA type subset, custom-element globals, event helpe
 **Files:**
 - Create: `src/card.ts`
 
-- [ ] **Step 1: Implement `src/card.ts`** (Phase 3 first chunk: skeleton)
+- [ ] **Step 1: Implement `src/card.ts`**
+
+`card.ts` ist bewusst dünn. Begleitende Helfer (`relevantSensorIds`,
+`hassRelevantSensorsChanged`, `isStubConfig`) werden in **`src/card-helpers.ts`**
+ausgelagert (Step 2), damit `card.ts` ≤ 200 LOC bleibt.
 
 ```typescript
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from 'lit';
@@ -3562,96 +3662,70 @@ import { DE } from './i18n/de';
 import { validateConfig, buildSystemState } from './config/schema';
 import type { Config } from './config/types';
 import { compute } from './engine/energy-engine';
-import type { FlowResult, SystemState } from './engine/types';
+import type { FlowResult } from './engine/types';
+import type { EngineWarning } from './util/warning-types';
 import { computeLayout, type LayoutResult } from './render/layout';
 import { renderCard } from './render/flow-renderer';
 import { ANIMATION_CSS } from './render/flow-animation';
 import { fireMoreInfo } from './ha/ha-helpers';
 import type { HomeAssistant } from './ha/ha-types';
 import { memoize } from './util/memo';
+import { hassRelevantSensorsChanged, isStubConfig, resolveEntityId } from './card-helpers';
 
 const memoLayout = memoize(
-  (config: Config) => computeLayout(config),
-  (config: Config) => JSON.stringify({
+  (config: Config, w: number, h: number) => computeLayout(config),
+  (config: Config, w: number, h: number) => JSON.stringify({
+    w, h,
     s: config.solar.map((s) => s.id),
     b: config.battery.map((b) => ({ i: b.id, p: b.charged_by })),
     c: config.consumers.length,
   }),
 );
 
-function relevantSensorIds(config: Config): string[] {
-  const ids: string[] = [];
-  for (const s of config.solar) ids.push(s.power);
-  for (const b of config.battery) {
-    ids.push(b.soc, b.power);
-  }
-  if ('power' in config.grid) ids.push(config.grid.power);
-  else ids.push(config.grid.import, config.grid.export);
-  for (const c of config.consumers) ids.push(c.power);
-  if (config.home?.power) ids.push(config.home.power);
-  return ids;
-}
-
-function hassRelevantSensorsChanged(prev: HomeAssistant | undefined, next: HomeAssistant | undefined, config: Config | undefined): boolean {
-  if (!prev || !next || !config) return true;
-  for (const id of relevantSensorIds(config)) {
-    const a = prev.states[id]?.state;
-    const b = next.states[id]?.state;
-    if (a !== b) return true;
-  }
-  return false;
-}
-
 @customElement(CARD_TYPE)
 export class CustomEnergyFlowCard extends LitElement {
-  @property({ attribute: false })
+  @property({
+    attribute: false,
+    hasChanged: function (this: CustomEnergyFlowCard, value: HomeAssistant, oldValue: HomeAssistant) {
+      return hassRelevantSensorsChanged(oldValue, value, this._config);
+    },
+  })
   hass?: HomeAssistant;
 
-  @state()
-  private config?: Config;
-
-  @state()
-  private flowResult?: FlowResult;
-
-  @state()
-  private layout?: LayoutResult;
-
-  @state()
-  private renderError?: string;
+  @state() private _config?: Config;
+  @state() private _flowResult?: FlowResult;
+  @state() private _layout?: LayoutResult;
+  @state() private _renderError?: string;
+  @state() private _buildWarnings: EngineWarning[] = [];
+  @state() private _unavailable: Set<string> = new Set();
+  @state() private _containerW = 720;
+  @state() private _containerH = 540;
+  private _resizeObs?: ResizeObserver;
 
   static override styles = css`
-    :host {
-      display: block;
-      transition: opacity 0.2s ease-in;
-    }
-    ha-card {
-      padding: var(--ha-card-padding, 16px);
-    }
-    .error-banner {
-      color: var(--error-color, #b00020);
-      padding: 12px;
-      border: 1px solid currentColor;
-      border-radius: 8px;
-    }
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 200px;
-      color: var(--secondary-text-color);
-    }
-    .stub-hint {
-      padding: 16px;
-      color: var(--secondary-text-color);
-      text-align: center;
-    }
+    :host { display: block; opacity: 0; transition: opacity 0.2s ease-in; }
+    :host([data-mounted]) { opacity: 1; }
+    ha-card { padding: var(--ha-card-padding, 16px); }
+    .error-banner { color: var(--error-color, #b00020); padding: 12px; border: 1px solid currentColor; border-radius: 8px; }
+    .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--secondary-text-color); }
+    .skeleton { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 32px; }
+    .skeleton-node { aspect-ratio: 1; border-radius: 50%; background: var(--divider-color, #e2e8f0); animation: skeleton-pulse 1.6s ease-in-out infinite; }
+    @keyframes skeleton-pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 0.3; } }
+    .stub-hint { padding: 16px; color: var(--secondary-text-color); text-align: center; }
+    .narrow-banner { font-size: 11px; color: var(--secondary-text-color); padding: 4px 8px; border-bottom: 1px solid var(--divider-color); }
+    .node:hover circle, .node:focus-visible circle { stroke-width: 3.5; }
+    .node:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); outline-offset: 4px; }
     ${ANIMATION_CSS}
   `;
 
   setConfig(config: unknown): void {
+    if (isStubConfig(config)) {
+      this._config = config as Config;
+      return;
+    }
     const validated = validateConfig(config);
-    this.config = validated;
-    this.layout = memoLayout(validated);
+    this._config = validated;
+    this._layout = memoLayout(validated, this._containerW, this._containerH);
   }
 
   static getConfigElement(): HTMLElement {
@@ -3659,98 +3733,96 @@ export class CustomEnergyFlowCard extends LitElement {
   }
 
   static getStubConfig(): Partial<Config> {
-    return {
-      type: 'custom:custom-energy-flow-card',
-      grid: { power: '' },
-      solar: [],
-      battery: [],
-      consumers: [],
-    };
+    return { type: 'custom:custom-energy-flow-card', grid: { power: '' }, solar: [], battery: [], consumers: [] };
   }
 
-  getCardSize(): number {
-    return 6;
-  }
+  getCardSize(): number { return 6; }
 
-  protected override shouldUpdate(changed: PropertyValues): boolean {
-    if (changed.has('hass')) {
-      const prev = changed.get('hass') as HomeAssistant | undefined;
-      if (this.hass && this.config && !hassRelevantSensorsChanged(prev, this.hass, this.config)) {
-        return changed.size > 1;
+  override firstUpdated(): void {
+    this.setAttribute('data-mounted', '');
+    this._resizeObs = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      if (Math.abs(width - this._containerW) > 4 || Math.abs(height - this._containerH) > 4) {
+        this._containerW = width;
+        this._containerH = height;
+        if (this._config && !isStubConfig(this._config)) {
+          this._layout = memoLayout(this._config, width, height);
+          this.requestUpdate();
+        }
       }
-    }
-    return true;
+    });
+    this._resizeObs.observe(this);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._resizeObs?.disconnect();
   }
 
   protected override willUpdate(changed: PropertyValues): void {
-    if (!this.config || !this.hass) return;
-    if (!changed.has('hass') && !changed.has('config')) return;
+    if (!this._config || !this.hass) return;
+    if (isStubConfig(this._config)) return;
+    if (!changed.has('hass') && !changed.has('_config')) return;
     try {
-      const state: SystemState = buildSystemState(this.config, this.hass);
-      this.flowResult = compute(state);
-      this.renderError = undefined;
+      const built = buildSystemState(this._config, this.hass);
+      this._buildWarnings = built.warnings;
+      this._unavailable = built.unavailableEntities;
+      const engineResult = compute(built.state);
+      this._flowResult = {
+        ...engineResult,
+        warnings: [...built.warnings, ...engineResult.warnings],
+      };
+      this._renderError = undefined;
     } catch (err) {
-      this.renderError = err instanceof Error ? err.message : String(err);
+      this._renderError = err instanceof Error ? err.message : String(err);
       console.error('[custom-energy-flow-card] willUpdate error:', err);
     }
   }
 
   override render(): TemplateResult {
-    if (this.renderError) {
-      return html`<ha-card><div class="error-banner" role="alert">${DE.states.cardError}: ${this.renderError}</div></ha-card>`;
+    if (this._renderError) {
+      return html`<ha-card><div class="error-banner" role="alert">${DE.states.cardError}: ${this._renderError}</div></ha-card>`;
     }
-    if (!this.hass || !this.config) {
-      return html`<ha-card><div class="loading" aria-busy="true">${DE.states.loading}</div></ha-card>`;
+    if (!this.hass || !this._config) {
+      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
     }
-    if (this.isStubLike()) {
+    if (isStubConfig(this._config)) {
       return html`<ha-card><div class="stub-hint">${DE.states.stubHint}</div></ha-card>`;
     }
-    if (!this.flowResult || !this.layout) {
-      return html`<ha-card><div class="loading" aria-busy="true">${DE.states.loading}</div></ha-card>`;
+    if (!this._flowResult || !this._layout) {
+      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
     }
-    const display = this.config.display ?? {};
+    const display = this._config.display ?? {};
+    const narrow = this._containerW < 280;
     return html`
       <ha-card>
-        ${renderCard(this.layout, this.flowResult, {
+        ${narrow ? html`<div class="narrow-banner" role="status">${DE.states.narrowBanner}</div>` : ''}
+        ${renderCard(this._layout, this._flowResult, {
+          config: this._config,
           formatGrouped: (display.number_format ?? DEFAULTS.number_format) === 'grouped',
           activeThresholdW: display.active_threshold_w ?? DEFAULTS.active_threshold_w,
           showInactive: display.show_inactive_paths ?? DEFAULTS.show_inactive_paths,
           theme: { colorOverrides: display.colors },
           animation: display.animation,
-          onNodeClick: (id) => this.handleNodeClick(id),
+          buildWarnings: this._buildWarnings,
+          unavailableEntities: this._unavailable,
+          onNodeClick: (id) => {
+            const entity = resolveEntityId(this._config, id);
+            if (entity) fireMoreInfo(this, entity);
+          },
         })}
       </ha-card>
     `;
   }
 
-  private isStubLike(): boolean {
-    if (!this.config) return false;
-    return this.config.solar.length === 0
-      && this.config.battery.length === 0
-      && this.config.consumers.length === 0;
-  }
-
-  private handleNodeClick(nodeId: string): void {
-    if (!this.config) return;
-    const entityId = this.resolveEntityId(nodeId);
-    if (entityId) fireMoreInfo(this, entityId);
-  }
-
-  private resolveEntityId(nodeId: string): string | undefined {
-    if (!this.config) return undefined;
-    const solar = this.config.solar.find((s) => s.id === nodeId);
-    if (solar) return solar.power;
-    const battery = this.config.battery.find((b) => b.id === nodeId);
-    if (battery) return battery.power;
-    if (nodeId === '__grid') {
-      return 'power' in this.config.grid ? this.config.grid.power : this.config.grid.import;
-    }
-    if (nodeId === '__home') return this.config.home?.power;
-    if (nodeId.startsWith('c')) {
-      const idx = Number.parseInt(nodeId.slice(1), 10);
-      return this.config.consumers[idx]?.power;
-    }
-    return undefined;
+  private _renderSkeleton(): TemplateResult {
+    return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
+      <div class="skeleton" aria-hidden="true">
+        <div class="skeleton-node"></div><div class="skeleton-node"></div><div class="skeleton-node"></div>
+        <div class="skeleton-node"></div><div class="skeleton-node"></div><div class="skeleton-node"></div>
+      </div>`;
   }
 }
 
@@ -3760,6 +3832,68 @@ declare global {
   }
 }
 ```
+
+- [ ] **Step 2: Create `src/card-helpers.ts`**
+
+```typescript
+import type { Config } from './config/types';
+import type { HomeAssistant } from './ha/ha-types';
+
+export function isStubConfig(config: unknown): config is Config {
+  if (!config || typeof config !== 'object') return false;
+  const c = config as Partial<Config>;
+  if (c.type !== 'custom:custom-energy-flow-card') return false;
+  const gridEmpty = !c.grid || ('power' in c.grid && c.grid.power === '');
+  const empty = (c.solar?.length ?? 0) === 0
+    && (c.battery?.length ?? 0) === 0
+    && (c.consumers?.length ?? 0) === 0;
+  return gridEmpty && empty;
+}
+
+export function relevantSensorIds(config: Config): string[] {
+  const ids: string[] = [];
+  for (const s of config.solar) ids.push(s.power);
+  for (const b of config.battery) { ids.push(b.soc, b.power); }
+  if ('power' in config.grid) ids.push(config.grid.power);
+  else ids.push(config.grid.import, config.grid.export);
+  for (const c of config.consumers) ids.push(c.power);
+  if (config.home?.power) ids.push(config.home.power);
+  return ids;
+}
+
+export function hassRelevantSensorsChanged(
+  prev: HomeAssistant | undefined,
+  next: HomeAssistant | undefined,
+  config: Config | undefined,
+): boolean {
+  if (!prev || !next || !config) return true;
+  for (const id of relevantSensorIds(config)) {
+    const a = prev.states[id]?.state;
+    const b = next.states[id]?.state;
+    if (a !== b) return true;
+  }
+  return false;
+}
+
+export function resolveEntityId(config: Config | undefined, nodeId: string): string | undefined {
+  if (!config) return undefined;
+  const solar = config.solar.find((s) => s.id === nodeId);
+  if (solar) return solar.power;
+  const battery = config.battery.find((b) => b.id === nodeId);
+  if (battery) return battery.power;
+  if (nodeId === '__grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
+  if (nodeId === '__home') return config.home?.power;
+  if (nodeId.startsWith('c')) {
+    const idx = Number.parseInt(nodeId.slice(1), 10);
+    return config.consumers[idx]?.power;
+  }
+  return undefined;
+}
+```
+
+> **Note:** `card-helpers.ts` ist explizit als Erweiterung von `card.ts`
+> gedacht. ESLint-Zone für root-level Files (`src/*.ts`) ist permissiv —
+> `card-helpers` darf wie `card.ts` aus jeder Schicht importieren.
 
 - [ ] **Step 2: Verify typecheck**
 
@@ -3820,7 +3954,7 @@ Run: `pnpm build`
 Expected: PASS, `dist/custom-energy-flow-card.js` is produced.
 
 Run: `du -b dist/custom-energy-flow-card.js`
-Expected: < 65536 bytes.
+Expected: ≤ 61440 bytes (60 kB per Spec §1.3).
 
 - [ ] **Step 3: Build sandbox**
 
@@ -3860,7 +3994,7 @@ For each of the 8 scenarios:
 - [ ] **Step 2: Bundle size**
 
 Run: `stat -c%s dist/custom-energy-flow-card.js`
-Expected: < 65536. Record actual size.
+Expected: ≤ 61440 bytes (60 kB). Record actual size.
 
 - [ ] **Step 3: Coverage**
 
@@ -3883,6 +4017,19 @@ git tag -a phase-3-complete -m "Phase 3 (HA integration) verified"
 
 **Files:**
 - Create: `src/editor.ts`
+
+> **Live-Sensor-Validierung (Spec §6.4.4 + §3.2):** `<ha-entity-picker>`
+> zeigt eingebaut eine Warning-Markierung, wenn die gewählte Entity in
+> `hass.states` nicht (mehr) existiert — dafür müssen wir keinen eigenen
+> Validator schreiben. Wir setzen nur `hass` als Property auf jedem Picker;
+> HA übernimmt den Rest. Die strukturelle Validierung (Pairing, ID-Eindeutigkeit,
+> ENTITY_RE) kommt aus `validateConfig` (Task 4.3).
+
+> **LOC-Budget (Spec §2.2):** `editor.ts` ≤ 400 LOC. Die kombinierte
+> Implementierung aus Tasks 4.1 + 4.2 + 4.3 landet erfahrungsgemäß bei ~390 LOC.
+> Falls beim Implementieren über 400 gewachsen wird, **drei Listen-Render-Funktionen
+> in `src/editor-list-sections.ts` extrahieren** (gleiche permissive Zone wie
+> `editor.ts`). Listen-Operations bleiben in `editor.ts`.
 
 - [ ] **Step 1: Implement `src/editor.ts`** (skeleton + first sections)
 
@@ -4658,7 +4805,7 @@ Expected: `dist/custom-energy-flow-card.js` exists.
 - [ ] **Step 3: Bundle size check**
 
 Run: `stat -c%s dist/custom-energy-flow-card.js`
-Expected: < 65536 bytes.
+Expected: ≤ 61440 bytes (60 kB per Spec §1.3 / §10.2).
 
 If exceeded:
 1. Run `pnpm build:analyze` and inspect `dist/bundle-stats.html`.
@@ -4736,35 +4883,29 @@ veröffentlicht.
 | §2.1 Tech-Stack | Task 0.1 |
 | §2.2 Modulaufteilung | Phases 1–4 |
 | §2.3 Datenfluss | Tasks 1.7–1.11, 3.2 |
-| §2.4 Schicht-Boundaries | `.eslintrc.cjs` in Task 0.1 |
-| §2.5 Typen | Tasks 1.6, 1.11 |
+| §2.4 Schicht-Boundaries | `.eslintrc.cjs` in Task 0.1 (zones for engine/config/render/util/i18n/ha + editor.ts) |
+| §2.5 Typen | Tasks 1.4 (warning-types), 1.6 (engine), 1.11 (config) |
 | §2.6 Tool-Configs | Task 0.1 |
-| §2.7 Util-Modul | Tasks 1.1–1.4 |
+| §2.7 Util-Modul | Tasks 1.1–1.4 (format-power, svg-path, memo, resolve-color, warning-types, read-sensor) |
 | §3 Config | Task 1.11 |
-| §4 Engine | Tasks 1.7–1.10 |
+| §4 Engine | Tasks 1.7–1.10 (alle 16 Edge-Cases inkl. Case 8) |
 | §5.1 Layout | Task 2.2 |
 | §5.2 Pfad-Routing | Task 2.2 |
-| §5.3 Knoten-Rendering + a11y | Task 2.4 |
+| §5.3 Knoten-Rendering + a11y + Tab-Order | Task 2.4 (sortForTabOrder) |
 | §5.4 Anteils-Ring | Task 2.3 |
-| §5.5 Animation | Task 2.5 |
+| §5.5 Animation | Tasks 2.3a (edge-color shared), 2.5 |
 | §5.6 Theme-Mapping | Task 2.1 |
-| §5.7 Update-Strategie | Task 3.2 (`shouldUpdate`, `willUpdate`, memoize) |
+| §5.7 Update-Strategie | Task 3.2 (`@property hasChanged`, `firstUpdated` + ResizeObserver, `disconnectedCallback`, memo mit viewBox) |
 | §5.8 Reduced Motion | Task 2.5 (CSS) |
-| §5.9 UX-Zustände | Task 3.2 (loading/stub/error/render) |
-| §5.10 Crash-Resilienz | Task 3.2 (try/catch in `willUpdate`) |
-| §5.11 a11y | Task 2.4 (role, aria-label, keyboard) |
-| §5.12 Diagnostik-UX | **gap — see note below** |
+| §5.9 UX-Zustände | Task 3.2 (loading-skeleton, stub-hint, error-banner, narrow-banner, mount fade-in, hover/focus) + Task 2.4 (per-node sensor-unavailable) |
+| §5.10 Crash-Resilienz | Task 3.2 (try/catch in `willUpdate` + Fallback-UI) |
+| §5.11 a11y | Task 2.4 (role/aria-label/Tab-Order/Keyboard, CVD via Theme) |
+| §5.12 Diagnostik-UX | Task 5.4 (Icon + per-Warning console.warn + native title-Tooltip; Dropdown-Panel ist v1.x-Kandidat) |
 | §5.13 Card-Mod via `::part()` | Task 2.4 (part attrs in renderer) |
-| §6 Card-Lifecycle + Editor | Tasks 3.2, 3.3, 4.1–4.3 |
-| §7 Build/Tests/Distribution | Phase 0 + 5 |
-| §8 Phasen | This plan's Phase 1–5 |
-| §9 Open issues | n/a (informational) |
+| §6 Card-Lifecycle + Editor | Tasks 3.2 (LitElement-Lifecycle, Stub-Erkennung), 3.3, 4.1–4.3 |
+| §7 Build/Tests/Distribution | Phase 0 (CI mit 60-kB-Gate) + Phase 5 |
 | §10 Erfolg | Task 5.3 |
-| §11 Code-Qualität | enforced by ESLint config (Task 0.1) |
-
-**Gap noted: §5.12 Diagnostik-UX (Warning-Icon mit Dropdown)** — a small
-visual feature to surface `FlowResult.warnings`. Rolled into a simple
-follow-up task here:
+| §11 Code-Qualität | ESLint zones (Task 0.1) + TDD-Reihenfolge in Phase 1 |
 
 ### Task 5.4 (added during self-review): Diagnostik-Icon
 
@@ -4773,9 +4914,8 @@ follow-up task here:
 
 - [ ] **Step 1: Add diagnostics rendering**
 
-In `src/render/flow-renderer.ts`, **after** the closing `</svg>` block in
-`renderCard`, append the diagnostics overlay. Replace the entire `renderCard`
-function body with:
+In `src/render/flow-renderer.ts`, change `renderCard` to include a diagnostics
+overlay when `result.warnings.length > 0`. Replace the entire function body with:
 
 ```typescript
 export function renderCard(
@@ -4783,6 +4923,7 @@ export function renderCard(
   result: FlowResult,
   ctx: RenderContext,
 ): TemplateResult {
+  const orderedNodes = sortForTabOrder(layout.nodes);
   return html`
     <svg
       viewBox="0 0 ${layout.width} ${layout.height}"
@@ -4792,31 +4933,54 @@ export function renderCard(
       aria-label="${DE.card.name}"
     >
       ${layout.edges.map((e) => renderEdge(e, result, ctx))}
-      ${layout.nodes.map((n) => renderNode(n, result, ctx))}
-      ${result.warnings.length > 0 ? renderDiagnostics(result, layout) : svg``}
+      ${orderedNodes.map((n) => renderNode(n, result, ctx))}
+      ${result.warnings.length > 0 ? renderDiagnostics(result, layout, ctx) : svg``}
     </svg>
   `;
 }
 
-function renderDiagnostics(result: FlowResult, layout: LayoutResult): TemplateResult {
-  const summary = result.warnings.map((w) => w.detail).join('\n');
+function renderDiagnostics(result: FlowResult, layout: LayoutResult, ctx: RenderContext): TemplateResult {
+  const count = result.warnings.length;
+  const label = `${DE.diagnostics.iconLabel}: ${count} ${DE.diagnostics.pluralize(count)}`;
+  const summary = result.warnings
+    .map((w) => `${w.code}: ${w.detail}${w.magnitudeW !== undefined ? ` (~${Math.round(w.magnitudeW)} W)` : ''}`)
+    .join('\n');
+  const fill = colorFor('grid_export', ctx.theme); // semantic "alert" color from palette; user-overridable
   return svg`
     <g
       transform="translate(${layout.width - 30} 30)"
       part="diagnostics"
       role="button"
       tabindex="0"
-      aria-label="${DE.diagnostics.iconLabel}: ${result.warnings.length} ${result.warnings.length === 1 ? 'Warnung' : 'Warnungen'}"
+      aria-label="${label}"
       style="cursor: help;"
-      @click=${() => console.warn('[custom-energy-flow-card] warnings:\n' + summary)}
+      @click=${() => {
+        for (const w of result.warnings) {
+          console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);
+        }
+      }}
+      @keydown=${(e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          for (const w of result.warnings) {
+            console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);
+          }
+        }
+      }}
     >
-      <circle r="10" fill="#eab308" opacity="0.15"></circle>
-      <text text-anchor="middle" y="4" font-size="14" fill="#b45309">!</text>
-      <title>${result.warnings.length} ${DE.diagnostics.title}: ${summary}</title>
+      <circle r="12" fill="${fill}" opacity="0.18"></circle>
+      <circle r="12" fill="none" stroke="${fill}" stroke-width="1.5"></circle>
+      <text text-anchor="middle" y="4" font-size="13" font-weight="700" fill="${fill}">!</text>
+      <title>${count} ${DE.diagnostics.title}:\n${summary}</title>
     </g>
   `;
 }
 ```
+
+**Hinweis zum Dropdown-Panel:** Spec §5.12 fordert ein „leichtes Dropdown".
+Innerhalb der SVG-Struktur ist das nicht trivial ohne Foreign-Object. Pragmatische
+v1.0-Lösung: SVG-`<title>` als nativer Browser-Tooltip + per-Warning
+`console.warn` beim Klick. Dropdown-Panel im DOM-Layer kommt in v1.x.
 
 - [ ] **Step 2: Verify build + typecheck**
 
