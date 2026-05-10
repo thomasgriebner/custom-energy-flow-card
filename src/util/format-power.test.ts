@@ -27,4 +27,33 @@ describe('formatPowerW', () => {
     expect(formatPowerW(-0, { signed: true })).toBe('0 W');
     expect(formatPowerW(-0.4, { signed: true })).toBe('0 W'); // rounds to 0
   });
+
+  it('falls back to defaultLocale when no locale is supplied', () => {
+    // Calls without `locale` → defaultLocale() body executes. In node-env
+    // (no `navigator`) it returns 'de-DE'; either way the call must not throw
+    // and must produce a valid grouped output.
+    const out = formatPowerW(1900, { format: 'grouped' });
+    expect(out).toMatch(/^1[.,]900 W$/);
+  });
+
+  it('uses navigator.language when defined (covers truthy branch in defaultLocale)', () => {
+    // Inject a `navigator` global so the `typeof navigator !== 'undefined'`
+    // branch evaluates truthy. Node 21+ exposes a read-only `navigator`
+    // getter, so we redefine via `Object.defineProperty` and restore.
+    const prevDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { language: 'en-US' },
+      configurable: true,
+      writable: true,
+    });
+    try {
+      expect(formatPowerW(1900, { format: 'grouped' })).toBe('1,900 W');
+    } finally {
+      if (prevDescriptor) {
+        Object.defineProperty(globalThis, 'navigator', prevDescriptor);
+      } else {
+        delete (globalThis as { navigator?: unknown }).navigator;
+      }
+    }
+  });
 });

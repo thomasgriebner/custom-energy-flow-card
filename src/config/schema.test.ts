@@ -163,3 +163,85 @@ describe('buildSystemState', () => {
     expect(r.unavailableEntities.has('sensor.s_dach')).toBe(true);
   });
 });
+
+describe('validateConfig (negative paths)', () => {
+  it('throws when input is null', () => {
+    expect(() => validateConfig(null)).toThrow(/object/i);
+  });
+
+  it('throws when input is a number', () => {
+    expect(() => validateConfig(123)).toThrow(/object/i);
+  });
+
+  it('throws on missing battery[].id', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        // intentionally omit id — test-boundary cast
+        {
+          soc: 'sensor.b_soc',
+          power: 'sensor.b_p',
+          charged_by: 'dach',
+        } as unknown as Config['battery'][number],
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/id required/i);
+  });
+
+  it('throws on empty battery[].charged_by', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [{ id: 'b', soc: 'sensor.b_soc', power: 'sensor.b_p', charged_by: '' }],
+    });
+    expect(() => validateConfig(c)).toThrow(/charged_by required/i);
+  });
+
+  it('throws on bad battery[].soc entity_id', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [{ id: 'b', soc: 'not_an_entity', power: 'sensor.b_p', charged_by: 'dach' }],
+    });
+    expect(() => validateConfig(c)).toThrow(/soc.*entity/i);
+  });
+
+  it('throws on bad battery[].power entity_id', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [{ id: 'b', soc: 'sensor.b_soc', power: 'not_an_entity', charged_by: 'dach' }],
+    });
+    expect(() => validateConfig(c)).toThrow(/battery.*power.*entity/i);
+  });
+
+  it('throws on missing consumers[].name', () => {
+    const c = minimalConfig({
+      consumers: [
+        // intentionally omit name — test-boundary cast
+        { power: 'sensor.x' } as unknown as Config['consumers'][number],
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/name required/i);
+  });
+
+  it('throws on bad consumers[].power entity_id', () => {
+    const c = minimalConfig({ consumers: [{ name: 'X', power: 'not_an_entity' }] });
+    expect(() => validateConfig(c)).toThrow(/consumers.*entity/i);
+  });
+
+  it('throws on missing solar[].id', () => {
+    const c = minimalConfig({
+      // intentionally omit id — test-boundary cast
+      solar: [{ power: 'sensor.s' } as unknown as Config['solar'][number]],
+    });
+    expect(() => validateConfig(c)).toThrow(/solar.*id required/i);
+  });
+
+  it('throws on bad grid.power entity_id', () => {
+    const c = minimalConfig({ grid: { power: 'foo' } });
+    expect(() => validateConfig(c)).toThrow(/grid\.power/i);
+  });
+
+  it('throws on bad grid.import / grid.export entity_ids', () => {
+    const c = minimalConfig({ grid: { import: 's.i', export: 'x' } });
+    expect(() => validateConfig(c)).toThrow(/import.*export.*entity/i);
+  });
+});

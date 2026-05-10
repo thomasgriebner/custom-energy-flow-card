@@ -74,4 +74,38 @@ describe('readSensorW', () => {
     });
     expect(readSensorW(hass, 'sensor.soc', { expectedUnit: '%' }).value).toBe(75);
   });
+
+  it('treats undefined state as unavailable (covers state ?? "" fallback)', () => {
+    // Test-boundary cast: simulate HA returning an entity object whose
+    // `state` field is undefined (off-spec but seen in the wild during
+    // entity-restart races).
+    const hass: ReadSensorHassShape = {
+      states: {
+        'sensor.pv': { state: undefined as unknown as string },
+      },
+    };
+    const r = readSensorW(hass, 'sensor.pv');
+    expect(r.value).toBe(0);
+    expect(r.warning?.code).toBe('SENSOR_UNAVAILABLE');
+    // covers `${entityId} is ${stateRaw || 'empty'}` → 'empty' arm
+    expect(r.warning?.detail).toContain('empty');
+  });
+
+  it('skips unit conversion when expectedUnit="%" (early-return path)', () => {
+    // Even with a unit attribute that would normally trigger UNIT_UNKNOWN
+    // or kW conversion, expectedUnit='%' must short-circuit and return raw.
+    const hass = buildHass({
+      'sensor.soc': { state: '42', attributes: { unit_of_measurement: 'kW' } },
+    });
+    const r = readSensorW(hass, 'sensor.soc', { expectedUnit: '%' });
+    expect(r.value).toBe(42);
+    expect(r.warning).toBeUndefined();
+  });
+
+  it('trims whitespace from state before parsing', () => {
+    const hass = buildHass({
+      'sensor.pv': { state: '  1500  ', attributes: { unit_of_measurement: 'W' } },
+    });
+    expect(readSensorW(hass, 'sensor.pv').value).toBe(1500);
+  });
 });
