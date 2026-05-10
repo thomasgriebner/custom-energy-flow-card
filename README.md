@@ -89,12 +89,14 @@ grid:
 ```yaml
 home:
   name: <optional Anzeigename> # Default: "Hausverbrauch"
-  power:
-    sensor.<entity> # optional Override-Sensor (W). Sonst wird
-    # der Hausverbrauch aus der Bilanz berechnet:
-    # P_home = ΣPV + ΣAkku-Entladen + Netzbezug
-    #        − ΣAkku-Laden − Einspeisung
+  power: sensor.<entity> # optional Override-Sensor (W)
   icon: mdi:<icon>
+```
+
+Ohne `power` wird der Hausverbrauch aus der Bilanz berechnet:
+
+```
+P_home = ΣPV + ΣAkku-Entladen + Netzbezug − ΣAkku-Laden − Einspeisung
 ```
 
 ### `consumers[]`
