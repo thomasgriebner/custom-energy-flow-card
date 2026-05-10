@@ -3,7 +3,7 @@
 > **Lebendiges Dokument.** Bei jeder größeren Architektur-Änderung
 > hier mit-pflegen *und* einen ADR unter [`adr/`](./adr/) anlegen.
 >
-> Vollständige Spezifikation: [`superpowers/specs/2026-05-10-custom-energy-flow-card-design.md`](./superpowers/specs/2026-05-10-custom-energy-flow-card-design.md).
+> Vollständige Spezifikation: [`specs/2026-05-10-custom-energy-flow-card-design.md`](./specs/2026-05-10-custom-energy-flow-card-design.md).
 
 ## 1. Was wir bauen
 
@@ -155,7 +155,9 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 
 ## 8. Referenz-Dokumente
 
-- **Vollständige Spec:** [`superpowers/specs/2026-05-10-custom-energy-flow-card-design.md`](./superpowers/specs/2026-05-10-custom-energy-flow-card-design.md)
-- **ADRs:** [`adr/`](./adr/)
+- **Vollständige Spec:** [`specs/2026-05-10-custom-energy-flow-card-design.md`](./specs/2026-05-10-custom-energy-flow-card-design.md)
+- **ADRs:** [`adr/`](./adr/) (Index in [`adr/README.md`](./adr/README.md))
+- **Code-/Workflow-Konventionen:** [`conventions.md`](./conventions.md)
+- **Projekt-Schnellreferenz** (Tech-Stack, Doku-Karte): [`../CLAUDE.md`](../CLAUDE.md)
 - **Code-Qualitäts-Standards:** Spec §11
 - **Erfolgs-Kriterien:** Spec §10

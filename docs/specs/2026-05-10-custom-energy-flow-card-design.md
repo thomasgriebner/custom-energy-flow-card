@@ -9,9 +9,11 @@
 **Greenfield-Projekt.** Das Repo enthält zum Zeitpunkt dieses Specs nur:
 
 - `.gitignore` (mit `.superpowers/`, `node_modules/`, `dist/`, `*.log`, `.DS_Store`)
-- `docs/superpowers/specs/2026-05-10-custom-energy-flow-card-design.md` (dieses Dokument)
+- `docs/specs/2026-05-10-custom-energy-flow-card-design.md` (dieses Dokument)
 - `docs/architecture.md` (high-level Architektur-Überblick, lebendiges Dokument)
 - `docs/adr/` (Architecture Decision Records, ADR-0001 bis ADR-0010, dazu Template + README)
+- `docs/conventions.md` (Code-/Doc-Konventionen für die tägliche Arbeit)
+- `CLAUDE.md` (Projekt-Schnellreferenz für Claude Code: Tech-Stack, Doku-Struktur)
 - Brainstorming-Session-Artefakte unter `.superpowers/` (gitignored)
 
 **Begleit-Dokumente:** `architecture.md` ist die kompakte Sicht auf die
