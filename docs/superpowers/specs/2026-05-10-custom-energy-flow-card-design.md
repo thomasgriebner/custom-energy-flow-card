@@ -10,7 +10,17 @@
 
 - `.gitignore` (mit `.superpowers/`, `node_modules/`, `dist/`, `*.log`, `.DS_Store`)
 - `docs/superpowers/specs/2026-05-10-custom-energy-flow-card-design.md` (dieses Dokument)
+- `docs/architecture.md` (high-level Architektur-Überblick, lebendiges Dokument)
+- `docs/adr/` (Architecture Decision Records, ADR-0001 bis ADR-0010, dazu Template + README)
 - Brainstorming-Session-Artefakte unter `.superpowers/` (gitignored)
+
+**Begleit-Dokumente:** `architecture.md` ist die kompakte Sicht auf die
+Architektur für Entwickler-Onboarding; ADRs halten *einzelne* Entscheidungen
+mit Kontext und Alternativen-Analyse fest. Bei jeder neuen Architektur-
+Entscheidung im Verlauf der Implementation ist zwingend ein neuer ADR
+anzulegen (Schema: `docs/adr/00XX-kurz-titel.md`, Template:
+`docs/adr/0000-template.md`) und in `architecture.md §4` plus
+`docs/adr/README.md` Index zu verlinken.
 
 Es gibt **keinen Bestandscode**, keine Migrations- oder Backwards-Compat-Anforderungen.
 Alle Tooling-Konventionen (Lint, Formatter, Build, Test) werden frisch entschieden
