@@ -1,5 +1,6 @@
 import { LitElement, css, html, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { validateConfig } from './config/schema';
 import { CARD_TYPE } from './const';
 import {
   renderBatterySection,
@@ -346,7 +347,15 @@ export class CustomEnergyFlowCardEditor extends LitElement {
 
   private _emitChange(config: Config): void {
     this._config = config;
-    fireConfigChanged(this, config);
+    try {
+      validateConfig(config);
+      this._validationError = undefined;
+      fireConfigChanged(this, config);
+    } catch (err) {
+      this._validationError = err instanceof Error ? err.message : String(err);
+      console.warn('[custom-energy-flow-card] config not yet valid:', err);
+      // Do not fire config-changed: HA would otherwise persist invalid config.
+    }
   }
 }
 
