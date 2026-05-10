@@ -1,0 +1,51 @@
+type: custom:custom-energy-flow-card
+title: Energiefluss
+
+solar:
+  - id: dach
+    name: Solar Dach
+    power: sensor.solar_dach_power
+    icon: mdi:solar-power
+  - id: balkon
+    name: Solar Balkon
+    power: sensor.solar_balkon_power
+    icon: mdi:solar-panel
+
+battery:
+  - id: dach
+    name: Dach-Speicher
+    soc: sensor.akku_dach_soc
+    power: sensor.akku_dach_power
+    charged_by: dach
+  - id: balkon
+    name: Balkon-Speicher
+    soc: sensor.akku_balkon_soc
+    power: sensor.akku_balkon_power
+    charged_by: balkon
+
+grid:
+  power: sensor.grid_power
+
+home:
+  name: Hausverbrauch
+
+consumers:
+  - name: Wärmepumpe
+    power: sensor.heatpump_power
+    icon: mdi:heat-pump
+  - name: Wallbox
+    power: sensor.wallbox_power
+    icon: mdi:ev-station
+  - name: Herd
+    power: sensor.stove_power
+    icon: mdi:stove
+
+display:
+  active_threshold_w: 5
+  number_format: grouped
+  show_inactive_paths: false
+  animation:
+    base_duration_s: 2.5
+    reference_power_w: 1000
+    min_duration_s: 0.6
+    max_dots_per_path: 4
