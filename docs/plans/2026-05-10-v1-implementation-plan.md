@@ -396,6 +396,11 @@ describe('formatPowerW', () => {
   it('handles NaN gracefully', () => {
     expect(formatPowerW(Number.NaN)).toBe('— W');
   });
+
+  it('renders -0 as 0 W (no minus sign)', () => {
+    expect(formatPowerW(-0, { signed: true })).toBe('0 W');
+    expect(formatPowerW(-0.4, { signed: true })).toBe('0 W');  // rounds to 0
+  });
 });
 ```
 
@@ -421,15 +426,15 @@ function defaultLocale(): string {
 export function formatPowerW(value: number, opts: FormatOpts = {}): string {
   if (!Number.isFinite(value)) return '— W';
   const rounded = Math.round(value);
+  if (rounded === 0) return '0 W';   // also handles -0 (would otherwise render '−0 W')
   const abs = Math.abs(rounded);
   const grouped = opts.format === 'grouped';
   const locale = opts.locale ?? defaultLocale();
   const formatted = grouped
     ? new Intl.NumberFormat(locale, { useGrouping: true }).format(abs)
     : String(abs);
-  if (opts.signed && rounded > 0) return `+${formatted} W`;
-  if (rounded < 0) return `−${formatted} W`;
-  return `${formatted} W`;
+  if (rounded > 0) return opts.signed ? `+${formatted} W` : `${formatted} W`;
+  return `−${formatted} W`;
 }
 ```
 
@@ -608,6 +613,7 @@ describe('resolveColor', () => {
     expect(resolveColor('grid_export')).toBe(COLOR_DEFAULTS.grid_export);
     expect(resolveColor('home')).toBe(COLOR_DEFAULTS.home);
     expect(resolveColor('consumer')).toBe(COLOR_DEFAULTS.consumer);
+    expect(resolveColor('warning')).toBe('#eab308');
   });
 
   it('uses override when provided', () => {
@@ -634,7 +640,8 @@ export type ColorRole =
   | 'grid_import'
   | 'grid_export'
   | 'home'
-  | 'consumer';
+  | 'consumer'
+  | 'warning';
 
 export const COLOR_DEFAULTS: Record<ColorRole, string> = {
   solar: '#f59e0b',
@@ -643,6 +650,7 @@ export const COLOR_DEFAULTS: Record<ColorRole, string> = {
   grid_export: '#16a34a',
   home: '#ef4444',
   consumer: '#db2777',
+  warning: '#eab308',
 };
 
 export function resolveColor(
@@ -827,11 +835,11 @@ export function readSensorW(
       warning: { code: 'SENSOR_UNAVAILABLE', detail: `Entity ${entityId} not in hass.states`, entityId },
     };
   }
-  const stateRaw = entity.state ?? '';
+  const stateRaw = (entity.state ?? '').trim();
   if (UNAVAILABLE_STATES.has(stateRaw.toLowerCase())) {
     return {
       value: 0,
-      warning: { code: 'SENSOR_UNAVAILABLE', detail: `${entityId} is ${stateRaw}`, entityId },
+      warning: { code: 'SENSOR_UNAVAILABLE', detail: `${entityId} is ${stateRaw || 'empty'}`, entityId },
     };
   }
   const num = Number(stateRaw);
@@ -920,8 +928,6 @@ export const DE = {
   diagnostics: {
     iconLabel: 'Diagnose-Hinweise',
     title: 'Engine-Warnungen',
-    warningSingular: 'Warnung',
-    warningPlural: 'Warnungen',
     pluralize: (n: number): string => (n === 1 ? 'Warnung' : 'Warnungen'),
   },
   editor: {
@@ -1678,8 +1684,10 @@ export function compute(state: SystemState): FlowResult {
     powerW: sumDischarge > 0 ? ((discharge[j] ?? 0) / sumDischarge) * totalBattToGrid : 0,
   }));
 
-  // Step 7: Reconcile with grid sensor (export side)
+  // Step 7: Reconcile with grid sensor (export side) — pure: returns new arrays.
   const calcExport = totalPvToGrid + totalBattToGrid;
+  let pvToGridFinal: PerSourceFlow[] = pvToGrid;
+  let battToGridFinal: PerSourceFlow[] = batteryToGrid;
   if (calcExport > 0 && exportW > 0) {
     const scale = clamp(exportW / calcExport, 0, 2);
     if (scale < 0.95 || scale > 1.05) {
@@ -1689,8 +1697,8 @@ export function compute(state: SystemState): FlowResult {
         magnitudeW: Math.abs(calcExport - exportW),
       });
     }
-    pvToGrid.forEach((f) => (f.powerW *= scale));
-    batteryToGrid.forEach((f) => (f.powerW *= scale));
+    pvToGridFinal = pvToGrid.map((f) => ({ ...f, powerW: f.powerW * scale }));
+    battToGridFinal = batteryToGrid.map((f) => ({ ...f, powerW: f.powerW * scale }));
     totalPvToGrid *= scale;
     totalBattToGrid *= scale;
   } else if (calcExport === 0 && exportW > 0) {
@@ -1705,8 +1713,8 @@ export function compute(state: SystemState): FlowResult {
       detail: `phantom_export: calc shows ${calcExport.toFixed(0)} W export but sensor reads 0`,
       magnitudeW: calcExport,
     });
-    pvToGrid.forEach((f) => (f.powerW = 0));
-    batteryToGrid.forEach((f) => (f.powerW = 0));
+    pvToGridFinal = pvToGrid.map((f) => ({ ...f, powerW: 0 }));
+    battToGridFinal = batteryToGrid.map((f) => ({ ...f, powerW: 0 }));
     totalPvToGrid = 0;
     totalBattToGrid = 0;
   }
@@ -1912,9 +1920,9 @@ Replace the closing `return { … }` block with:
     flows: {
       pvToHome,
       pvToBattery,
-      pvToGrid,
+      pvToGrid: pvToGridFinal,
       batteryToHome,
-      batteryToGrid,
+      batteryToGrid: battToGridFinal,
       gridToHome,
       homeToConsumer,
     },
@@ -1927,7 +1935,7 @@ Replace the closing `return { … }` block with:
 
 - [ ] **Step 4: Run all tests — must pass with coverage**
 
-Run: `pnpm test:coverage src/engine/`
+Run: `pnpm test:coverage`
 Expected: all tests PASS, engine/ coverage ≥ 90 %.
 
 - [ ] **Step 5: Commit**
@@ -2091,6 +2099,22 @@ describe('validateConfig', () => {
     const c = minimalConfig({ solar: [{ id: 'd', power: 'not_a_sensor' }] });
     expect(() => validateConfig(c)).toThrow(/entity/i);
   });
+
+  it('throws on bad home.power entity_id', () => {
+    const c = minimalConfig({ home: { power: 'not_an_entity' } });
+    expect(() => validateConfig(c)).toThrow(/home\.power/i);
+  });
+
+  it('accepts the HA stub-config (empty grid.power + empty lists)', () => {
+    const stub = {
+      type: 'custom:custom-energy-flow-card' as const,
+      grid: { power: '' },
+      solar: [],
+      battery: [],
+      consumers: [],
+    };
+    expect(() => validateConfig(stub)).not.toThrow();
+  });
 });
 
 describe('buildSystemState', () => {
@@ -2181,6 +2205,20 @@ export interface BuildResult {
 
 const ENTITY_RE = /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/i;
 
+/**
+ * The HA card-picker calls `setConfig` with `getStubConfig()` (empty grid.power +
+ * all lists empty) before the user has filled anything in. We accept this
+ * marker config as valid so the card shows a friendly hint instead of crashing.
+ */
+function isStubShape(c: Partial<Config>): boolean {
+  if (c.type !== 'custom:custom-energy-flow-card') return false;
+  const gridStub = !!c.grid && 'power' in c.grid && c.grid.power === '';
+  const listsEmpty = (c.solar?.length ?? 0) === 0
+    && (c.battery?.length ?? 0) === 0
+    && (c.consumers?.length ?? 0) === 0;
+  return gridStub && listsEmpty;
+}
+
 export function validateConfig(input: unknown): Config {
   if (!isObject(input)) throw new Error('Config must be an object');
   const c = input as Partial<Config>;
@@ -2188,6 +2226,20 @@ export function validateConfig(input: unknown): Config {
   if (c.type !== 'custom:custom-energy-flow-card') {
     throw new Error('Config "type" must be "custom:custom-energy-flow-card"');
   }
+
+  // Stub-Config aus getStubConfig() ist absichtlich gültig — Card rendert dann
+  // den "Konfiguriere PV/Akku/Verbraucher"-Hinweis (UX-Zustand "Stub").
+  if (isStubShape(c)) {
+    return {
+      type: 'custom:custom-energy-flow-card',
+      version: 1,
+      solar: [],
+      battery: [],
+      grid: c.grid as GridConfig,
+      consumers: [],
+    };
+  }
+
   if (c.version !== undefined && c.version !== 1) {
     throw new Error(`Config "version" ${c.version} not supported (only 1)`);
   }
@@ -2240,6 +2292,10 @@ export function validateConfig(input: unknown): Config {
 
   if (solar.length === 0 && battery.length === 0 && consumers.length === 0) {
     throw new Error('Config must have at least one of solar, battery, or consumers');
+  }
+
+  if (c.home?.power !== undefined && !ENTITY_RE.test(c.home.power)) {
+    throw new Error('home.power must be a valid entity_id');
   }
 
   return {
@@ -2333,7 +2389,7 @@ export function buildSystemState(config: Config, hass: ReadSensorHassShape): Bui
 
 - [ ] **Step 5: Run all tests with coverage**
 
-Run: `pnpm test:coverage src/config/`
+Run: `pnpm test:coverage`
 Expected: all PASS, config/ coverage ≥ 90 %.
 
 - [ ] **Step 6: Run full Phase-1 gate**
@@ -2507,6 +2563,44 @@ describe('computeLayout', () => {
     expect(kinds.filter((k) => k === 'grid-to-home').length).toBe(1);
     expect(kinds.filter((k) => k === 'home-to-consumer').length).toBe(3);
     expect(l.edges).toHaveLength(14);
+  });
+
+  it('handles 0 PVs (config with only grid + consumers)', () => {
+    const c = baseConfig({ consumers: [{ name: 'x', power: 's.x' }] });
+    const l = computeLayout(c);
+    expect(l.nodes.filter((n) => n.kind === 'pv')).toHaveLength(0);
+    expect(l.edges.every((e) => !e.kind.startsWith('pv-'))).toBe(true);
+  });
+
+  it('handles 5 PVs distributed in the band', () => {
+    const c = baseConfig({
+      solar: Array.from({ length: 5 }, (_, i) => ({ id: `pv${i}`, power: `s.${i}` })),
+    });
+    const l = computeLayout(c);
+    const pvs = l.nodes.filter((n) => n.kind === 'pv');
+    expect(pvs).toHaveLength(5);
+    const xs = pvs.map((n) => n.x);
+    for (let i = 1; i < xs.length; i++) expect(xs[i]).toBeGreaterThan(xs[i - 1] ?? 0);
+  });
+
+  it('handles split-grid form (import + export)', () => {
+    const c: Config = {
+      type: 'custom:custom-energy-flow-card',
+      solar: [],
+      battery: [],
+      grid: { import: 'sensor.gi', export: 'sensor.ge' },
+      consumers: [{ name: 'x', power: 's.x' }],
+    };
+    expect(() => computeLayout(c)).not.toThrow();
+    expect(computeLayout(c).nodes.find((n) => n.kind === 'grid')).toBeDefined();
+  });
+
+  it('battery without paired PV in the layout still rendered (validation prevents it but defensive)', () => {
+    // Validation würde dieses Setup ablehnen — Layout selbst ist trotzdem defensiv.
+    const c = baseConfig({
+      battery: [{ id: 'b_orphan', soc: 's.bs', power: 's.bp', charged_by: 'nonexistent' }],
+    });
+    expect(() => computeLayout(c)).not.toThrow();
   });
 });
 ```
@@ -2966,6 +3060,11 @@ function renderNode(node: LayoutNode, result: FlowResult, ctx: RenderContext): T
 }
 
 function isNodeUnavailable(node: LayoutNode, ctx: RenderContext): boolean {
+  if (node.kind === 'grid' && !('power' in ctx.config.grid)) {
+    // Split-grid form: unavailable if either import or export sensor is missing.
+    return ctx.unavailableEntities.has(ctx.config.grid.import)
+      || ctx.unavailableEntities.has(ctx.config.grid.export);
+  }
   const id = entityIdForNode(node, ctx.config);
   return id !== undefined && ctx.unavailableEntities.has(id);
 }
@@ -3120,6 +3219,9 @@ export function renderDots(
   edge: LayoutEdge,
   params: AnimationParams,
 ): SVGTemplateResult {
+  // `--dur` is set on the outer wrapper-<g> in flow-renderer.renderEdge so
+  // that the line-stream animation and the dot motion stay in sync. Here we
+  // only set per-dot offset-path and animation-delay.
   const dots: SVGTemplateResult[] = [];
   const stride = params.durationS / params.dotCount;
   for (let i = 0; i < params.dotCount; i++) {
@@ -3128,22 +3230,15 @@ export function renderDots(
       <circle
         class="flow-dot"
         r="3.5"
-        fill="${params.color}"
         style="
           offset-path: path('${edge.d}');
-          offset-distance: 0%;
-          animation: flow-dot-move ${params.durationS}s linear infinite;
           animation-delay: ${delayS}s;
         "
       ></circle>
     `);
   }
   return svg`
-    <g
-      class="flow-dots"
-      part="flow-dots flow-dots-${edge.kind}"
-      style="--dur: ${params.durationS}s;"
-    >
+    <g class="flow-dots" part="flow-dots flow-dots-${edge.kind}">
       ${dots}
     </g>
   `;
@@ -3155,6 +3250,7 @@ function clamp(v: number, lo: number, hi: number): number {
 
 export const ANIMATION_CSS = `
   @keyframes flow-dot-move {
+    from { offset-distance: 0%; }
     to { offset-distance: 100%; }
   }
   @keyframes flow-line-stream {
@@ -3171,6 +3267,10 @@ export const ANIMATION_CSS = `
   }
   .flow-line.idle {
     opacity: 0.08;
+  }
+  .flow-dot {
+    fill: var(--flow-color, currentColor);
+    animation: flow-dot-move var(--dur, 2s) linear infinite;
   }
   @media (prefers-reduced-motion: reduce) {
     .flow-dot { animation-duration: 0s !important; }
@@ -3226,23 +3326,38 @@ c) Replace the body of `renderEdge` to emit dots when active. Find:
 }
 ```
 
-Replace with:
+Replace with (note: `--dur` lebt auf dem äußeren `<g>` als Wrapper, sodass
+`flow-line.animated` *und* die Punkte denselben CSS-Variable-Wert sehen):
 
 ```typescript
   const color = colorFor(edgeColorRole(edge.kind), ctx.theme);
-  const dots = active
-    ? renderDots(edge, computeAnimationParams(power, edge.kind, ctx.animation, ctx.theme))
-    : svg``;
+  if (!active) {
+    return svg`
+      <g part="flow flow-${edge.kind}">
+        <path
+          d="${edge.d}"
+          class="flow-line idle"
+          stroke="${color}"
+          fill="none"
+          data-power="${power}"
+        ></path>
+      </g>
+    `;
+  }
+  const params = computeAnimationParams(power, edge.kind, ctx.animation, ctx.theme);
   return svg`
-    <g part="flow flow-${edge.kind}">
+    <g
+      part="flow flow-${edge.kind}"
+      style="--dur: ${params.durationS}s; --flow-color: ${color};"
+    >
       <path
         d="${edge.d}"
-        class="flow-line ${active ? 'animated' : 'idle'}"
+        class="flow-line animated"
         stroke="${color}"
         fill="none"
         data-power="${power}"
       ></path>
-      ${dots}
+      ${renderDots(edge, params)}
     </g>
   `;
 }
@@ -3480,20 +3595,23 @@ export function buildMockHass(scenario: MockScenario): { states: Record<string, 
       <custom-energy-flow-card id="card"></custom-energy-flow-card>
     </div>
   </main>
-  <script type="module" src="../dist/custom-energy-flow-card.js"></script>
-  <script type="module" src="../dist/preview/preview.mjs"></script>
+  <!-- Paths are relative to dist/preview/preview.html (where the build copies this) -->
+  <script type="module" src="../custom-energy-flow-card.js"></script>
+  <script type="module" src="./preview.mjs"></script>
 </body>
 </html>
 ```
 
 - [ ] **Step 3: Implement `scripts/build-preview.mjs`**
 
+Das Skript schreibt die Preview-Entry-Datei nach `dist/preview/`, **nicht**
+in den Source-Tree, damit nichts versehentlich committed wird.
+
 ```javascript
 import { build } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import { writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
 
 const previewSrc = `
 import { scenarios, buildMockHass } from '../../examples/preview-mocks';
@@ -3519,13 +3637,17 @@ activate(0);
 `;
 
 mkdirSync('dist/preview', { recursive: true });
-writeFileSync('examples/_preview-entry.ts', previewSrc);
+writeFileSync('dist/preview/_preview-entry.ts', previewSrc);
 
 const bundle = await build({
-  input: 'examples/_preview-entry.ts',
+  input: 'dist/preview/_preview-entry.ts',
   plugins: [
     resolve(),
-    typescript({ tsconfig: './tsconfig.json', include: ['examples/**/*.ts', 'src/**/*.ts'] }),
+    typescript({
+      tsconfig: './tsconfig.json',
+      include: ['dist/preview/**/*.ts', 'examples/**/*.ts', 'src/**/*.ts'],
+      compilerOptions: { rootDir: '.', outDir: 'dist/preview' },
+    }),
   ],
 });
 await bundle.write({ file: 'dist/preview/preview.mjs', format: 'es', sourcemap: true });
@@ -3665,7 +3787,7 @@ git commit -m "feat(ha): add HA type subset, custom-element globals, event helpe
 ausgelagert (Step 2), damit `card.ts` ≤ 200 LOC bleibt.
 
 ```typescript
-import { LitElement, css, html, type PropertyValues, type TemplateResult } from 'lit';
+import { LitElement, css, html, unsafeCSS, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { CARD_TYPE, DEFAULTS } from './const';
 import { DE } from './i18n/de';
@@ -3683,9 +3805,8 @@ import { memoize } from './util/memo';
 import { hassRelevantSensorsChanged, isStubConfig, resolveEntityId } from './card-helpers';
 
 const memoLayout = memoize(
-  (config: Config, w: number, h: number) => computeLayout(config),
-  (config: Config, w: number, h: number) => JSON.stringify({
-    w, h,
+  (config: Config) => computeLayout(config),
+  (config: Config) => JSON.stringify({
     s: config.solar.map((s) => s.id),
     b: config.battery.map((b) => ({ i: b.id, p: b.charged_by })),
     c: config.consumers.length,
@@ -3694,13 +3815,10 @@ const memoLayout = memoize(
 
 @customElement(CARD_TYPE)
 export class CustomEnergyFlowCard extends LitElement {
-  @property({
-    attribute: false,
-    hasChanged: function (this: CustomEnergyFlowCard, value: HomeAssistant, oldValue: HomeAssistant) {
-      return hassRelevantSensorsChanged(oldValue, value, this._config);
-    },
-  })
-  hass?: HomeAssistant;
+  // We use shouldUpdate (not @property hasChanged) because Lit's hasChanged
+  // does not receive `this`, so it cannot read `this._config` to decide which
+  // sensors are relevant. shouldUpdate runs on the element instance.
+  @property({ attribute: false }) hass?: HomeAssistant;
 
   @state() private _config?: Config;
   @state() private _flowResult?: FlowResult;
@@ -3709,7 +3827,6 @@ export class CustomEnergyFlowCard extends LitElement {
   @state() private _buildWarnings: EngineWarning[] = [];
   @state() private _unavailable: Set<string> = new Set();
   @state() private _containerW = 720;
-  @state() private _containerH = 540;
   private _resizeObs?: ResizeObserver;
 
   static override styles = css`
@@ -3725,24 +3842,24 @@ export class CustomEnergyFlowCard extends LitElement {
     .narrow-banner { font-size: 11px; color: var(--secondary-text-color); padding: 4px 8px; border-bottom: 1px solid var(--divider-color); }
     .node:hover circle, .node:focus-visible circle { stroke-width: 3.5; }
     .node:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); outline-offset: 4px; }
-    ${ANIMATION_CSS}
+    ${unsafeCSS(ANIMATION_CSS)}
   `;
 
   setConfig(config: unknown): void {
-    if (isStubConfig(config)) {
-      this._config = config as Config;
-      return;
-    }
+    // validateConfig itself accepts the HA stub-config (empty grid.power +
+    // all lists empty) — see config/schema.ts.
     const validated = validateConfig(config);
     this._config = validated;
-    this._layout = memoLayout(validated, this._containerW, this._containerH);
+    if (!isStubConfig(validated)) {
+      this._layout = memoLayout(validated);
+    }
   }
 
   static getConfigElement(): HTMLElement {
     return document.createElement(`${CARD_TYPE}-editor`);
   }
 
-  static getStubConfig(): Partial<Config> {
+  static getStubConfig(_hass: unknown, _entities: unknown): Partial<Config> {
     return { type: 'custom:custom-energy-flow-card', grid: { power: '' }, solar: [], battery: [], consumers: [] };
   }
 
@@ -3753,14 +3870,9 @@ export class CustomEnergyFlowCard extends LitElement {
     this._resizeObs = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
-      const { width, height } = entry.contentRect;
-      if (Math.abs(width - this._containerW) > 4 || Math.abs(height - this._containerH) > 4) {
+      const { width } = entry.contentRect;
+      if (Math.abs(width - this._containerW) > 4) {
         this._containerW = width;
-        this._containerH = height;
-        if (this._config && !isStubConfig(this._config)) {
-          this._layout = memoLayout(this._config, width, height);
-          this.requestUpdate();
-        }
       }
     });
     this._resizeObs.observe(this);
@@ -3769,6 +3881,15 @@ export class CustomEnergyFlowCard extends LitElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this._resizeObs?.disconnect();
+  }
+
+  protected override shouldUpdate(changed: PropertyValues): boolean {
+    // If only `hass` changed and no relevant sensor moved, skip the update.
+    if (changed.size === 1 && changed.has('hass') && this._config) {
+      const prev = changed.get('hass') as HomeAssistant | undefined;
+      if (!hassRelevantSensorsChanged(prev, this.hass, this._config)) return false;
+    }
+    return true;
   }
 
   protected override willUpdate(changed: PropertyValues): void {
@@ -4060,9 +4181,21 @@ export class CustomEnergyFlowCardEditor extends LitElement {
   @state()
   private _config?: Config;
 
+  @state()
+  private _validationError?: string;
+
   static override styles = css`
     :host {
       display: block;
+    }
+    .validation-banner {
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: color-mix(in srgb, var(--error-color, #b00020) 12%, transparent);
+      color: var(--error-color, #b00020);
+      border: 1px solid var(--error-color, #b00020);
+      border-radius: 6px;
+      font-size: 12px;
     }
     .section {
       margin-bottom: 16px;
@@ -4120,6 +4253,9 @@ export class CustomEnergyFlowCardEditor extends LitElement {
   override render(): TemplateResult {
     if (!this._config) return html``;
     return html`
+      ${this._validationError ? html`
+        <div class="validation-banner" role="alert">${this._validationError}</div>
+      ` : ''}
       ${this._renderGeneral()}
       ${this._renderSolarSection()}
       ${this._renderBatterySection()}
@@ -4205,10 +4341,21 @@ export class CustomEnergyFlowCardEditor extends LitElement {
   private _onGridChange(value: Record<string, unknown>): void {
     if (!this._config) return;
     const mode = value.mode as 'signed' | 'split';
+    // Mode-Wechsel resettet die nicht zur neuen Form passenden Felder. Beim
+    // ersten Wechsel auf "split" haben wir kein import/export → '' Defaults
+    // verursachen einen Validation-Error, der via _validationError als Banner
+    // sichtbar wird, bis der User die Felder befüllt.
     const newGrid: GridConfig = mode === 'split'
       ? { import: (value.import as string) ?? '', export: (value.export as string) ?? '' }
       : { power: (value.power as string) ?? '', power_invert: Boolean(value.power_invert) };
     this._emitChange({ ...this._config, grid: newGrid });
+  }
+
+  private _nextUniqueId(prefix: string, existing: string[]): string {
+    const taken = new Set(existing);
+    let n = existing.length + 1;
+    while (taken.has(`${prefix}${n}`)) n++;
+    return `${prefix}${n}`;
   }
 
   private _renderSolarSection(): TemplateResult {
@@ -4309,7 +4456,8 @@ Replace with:
 
   private _addSolar(): void {
     if (!this._config) return;
-    const solar = [...this._config.solar, { id: `pv${this._config.solar.length + 1}`, power: '' }];
+    const id = this._nextUniqueId('pv', this._config.solar.map((s) => s.id));
+    const solar = [...this._config.solar, { id, power: '' }];
     this._emitChange({ ...this._config, solar });
   }
 
@@ -4398,9 +4546,9 @@ Replace with:
 
   private _addBattery(): void {
     if (!this._config) return;
+    const id = this._nextUniqueId('b', this._config.battery.map((b) => b.id));
     const battery = [...this._config.battery, {
-      id: `b${this._config.battery.length + 1}`,
-      soc: '', power: '', charged_by: '',
+      id, soc: '', power: '', charged_by: '',
     }];
     this._emitChange({ ...this._config, battery });
   }
@@ -4534,11 +4682,12 @@ Replace with:
     this._config = config;
     try {
       validateConfig(config);
+      this._validationError = undefined;
       fireConfigChanged(this, config);
     } catch (err) {
+      this._validationError = err instanceof Error ? err.message : String(err);
       console.warn('[custom-energy-flow-card] config not yet valid:', err);
-      // Do not fire config-changed: HA editor would show its own error.
-      // The editor will show inline errors via render once we know the failing field.
+      // Do not fire config-changed: HA would otherwise persist invalid config.
     }
   }
 ```
@@ -4737,9 +4886,20 @@ grid:
   export: sensor.grid_export
 ```
 
+### `home`
+```yaml
+home:
+  name: <optional Anzeigename>      # Default: "Hausverbrauch"
+  power: sensor.<entity>            # optional Override-Sensor (W). Sonst wird
+                                    # der Hausverbrauch aus der Bilanz berechnet:
+                                    # P_home = ΣPV + ΣAkku-Entladen + Netzbezug
+                                    #        − ΣAkku-Laden − Einspeisung
+  icon: mdi:<icon>
+```
+
 ### `consumers[]`
 ```yaml
-- name: <Anzeigename>
+- name: <Anzeigename>             # required
   power: sensor.<entity>          # ≥ 0
   icon: mdi:<icon>
 ```
@@ -4755,9 +4915,24 @@ display:
     reference_power_w: 1000
     min_duration_s: 0.6
     max_dots_per_path: 4
-  colors:                         # optional Override pro Rolle
-    solar: '#f59e0b'
+  colors:                         # optional Override pro semantischer Rolle
+    solar:        '#f59e0b'       # Solar-Fluss
+    battery:      '#10b981'       # Akku → Haus
+    grid_import:  '#6b7280'       # Netzbezug
+    grid_export:  '#16a34a'       # Einspeisung
+    home:         '#ef4444'       # Haus-Knoten
+    consumer:     '#db2777'       # Verbraucher
+    warning:      '#eab308'       # Diagnose-Icon (Engine-Warnings)
 ```
+
+### Sensor-Format
+
+Alle `power`/`soc`-Felder erwarten die HA-Standard-Form `domain.object_id`
+(Regex: `^[a-z_][a-z0-9_]*\.[a-z0-9_]+$`). Beispiel: `sensor.solar_dach_power` ✓,
+`not_an_entity` ✗.
+
+Power-Sensoren werden mit `unit_of_measurement` aus den HA-Attributen erkannt
+und automatisch nach W konvertiert (`W`, `kW`, `mW`, `VA` unterstützt).
 
 ## Pairing-Regel
 
@@ -4955,7 +5130,7 @@ function renderDiagnostics(result: FlowResult, layout: LayoutResult, ctx: Render
   const summary = result.warnings
     .map((w) => `${w.code}: ${w.detail}${w.magnitudeW !== undefined ? ` (~${Math.round(w.magnitudeW)} W)` : ''}`)
     .join('\n');
-  const fill = colorFor('grid_export', ctx.theme); // semantic "alert" color from palette; user-overridable
+  const fill = colorFor('warning', ctx.theme); // amber #eab308 default, overridable via display.colors.warning
   return svg`
     <g
       transform="translate(${layout.width - 30} 30)"

@@ -260,7 +260,7 @@ Aus Spec §11.5 (verbindlich):
 * ❌ Side-Effects in der Engine
 * ❌ Doppelte Util-Funktionen außerhalb von `util/`
 * ❌ Berechnung in `render()` (gehört in `willUpdate`)
-* ❌ Lit's default `hasChanged` für `hass`-Property
+* ❌ Lit's Default-Reactivity für `hass` unverändert lassen — wir filtern in `shouldUpdate(changedProperties)` auf relevante Sensor-IDs (Spec §5.7); `@property({ hasChanged })` funktioniert dafür nicht, weil das Callback `this` nicht erhält
 * ❌ Try-Catch-Schluck (immer mit `console.error` loggen)
 * ❌ Hardcoded User-Strings (immer aus `i18n/de.ts`)
 * ❌ TODO-Kommentar im Release

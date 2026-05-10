@@ -1083,16 +1083,28 @@ Semantische Akzentfarben aus `util/resolve-color.ts`:
 | `render()` | Lit-Template ausgeben | **NUR** `html`…`` — keine Berechnung, kein Side-Effect |
 | `disconnectedCallback()` | Aufräumen | ResizeObserver disconnect, Listener entfernen |
 
-**`hass`-Property** mit eigenem `hasChanged`:
+**`hass`-Property mit Custom-Update-Filter via `shouldUpdate`:**
 
 ```typescript
-@property({ attribute: false, hasChanged: hassRelevantSensorsChanged })
-hass!: HomeAssistant;
+@property({ attribute: false }) hass?: HomeAssistant;
+
+protected override shouldUpdate(changed: PropertyValues): boolean {
+  if (changed.size === 1 && changed.has('hass') && this._config) {
+    const prev = changed.get('hass') as HomeAssistant | undefined;
+    if (!hassRelevantSensorsChanged(prev, this.hass, this._config)) return false;
+  }
+  return true;
+}
 ```
 
-`hassRelevantSensorsChanged` vergleicht ausschließlich die in `this.config`
-referenzierten Sensor-IDs auf Wert-Änderung. Ohne diesen Custom-Check würde
+`hassRelevantSensorsChanged` vergleicht ausschließlich die in `this._config`
+referenzierten Sensor-IDs auf Wert-Änderung. Ohne diesen Filter würde
 Lit auf jedes globale `hass`-Update reagieren — Performance-Killer.
+
+> **Warum nicht `@property({ hasChanged })`?** Lit's `hasChanged`-Callback
+> wird ohne `this`-Bindung aufgerufen — es kann nicht `this._config` lesen,
+> um zu entscheiden, welche Sensoren relevant sind. `shouldUpdate` läuft
+> dagegen auf der Element-Instanz und hat vollen Zugriff.
 
 **Memoization-Strategie:**
 
@@ -1680,6 +1692,11 @@ qualitative Akzeptanz über mindestens 3 Tage.
   Edge 100+. CSS `offset-path` ist seit Safari 14, Chrome 64, Firefox 72 verfügbar.
 - **Locale für Tausendertrennung.** Default: `Intl.NumberFormat(navigator.language)`,
   Override per `display.number_format = grouped`.
+- **SVG-`<g tabindex="0">` Fokussierbarkeit.** Chrome/Edge: ja. Firefox: ja
+  ab v51 (CSS-`outline`-Rendering uneinheitlich). Safari: ja ab v15.4. Wir
+  testen die Tab-Navigation in der Sandbox primär mit Chromium-basierten
+  Browsern. Falls Anwender-Browser-Probleme auftreten: alternative Lösung
+  via `<foreignObject><button>` als v1.x-Kandidat.
 - **Sensor-Wert in `attributes` statt `state`.** v1.0 liest immer `state`. Wenn
   ein Anwender unbedingt einen Attribute-Wert braucht, muss er einen Template-Sensor
   in HA bauen. v1.x-Kandidat: `power: sensor.foo:attributes.power`-Syntax.
