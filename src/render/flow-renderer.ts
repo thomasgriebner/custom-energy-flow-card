@@ -287,9 +287,15 @@ function nodeValueText(node: LayoutNode, result: FlowResult, ctx: RenderContext)
     return formatPowerW(inHome + inBatt + inGrid, { format: fmt });
   }
   if (node.kind === 'battery') {
-    const out =
+    const battConfig = ctx.config.battery.find((b) => b.id === node.id);
+    const pairedPvId = battConfig?.charged_by;
+    const fromPv = pairedPvId ? findFlow(result.flows.pvToBattery, pairedPvId) : 0;
+    const fromGrid = findFlow(result.flows.gridToBattery, node.id);
+    const charging = fromPv + fromGrid;
+    const discharging =
       findFlow(result.flows.batteryToHome, node.id) + findFlow(result.flows.batteryToGrid, node.id);
-    return formatPowerW(out, { format: fmt });
+    const signed = charging > discharging ? charging : -discharging;
+    return formatPowerW(signed, { format: fmt, signed: true });
   }
   if (node.kind === 'consumer') {
     return formatPowerW(findFlow(result.flows.homeToConsumer, node.id), { format: fmt });
