@@ -21,3 +21,5 @@ jobs:
           SIZE=$(stat -c%s dist/custom-energy-flow-card.js)
           echo "Bundle: $SIZE bytes"
           [ "$SIZE" -le 61440 ] || (echo "Bundle exceeds 60 kB (61440 bytes)" && exit 1)
+      - name: Smoke test (bundle loads + renders)
+        run: node scripts/smoke-test.mjs

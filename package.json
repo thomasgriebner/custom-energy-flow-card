@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "preview": "node scripts/build-preview.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "smoke": "pnpm build && node scripts/smoke-test.mjs"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.0",
