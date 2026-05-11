@@ -19,15 +19,27 @@ export interface SolarConfig {
   icon?: string;
 }
 
-export interface BatteryConfig {
+export interface BatteryConfigBase {
   id: string;
   name?: string;
   soc: string;
-  power: string;
-  power_invert?: boolean;
   charged_by: string;
   icon?: string;
 }
+
+/** Signed-Sensor-Variante: ein power-Sensor liefert +laden / −entladen. */
+export type BatteryConfigSigned = BatteryConfigBase & {
+  power: string;
+  power_invert?: boolean;
+};
+
+/** Split-Sensor-Variante: zwei separate Sensoren, beide ≥ 0. */
+export type BatteryConfigSplit = BatteryConfigBase & {
+  charge_power: string;
+  discharge_power: string;
+};
+
+export type BatteryConfig = BatteryConfigSigned | BatteryConfigSplit;
 
 export type GridConfig =
   | { power: string; power_invert?: boolean }

@@ -1,5 +1,12 @@
 import { readSensorW, type ReadSensorHassShape } from '../util/read-sensor';
-import type { BatteryConfig, Config, GridConfig, SolarConfig } from './types';
+import type {
+  BatteryConfig,
+  BatteryConfigSigned,
+  BatteryConfigSplit,
+  Config,
+  GridConfig,
+  SolarConfig,
+} from './types';
 import type { SystemState } from '../engine/types';
 import type { EngineWarning } from '../util/warning-types';
 
@@ -83,9 +90,7 @@ export function validateConfig(input: unknown): Config {
     if (!b.soc || !ENTITY_RE.test(b.soc)) {
       throw new Error(`battery[${b.id}].soc must be a valid entity_id`);
     }
-    if (!b.power || !ENTITY_RE.test(b.power)) {
-      throw new Error(`battery[${b.id}].power must be a valid entity_id`);
-    }
+    validateBatteryPower(b);
   }
   for (const [pvId, count] of pairedPvCounts) {
     if (count > 1) {
@@ -122,6 +127,37 @@ export function validateConfig(input: unknown): Config {
     consumers,
     display: c.display,
   };
+}
+
+function validateBatteryPower(b: BatteryConfig): void {
+  const hasPower = 'power' in b && typeof b.power === 'string';
+  const hasSplit =
+    'charge_power' in b &&
+    typeof (b as Partial<BatteryConfigSplit>).charge_power === 'string' &&
+    'discharge_power' in b &&
+    typeof (b as Partial<BatteryConfigSplit>).discharge_power === 'string';
+  if (hasPower && hasSplit) {
+    throw new Error(
+      `battery[${b.id}] must have either "power" or both "charge_power"+"discharge_power", not both`,
+    );
+  }
+  if (!hasPower && !hasSplit) {
+    throw new Error(`battery[${b.id}].power required (or both "charge_power"+"discharge_power")`);
+  }
+  if (hasPower) {
+    const signed = b as BatteryConfigSigned;
+    if (!signed.power || !ENTITY_RE.test(signed.power)) {
+      throw new Error(`battery[${b.id}].power must be a valid entity_id`);
+    }
+  } else {
+    const split = b as BatteryConfigSplit;
+    if (!split.charge_power || !ENTITY_RE.test(split.charge_power)) {
+      throw new Error(`battery[${b.id}].charge_power must be a valid entity_id`);
+    }
+    if (!split.discharge_power || !ENTITY_RE.test(split.discharge_power)) {
+      throw new Error(`battery[${b.id}].discharge_power must be a valid entity_id`);
+    }
+  }
 }
 
 function validateGrid(grid: GridConfig): void {
@@ -173,12 +209,22 @@ export function buildSystemState(config: Config, hass: ReadSensorHassShape): Bui
 
   const pv = config.solar.map((s) => ({ id: s.id, powerW: read(s.power) }));
 
-  const battery = config.battery.map((b) => ({
-    id: b.id,
-    pairedPvId: b.charged_by,
-    powerW: read(b.power, { invertSign: b.power_invert }),
-    socPct: read(b.soc, { expectedUnit: '%' }),
-  }));
+  const battery = config.battery.map((b) => {
+    let powerW: number;
+    if ('power' in b) {
+      powerW = read(b.power, { invertSign: b.power_invert });
+    } else {
+      const charge = read(b.charge_power);
+      const discharge = read(b.discharge_power);
+      powerW = charge - discharge;
+    }
+    return {
+      id: b.id,
+      pairedPvId: b.charged_by,
+      powerW,
+      socPct: read(b.soc, { expectedUnit: '%' }),
+    };
+  });
 
   let gridPowerW = 0;
   if ('power' in config.grid) {

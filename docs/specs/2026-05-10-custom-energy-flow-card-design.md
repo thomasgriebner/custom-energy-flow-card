@@ -1,7 +1,7 @@
 # custom-energy-flow-card — Design
 
 **Status:** Spec v4 (post-implementation-plan-review), ready for execution
-**Datum:** 2026-05-10
+**Datum:** 2026-05-11 (v0.9.1: §3.2 erweitert um Split-Battery-Sensoren, ADR-0015)
 **Autor:** Brainstorming-Session mit @griebner
 
 **Patch v3 → v4:** §5.7 Animation-Update-Strategie präzisiert (Lit reactive
@@ -23,7 +23,7 @@ aus `config/*` importieren darf — Layer-Boundary über Spec-Idiomatik.
 - Brainstorming-Session-Artefakte unter `.superpowers/` (gitignored)
 
 **Begleit-Dokumente:** `architecture.md` ist die kompakte Sicht auf die
-Architektur für Entwickler-Onboarding; ADRs halten *einzelne* Entscheidungen
+Architektur für Entwickler-Onboarding; ADRs halten _einzelne_ Entscheidungen
 mit Kontext und Alternativen-Analyse fest. Bei jeder neuen Architektur-
 Entscheidung im Verlauf der Implementation ist zwingend ein neuer ADR
 anzulegen (Schema: `docs/adr/00XX-kurz-titel.md`, Template:
@@ -101,27 +101,27 @@ ausreichend.
 
 ### 2.1 Tech-Stack & Versionen
 
-| Tool | Version | Begründung |
-|---|---|---|
-| **Node.js** | ≥ 20.x LTS | aktuelle LTS, deckt Vitest 1.x und Rollup 4.x |
-| **Package-Manager** | **pnpm** ≥ 9.x | kleiner `node_modules`, deterministisch, schnell |
-| **TypeScript** | `^5.4.0` | strict mode, satisfies-Operator, const type params |
-| **Lit** | `^3.2.0` | reaktive LitElement, native ES decorators support |
-| **Rollup** | `^4.13.0` | Bundle-Standard für HA-Custom-Cards |
-| **@rollup/plugin-typescript** | `^11.1.0` | TS-Compile im Build |
-| **@rollup/plugin-node-resolve** | `^15.2.0` | ESM-Modul-Auflösung |
-| **rollup-plugin-terser** | `^7.0.2` | Minification für Produktion |
-| **rollup-plugin-visualizer** | `^5.12.0` | Bundle-Analyse (optional, dev) |
-| **Vitest** | `^1.4.0` | schnelle Unit-Tests, Vite-Ökosystem |
-| **happy-dom** | `^14.0.0` | DOM-Environment für Editor-Tests |
-| **@vitest/coverage-v8** | `^1.4.0` | Coverage-Report (Engine ≥ 90 %) |
-| **eslint** | `^8.57.0` | Linting + Import-Boundary-Check |
-| **eslint-plugin-import** | `^2.29.0` | für `import/no-restricted-paths` |
-| **@typescript-eslint/parser** | `^7.4.0` | TS-Parsing für ESLint |
-| **@typescript-eslint/eslint-plugin** | `^7.4.0` | TS-Regeln |
-| **prettier** | `^3.2.0` | Formatter |
-| **husky** | `^9.0.0` | Git-Hooks (pre-commit) |
-| **lint-staged** | `^15.2.0` | Lint nur auf staged files |
+| Tool                                 | Version        | Begründung                                         |
+| ------------------------------------ | -------------- | -------------------------------------------------- |
+| **Node.js**                          | ≥ 20.x LTS     | aktuelle LTS, deckt Vitest 1.x und Rollup 4.x      |
+| **Package-Manager**                  | **pnpm** ≥ 9.x | kleiner `node_modules`, deterministisch, schnell   |
+| **TypeScript**                       | `^5.4.0`       | strict mode, satisfies-Operator, const type params |
+| **Lit**                              | `^3.2.0`       | reaktive LitElement, native ES decorators support  |
+| **Rollup**                           | `^4.13.0`      | Bundle-Standard für HA-Custom-Cards                |
+| **@rollup/plugin-typescript**        | `^11.1.0`      | TS-Compile im Build                                |
+| **@rollup/plugin-node-resolve**      | `^15.2.0`      | ESM-Modul-Auflösung                                |
+| **rollup-plugin-terser**             | `^7.0.2`       | Minification für Produktion                        |
+| **rollup-plugin-visualizer**         | `^5.12.0`      | Bundle-Analyse (optional, dev)                     |
+| **Vitest**                           | `^1.4.0`       | schnelle Unit-Tests, Vite-Ökosystem                |
+| **happy-dom**                        | `^14.0.0`      | DOM-Environment für Editor-Tests                   |
+| **@vitest/coverage-v8**              | `^1.4.0`       | Coverage-Report (Engine ≥ 90 %)                    |
+| **eslint**                           | `^8.57.0`      | Linting + Import-Boundary-Check                    |
+| **eslint-plugin-import**             | `^2.29.0`      | für `import/no-restricted-paths`                   |
+| **@typescript-eslint/parser**        | `^7.4.0`       | TS-Parsing für ESLint                              |
+| **@typescript-eslint/eslint-plugin** | `^7.4.0`       | TS-Regeln                                          |
+| **prettier**                         | `^3.2.0`       | Formatter                                          |
+| **husky**                            | `^9.0.0`       | Git-Hooks (pre-commit)                             |
+| **lint-staged**                      | `^15.2.0`      | Lint nur auf staged files                          |
 
 **Decorator-Variante:** TypeScript `experimentalDecorators: true` mit
 `useDefineForClassFields: false`. Begründung: Konsistenz mit dem HA-Custom-Card-
@@ -194,6 +194,7 @@ scripts/
 ```
 
 **Verbindliche Modulgrößen:**
+
 - `card.ts` ≤ 200 LOC (delegiert; kein direktes SVG/CSS)
 - `editor.ts` ≤ 400 LOC (kann mehr werden, da Form-Logik explizit ist)
 - `energy-engine.ts` ≤ 300 LOC (pure functions)
@@ -221,16 +222,16 @@ Unit-Konvertierung (W/kW/mW → W) passieren hier. Sensor-Lesen erfolgt zentral
 
 ### 2.4 Schicht-Abgrenzungen (Hard-Constraint, lint-enforced)
 
-| Modul | darf importieren aus | darf NICHT importieren aus |
-|---|---|---|
-| `engine/*` | (nur eigene Files + `engine/types.ts` + `util/memo`) | `lit`, `ha/*`, `render/*`, `config/*`, DOM |
-| `render/*` | (eigene + Lit + `util/*` + `engine/types.ts` + `i18n/*`) | `ha/*`, `engine/*`-Logik |
-| `config/*` | (eigene + `util/*` + `engine/types.ts` + `i18n/*`) | `lit`, `render/*`, `engine/*`-Logik |
-| `util/*` | (nur eigene + Lit-frei für `format-power`/`resolve-color`/`memo`) | `ha/*`, `render/*`, `engine/*`, `config/*` |
-| `i18n/*` | (nichts) | alles andere |
-| `ha/*` | Lit, externe HA-Typen | `engine/*`, `render/*`, `config/*` (außer Typen) |
-| `card.ts` | alle Schichten | — (Komposition erlaubt) |
-| `editor.ts` | `config/*`, `ha/*`, `util/*`, `i18n/*`, Lit | `engine/*`, `render/*` |
+| Modul       | darf importieren aus                                              | darf NICHT importieren aus                       |
+| ----------- | ----------------------------------------------------------------- | ------------------------------------------------ |
+| `engine/*`  | (nur eigene Files + `engine/types.ts` + `util/memo`)              | `lit`, `ha/*`, `render/*`, `config/*`, DOM       |
+| `render/*`  | (eigene + Lit + `util/*` + `engine/types.ts` + `i18n/*`)          | `ha/*`, `engine/*`-Logik                         |
+| `config/*`  | (eigene + `util/*` + `engine/types.ts` + `i18n/*`)                | `lit`, `render/*`, `engine/*`-Logik              |
+| `util/*`    | (nur eigene + Lit-frei für `format-power`/`resolve-color`/`memo`) | `ha/*`, `render/*`, `engine/*`, `config/*`       |
+| `i18n/*`    | (nichts)                                                          | alles andere                                     |
+| `ha/*`      | Lit, externe HA-Typen                                             | `engine/*`, `render/*`, `config/*` (außer Typen) |
+| `card.ts`   | alle Schichten                                                    | — (Komposition erlaubt)                          |
+| `editor.ts` | `config/*`, `ha/*`, `util/*`, `i18n/*`, Lit                       | `engine/*`, `render/*`                           |
 
 Diese Regeln werden via `eslint-plugin-import/no-restricted-paths` durchgesetzt
 (siehe §11.4). Verstöße brechen den CI-Build.
@@ -244,7 +245,7 @@ Konkrete Implementierung kann Felder ergänzen, aber nicht entfernen oder umbene
 // === src/config/types.ts ===
 export interface Config {
   type: 'custom:custom-energy-flow-card';
-  version?: 1;            // reserviert für v2-Migrationen; default 1
+  version?: 1; // reserviert für v2-Migrationen; default 1
   title?: string;
   solar: SolarConfig[];
   battery: BatteryConfig[];
@@ -255,19 +256,19 @@ export interface Config {
 }
 
 export interface SolarConfig {
-  id: string;          // unique within solar[]
+  id: string; // unique within solar[]
   name?: string;
-  power: string;       // sensor entity_id (W, kW, mW — wird von read-sensor konvertiert)
-  icon?: string;       // 'mdi:…'
+  power: string; // sensor entity_id (W, kW, mW — wird von read-sensor konvertiert)
+  icon?: string; // 'mdi:…'
 }
 
 export interface BatteryConfig {
-  id: string;          // unique within battery[]
+  id: string; // unique within battery[]
   name?: string;
-  soc: string;         // sensor entity_id (%, 0–100)
-  power: string;       // sensor entity_id (signed: + laden, − entladen)
+  soc: string; // sensor entity_id (%, 0–100)
+  power: string; // sensor entity_id (signed: + laden, − entladen)
   power_invert?: boolean;
-  charged_by: string;  // muss eine SolarConfig.id sein
+  charged_by: string; // muss eine SolarConfig.id sein
   icon?: string;
 }
 
@@ -277,7 +278,7 @@ export type GridConfig =
 
 export interface HomeConfig {
   name?: string;
-  power?: string;      // optional Override-Entity; sonst per Bilanz
+  power?: string; // optional Override-Entity; sonst per Bilanz
   icon?: string;
 }
 
@@ -302,8 +303,7 @@ export interface AnimationConfig {
   max_dots_per_path?: number;
 }
 
-export type ColorRole =
-  | 'solar' | 'battery' | 'grid_import' | 'grid_export' | 'home' | 'consumer';
+export type ColorRole = 'solar' | 'battery' | 'grid_import' | 'grid_export' | 'home' | 'consumer';
 
 // === src/engine/types.ts ===
 export interface SystemState {
@@ -316,18 +316,18 @@ export interface SystemState {
 
 export interface PvState {
   id: string;
-  powerW: number;        // ≥ 0 (gecclamped wenn Sensor negativ)
+  powerW: number; // ≥ 0 (gecclamped wenn Sensor negativ)
 }
 
 export interface BatteryState {
   id: string;
-  pairedPvId: string;    // == SolarConfig.id (mapping aus charged_by)
-  powerW: number;        // signed: + laden, − entladen
-  socPct: number;        // 0..100
+  pairedPvId: string; // == SolarConfig.id (mapping aus charged_by)
+  powerW: number; // signed: + laden, − entladen
+  socPct: number; // 0..100
 }
 
 export interface GridState {
-  powerW: number;        // signed: + Bezug, − Einspeisung
+  powerW: number; // signed: + Bezug, − Einspeisung
 }
 
 export interface ConsumerState {
@@ -376,12 +376,12 @@ export interface EngineWarning {
 
 **Naming-Mapping** (Config ↔ State, in `buildSystemState`):
 
-| Config (snake_case, YAML-friendly) | State (camelCase, TS-idiomatisch) |
-|---|---|
-| `battery[].charged_by` | `battery[].pairedPvId` |
-| `battery[].power_invert` | (intern angewandt; State enthält finale signierte `powerW`) |
-| `grid.power` / `grid.import`+`grid.export` | `grid.powerW` (immer normalisiert auf signed) |
-| `home.power` | `home.powerOverrideW` (Sensor-Wert in W) |
+| Config (snake_case, YAML-friendly)         | State (camelCase, TS-idiomatisch)                           |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| `battery[].charged_by`                     | `battery[].pairedPvId`                                      |
+| `battery[].power_invert`                   | (intern angewandt; State enthält finale signierte `powerW`) |
+| `grid.power` / `grid.import`+`grid.export` | `grid.powerW` (immer normalisiert auf signed)               |
+| `home.power`                               | `home.powerOverrideW` (Sensor-Wert in W)                    |
 
 ### 2.6 Tool-Konfigurationen (Templates)
 
@@ -495,9 +495,9 @@ Alle anderen Module rufen diese Helfer auf — keine Duplikate.
 
 ```typescript
 export interface FormatOpts {
-  format?: 'standard' | 'grouped';   // grouped = Tausender-Trennzeichen (1 900 W)
-  signed?: boolean;                  // explizites + bei positiven Werten (für Netz)
-  locale?: string;                   // default: navigator.language
+  format?: 'standard' | 'grouped'; // grouped = Tausender-Trennzeichen (1 900 W)
+  signed?: boolean; // explizites + bei positiven Werten (für Netz)
+  locale?: string; // default: navigator.language
 }
 
 export function formatPowerW(value: number, opts?: FormatOpts): string;
@@ -530,12 +530,12 @@ fehlende/unbekannte States.
 ```typescript
 export interface SensorReadOpts {
   invertSign?: boolean;
-  treatUnavailableAsZero?: boolean;  // default: true
-  expectedUnit?: 'W' | '%';          // bei % keine Konvertierung
+  treatUnavailableAsZero?: boolean; // default: true
+  expectedUnit?: 'W' | '%'; // bei % keine Konvertierung
 }
 
 export interface SensorReadResult {
-  value: number;                     // immer in W (für expectedUnit='W') oder %
+  value: number; // immer in W (für expectedUnit='W') oder %
   warning?: EngineWarning;
 }
 
@@ -547,19 +547,20 @@ export function readSensorW(
 ```
 
 Logik:
+
 1. `hass.states[entityId]` lookup. Fehlt → `value=0`, `warning(SENSOR_UNAVAILABLE)`.
 2. State `'unavailable'` / `'unknown'` / `''` → `value=0`, `warning(SENSOR_UNAVAILABLE)`.
 3. Numeric parse via `Number()`. NaN → `value=0`, `warning(SENSOR_UNAVAILABLE)`.
 4. Unit aus `attributes.unit_of_measurement`. Konvertierung:
 
-| Unit | Faktor zu W |
-|---|---|
-| `W`, `Watt`, `watt` | 1 |
-| `kW`, `kilowatt` | 1000 |
-| `mW`, `milliwatt` | 0.001 |
-| `VA` | 1 (qualitativ akzeptabel; warning falls strikt benötigt) |
-| (leer, kein attribute) | 1 (annehmen W) |
-| anderer Wert | 1 + `warning(UNIT_UNKNOWN)` |
+| Unit                   | Faktor zu W                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `W`, `Watt`, `watt`    | 1                                                        |
+| `kW`, `kilowatt`       | 1000                                                     |
+| `mW`, `milliwatt`      | 0.001                                                    |
+| `VA`                   | 1 (qualitativ akzeptabel; warning falls strikt benötigt) |
+| (leer, kein attribute) | 1 (annehmen W)                                           |
+| anderer Wert           | 1 + `warning(UNIT_UNKNOWN)`                              |
 
 5. Sign-Invertierung wenn `opts.invertSign === true`.
 
@@ -570,7 +571,10 @@ Tests: alle Edge-Cases der Logik.
 #### 2.7.4 `util/svg-path.ts`
 
 ```typescript
-export interface Point { x: number; y: number; }
+export interface Point {
+  x: number;
+  y: number;
+}
 
 export function bezierPath(from: Point, to: Point, control: Point): string;
 export function straightPath(from: Point, to: Point): string;
@@ -591,6 +595,7 @@ export function memoize<Args extends unknown[], R>(
 
 Einfache String-Key-basierte Memoization. Cache hält letzte ~10 Einträge
 (LRU). Verwendet von:
+
 - Layout-Compute (Key: Config-Hash + viewBox)
 - Engine-Compute (Key: SystemState-Hash) — nur wenn Profiling Hotspot zeigt;
   default: nicht memoizen, da Compute < 1 ms.
@@ -616,19 +621,19 @@ solar:
 battery:
   - id: dach
     name: Dach-Speicher
-    soc:   sensor.akku_dach_soc
-    power: sensor.akku_dach_power     # signiert: + laden, − entladen
+    soc: sensor.akku_dach_soc
+    power: sensor.akku_dach_power # signiert: + laden, − entladen
     power_invert: false
-    charged_by: dach                  # muss eine solar[].id sein
+    charged_by: dach # muss eine solar[].id sein
 
   - id: balkon
     name: Balkon-Speicher
-    soc:   sensor.akku_balkon_soc
+    soc: sensor.akku_balkon_soc
     power: sensor.akku_balkon_power
     charged_by: balkon
 
 grid:
-  power: sensor.grid_power            # signiert: + Bezug, − Einspeisung
+  power: sensor.grid_power # signiert: + Bezug, − Einspeisung
   power_invert: false
   # Alternativ:
   # import: sensor.grid_import
@@ -651,7 +656,7 @@ consumers:
 
 display:
   active_threshold_w: 5
-  number_format: grouped              # standard | grouped
+  number_format: grouped # standard | grouped
   show_inactive_paths: false
   animation:
     base_duration_s: 2.5
@@ -663,30 +668,46 @@ display:
 ### 3.2 Schema-Regeln (Validierung in `config/schema.ts`)
 
 **Schema-Version:**
+
 - `version` ist optional, default `1`. Kein anderer Wert in v1.0 erlaubt — sonst
   validation-error mit Hinweis auf zukünftige Versionen.
 
 **ID-Namespacing:**
-- `solar[].id` müssen *innerhalb von* `solar` eindeutig sein
-- `battery[].id` müssen *innerhalb von* `battery` eindeutig sein
-- IDs *zwischen* Listen dürfen kollidieren (z. B. `solar.id="dach"` und
+
+- `solar[].id` müssen _innerhalb von_ `solar` eindeutig sein
+- `battery[].id` müssen _innerhalb von_ `battery` eindeutig sein
+- IDs _zwischen_ Listen dürfen kollidieren (z. B. `solar.id="dach"` und
   `battery.id="dach"` sind beide erlaubt)
 
 **Pairing-Kardinalität: strikt 1:1.**
+
 - Jede `BatteryConfig.charged_by` muss auf eine existierende `SolarConfig.id` zeigen
 - Eine PV darf höchstens einer Battery gepairt sein (kein 1:N)
 - Eine PV ohne gepairten Akku ist erlaubt
 - Ein Akku ohne `charged_by` ist nicht erlaubt
 
 **Grid:**
+
 - `grid.power` (signiert) **xor** `grid.import`+`grid.export` (zwei separate Sensoren)
 - `grid` ist immer Pflicht
 
+**Akku-Power-Sensor (ADR-0015, seit v0.9.1):**
+
+- `battery[].power` (signiert: + laden, − entladen; optional `power_invert`)
+  **xor** `battery[].charge_power`+`battery[].discharge_power` (zwei separate
+  Sensoren, beide ≥ 0)
+- Exklusivität wird im Validator erzwungen — weder beides noch keines
+- Bei split: `buildSystemState` aggregiert intern zu `signedPowerW =
+read(charge_power) − read(discharge_power)`. Engine sieht weiterhin nur
+  einen signierten `powerW`-Wert.
+
 **Mindest-Konfiguration:**
+
 - Mindestens eine der drei Listen `solar` / `battery` / `consumers` muss
   nicht-leer sein
 
 **Sensor-Referenzen:**
+
 - Format `domain.object_id` syntaktisch geprüft im Editor-Validator
 - Existenz im `hass.states` zur Laufzeit über `util/read-sensor.ts`:
   fehlt → `value=0` + `warning(SENSOR_UNAVAILABLE)`; Card zeigt `—`, crasht nicht
@@ -694,6 +715,7 @@ display:
   (kein Save-Block, da hass.states schon mal kurz unvollständig sein kann)
 
 **Sensor-Unit:**
+
 - Alle Power-Sensoren werden über `util/read-sensor.ts` gelesen, der die in
   §2.7.3 dokumentierten Unit-Konvertierungen anwendet
 - Card-interne Berechnung läuft immer in W; Anzeige in W
@@ -702,13 +724,13 @@ display:
 
 **Default-Icons:**
 
-| Knoten | MDI-Icon |
-|---|---|
-| PV | `mdi:solar-power` |
-| Akku | `mdi:battery` |
-| Netz | `mdi:transmission-tower` |
-| Haus | `mdi:home` |
-| Verbraucher | `mdi:power-plug` |
+| Knoten      | MDI-Icon                 |
+| ----------- | ------------------------ |
+| PV          | `mdi:solar-power`        |
+| Akku        | `mdi:battery`            |
+| Netz        | `mdi:transmission-tower` |
+| Haus        | `mdi:home`               |
+| Verbraucher | `mdi:power-plug`         |
 
 **`power_invert` für PV:** Nicht in v1.0. PV-Sensoren liefern in der Praxis ≥ 0;
 Sensor-Glitches mit negativem Wert werden auf 0 geclampt + `warning(NEGATIVE_PV)`.
@@ -875,24 +897,24 @@ sonst:
 
 ### 4.11 Engine-Edge-Cases (Pflicht-Tests)
 
-| # | Szenario | Erwartung |
-|---|---|---|
-| 1 | Alle Werte 0 | Alle Flows 0; P_home 0; ring leer; keine warnings |
-| 2 | Sonniger Tag, Akkus laden, Überschuss ins Netz | PV→Akku/Haus/Netz aktiv; Akku→… inaktiv |
-| 3 | Abend, Akkus speisen Haus + Netz | Akku→Haus/Netz aktiv; PV inaktiv |
-| 4 | Nacht, Netzbezug | Nur Netz→Haus, Haus→Verbraucher |
-| 5 | Pairing-Defizit (Akku lädt 500 W, PV 200 W) | `pairingDeficit[j]=300`, warning(PAIRING_DEFICIT, 300) |
-| 6 | `home.powerOverrideW` gesetzt | P_home = override, Bilanz übersprungen |
-| 7 | Negative PV-Werte | Auf 0 geclampt, warning(NEGATIVE_PV) |
-| 8 | Reconcile Fall 1 | Skalierung greift, ggf. warning(EXPORT_INCONSISTENT) |
-| 9 | Reconcile Fall 2 (untracked_export) | Alle export-Flows 0, warning |
-| 10 | Reconcile Fall 3 (phantom_export) | Alle export-Flows 0, warning |
-| 11 | Keine PV in Config | PV-Sektion leer, alle PV-Flows 0 |
-| 12 | Keine Akkus in Config | Akku-Sektion leer, alle Akku-Flows 0 |
-| 13 | PV ohne gepairten Akku | P_pv_remaining = volle PV-Leistung |
-| 14 | `Σ Verbraucher > P_home` | warning(BALANCE_DRIFT) |
-| 15 | P_home_calculated < 0 | P_home = 0, warning(BALANCE_DRIFT) |
-| 16 | 5 PV + 5 Akkus (Stress-Test) | Performance < 1 ms; alle Flows korrekt |
+| #   | Szenario                                       | Erwartung                                              |
+| --- | ---------------------------------------------- | ------------------------------------------------------ |
+| 1   | Alle Werte 0                                   | Alle Flows 0; P_home 0; ring leer; keine warnings      |
+| 2   | Sonniger Tag, Akkus laden, Überschuss ins Netz | PV→Akku/Haus/Netz aktiv; Akku→… inaktiv                |
+| 3   | Abend, Akkus speisen Haus + Netz               | Akku→Haus/Netz aktiv; PV inaktiv                       |
+| 4   | Nacht, Netzbezug                               | Nur Netz→Haus, Haus→Verbraucher                        |
+| 5   | Pairing-Defizit (Akku lädt 500 W, PV 200 W)    | `pairingDeficit[j]=300`, warning(PAIRING_DEFICIT, 300) |
+| 6   | `home.powerOverrideW` gesetzt                  | P_home = override, Bilanz übersprungen                 |
+| 7   | Negative PV-Werte                              | Auf 0 geclampt, warning(NEGATIVE_PV)                   |
+| 8   | Reconcile Fall 1                               | Skalierung greift, ggf. warning(EXPORT_INCONSISTENT)   |
+| 9   | Reconcile Fall 2 (untracked_export)            | Alle export-Flows 0, warning                           |
+| 10  | Reconcile Fall 3 (phantom_export)              | Alle export-Flows 0, warning                           |
+| 11  | Keine PV in Config                             | PV-Sektion leer, alle PV-Flows 0                       |
+| 12  | Keine Akkus in Config                          | Akku-Sektion leer, alle Akku-Flows 0                   |
+| 13  | PV ohne gepairten Akku                         | P_pv_remaining = volle PV-Leistung                     |
+| 14  | `Σ Verbraucher > P_home`                       | warning(BALANCE_DRIFT)                                 |
+| 15  | P_home_calculated < 0                          | P_home = 0, warning(BALANCE_DRIFT)                     |
+| 16  | 5 PV + 5 Akkus (Stress-Test)                   | Performance < 1 ms; alle Flows korrekt                 |
 
 ## 5. Rendering & Animation
 
@@ -927,16 +949,16 @@ auf Mobile — wir akzeptieren kleinere Knoten-Texte.
 
 ### 5.2 Pfad-Routing
 
-| Quelle → Ziel | Routing |
-|---|---|
-| Solar i → Akku paired_batt(i) | Vertikale Bahn (Bogen) |
-| Solar i → Haus | Bogen Richtung Mitte |
-| Solar i → Netz | Bogen über die linke Seite |
-| Akku j → Haus | Bogen nach oben Richtung Mitte |
-| Akku j → Netz | Bogen unter dem Haus durch nach links |
-| Netz → Haus | Gerade horizontal |
+| Quelle → Ziel                                    | Routing                                                                                   |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Solar i → Akku paired_batt(i)                    | Vertikale Bahn (Bogen)                                                                    |
+| Solar i → Haus                                   | Bogen Richtung Mitte                                                                      |
+| Solar i → Netz                                   | Bogen über die linke Seite                                                                |
+| Akku j → Haus                                    | Bogen nach oben Richtung Mitte                                                            |
+| Akku j → Netz                                    | Bogen unter dem Haus durch nach links                                                     |
+| Netz → Haus                                      | Gerade horizontal                                                                         |
 | **Netz → Akku j** (Pairing-Defizit, ADR-0007 v2) | Bogen unter dem Haus durch nach unten zur Battery — gespiegeltes Routing zu Akku j → Netz |
-| Haus → Verbraucher k | Gerade horizontal nach rechts |
+| Haus → Verbraucher k                             | Gerade horizontal nach rechts                                                             |
 
 SVG quadratic-Bezier-Kurven über `util/svg-path.ts.bezierPath()`. Pfade werden
 bei Layout-Berechnung erzeugt und gecacht.
@@ -953,12 +975,11 @@ Jeder Knoten = SVG-`<g>` mit a11y-Attributen:
   role="button"
   tabindex="0"
   aria-label="Solar Dach: 2000 Watt"
-  @click=${this._onNodeClick(entityId)}
-  @keydown=${this._onNodeKeydown(entityId)}
+  @click="${this._onNodeClick(entityId)}"
+  @keydown="${this._onNodeKeydown(entityId)}"
 >
   <text class="node-name" y="-58">Solar Dach</text>
-  <circle r="42" fill="var(--ha-card-background)"
-          stroke="var(--c-solar)" stroke-width="2.5"/>
+  <circle r="42" fill="var(--ha-card-background)" stroke="var(--c-solar)" stroke-width="2.5" />
   <text class="node-icon" y="-4">☀️</text>
   <text class="node-value" y="16">2 000</text>
   <text class="node-unit" y="28">W</text>
@@ -967,13 +988,13 @@ Jeder Knoten = SVG-`<g>` mit a11y-Attributen:
 
 **Bezeichner-Position pro Zone:**
 
-| Zone | Label-Position |
-|---|---|
-| Solar (oben) | oberhalb des Kreises |
-| Akku (unten) | unterhalb des Kreises |
-| Netz (links) | oberhalb des Kreises |
-| Verbraucher (rechts) | oberhalb des Kreises |
-| Haus (mittig) | unterhalb des Anteils-Rings |
+| Zone                 | Label-Position              |
+| -------------------- | --------------------------- |
+| Solar (oben)         | oberhalb des Kreises        |
+| Akku (unten)         | unterhalb des Kreises       |
+| Netz (links)         | oberhalb des Kreises        |
+| Verbraucher (rechts) | oberhalb des Kreises        |
+| Haus (mittig)        | unterhalb des Anteils-Rings |
 
 **Tab-Order:** Solar links→rechts, Netz, Akku links→rechts, Verbraucher
 oben→unten, Haus.
@@ -1011,15 +1032,18 @@ weil dort `dur` ein XML-Attribut ist und nicht via CSS-Variablen aktualisiert
 werden kann (siehe §5.7).
 
 ```html
-<g class="flow flow--pv-to-home" style="
+<g
+  class="flow flow--pv-to-home"
+  style="
   --path: path('M 170 110 Q 220 200 340 240');
   --dur: 2s;
   --flow-color: #f59e0b;
-">
-  <path class="flow-line animated" d="M 170 110 Q 220 200 340 240"/>
-  <circle class="flow-dot" style="animation-delay: 0s"/>
-  <circle class="flow-dot" style="animation-delay: 0.66s"/>
-  <circle class="flow-dot" style="animation-delay: 1.33s"/>
+"
+>
+  <path class="flow-line animated" d="M 170 110 Q 220 200 340 240" />
+  <circle class="flow-dot" style="animation-delay: 0s" />
+  <circle class="flow-dot" style="animation-delay: 0.66s" />
+  <circle class="flow-dot" style="animation-delay: 1.33s" />
 </g>
 ```
 
@@ -1030,13 +1054,21 @@ werden kann (siehe §5.7).
   animation: flow-dot-move var(--dur) linear infinite;
   fill: var(--flow-color);
 }
-@keyframes flow-dot-move { to { offset-distance: 100%; } }
+@keyframes flow-dot-move {
+  to {
+    offset-distance: 100%;
+  }
+}
 
 .flow-line.animated {
   stroke-dasharray: 4 6;
   animation: flow-line-stream var(--dur) linear infinite;
 }
-@keyframes flow-line-stream { to { stroke-dashoffset: -40; } }
+@keyframes flow-line-stream {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
 ```
 
 **Mapping Leistung → Animations-Parameter:**
@@ -1056,24 +1088,24 @@ auch die Punkte aus dem Render-Tree, keine CPU-Last).
 
 HA-CSS-Variablen für neutrale Farben:
 
-| Element | Variable |
-|---|---|
+| Element          | Variable                                                         |
+| ---------------- | ---------------------------------------------------------------- |
 | Card-Hintergrund | `var(--ha-card-background, var(--card-background-color, white))` |
-| Text primär | `var(--primary-text-color)` |
-| Text sekundär | `var(--secondary-text-color)` |
-| Border / Divider | `var(--divider-color)` |
-| Card-Padding | `var(--ha-card-padding, 16px)` |
+| Text primär      | `var(--primary-text-color)`                                      |
+| Text sekundär    | `var(--secondary-text-color)`                                    |
+| Border / Divider | `var(--divider-color)`                                           |
+| Card-Padding     | `var(--ha-card-padding, 16px)`                                   |
 
 Semantische Akzentfarben aus `util/resolve-color.ts`:
 
-| Bedeutung | Farbe |
-|---|---|
-| Solar | `#f59e0b` (gelb-orange) |
-| Akku → Haus | `#10b981` (grün) |
-| Netzbezug (+) | `#6b7280` (grau) |
+| Bedeutung       | Farbe                   |
+| --------------- | ----------------------- |
+| Solar           | `#f59e0b` (gelb-orange) |
+| Akku → Haus     | `#10b981` (grün)        |
+| Netzbezug (+)   | `#6b7280` (grau)        |
 | Einspeisung (−) | `#16a34a` (sattes grün) |
-| Haus | `#ef4444` (rot) |
-| Verbraucher | `#db2777` (pink) |
+| Haus            | `#ef4444` (rot)         |
+| Verbraucher     | `#db2777` (pink)        |
 
 Über `display.colors` in der Config überschreibbar.
 
@@ -1081,13 +1113,13 @@ Semantische Akzentfarben aus `util/resolve-color.ts`:
 
 **Lit-Lifecycle-Verteilung** ist nicht-verhandelbar:
 
-| Lifecycle | Zweck | Erlaubt |
-|---|---|---|
-| `setConfig(config)` | HA-Lifecycle, Config-Validierung | Validierung, Throw bei Invalid, `this.config` setzen |
-| `firstUpdated()` | einmalige Setup-Logik | ResizeObserver registrieren, initiales Layout-Compute |
-| `willUpdate(changedProperties)` | reactive Recompute | `buildSystemState`, `EnergyEngine.compute`, FlowResult-Diff |
-| `render()` | Lit-Template ausgeben | **NUR** `html`…`` — keine Berechnung, kein Side-Effect |
-| `disconnectedCallback()` | Aufräumen | ResizeObserver disconnect, Listener entfernen |
+| Lifecycle                       | Zweck                            | Erlaubt                                                     |
+| ------------------------------- | -------------------------------- | ----------------------------------------------------------- |
+| `setConfig(config)`             | HA-Lifecycle, Config-Validierung | Validierung, Throw bei Invalid, `this.config` setzen        |
+| `firstUpdated()`                | einmalige Setup-Logik            | ResizeObserver registrieren, initiales Layout-Compute       |
+| `willUpdate(changedProperties)` | reactive Recompute               | `buildSystemState`, `EnergyEngine.compute`, FlowResult-Diff |
+| `render()`                      | Lit-Template ausgeben            | **NUR** `html`…`` — keine Berechnung, kein Side-Effect      |
+| `disconnectedCallback()`        | Aufräumen                        | ResizeObserver disconnect, Listener entfernen               |
 
 **`hass`-Property mit Custom-Update-Filter via `shouldUpdate`:**
 
@@ -1114,11 +1146,11 @@ Lit auf jedes globale `hass`-Update reagieren — Performance-Killer.
 
 **Memoization-Strategie:**
 
-| Compute | Cache-Key | Invalidiert bei |
-|---|---|---|
-| Layout (Knoten-Positionen, Pfad-Strings) | `hash(config) + viewBox-Größe` | Config-Change, Container-Resize |
-| Engine (FlowResult) | nicht memoized (Compute < 1 ms) | jedes hass-relevant-Update |
-| Resolved Colors | Config-Hash | Config-Change |
+| Compute                                  | Cache-Key                       | Invalidiert bei                 |
+| ---------------------------------------- | ------------------------------- | ------------------------------- |
+| Layout (Knoten-Positionen, Pfad-Strings) | `hash(config) + viewBox-Größe`  | Config-Change, Container-Resize |
+| Engine (FlowResult)                      | nicht memoized (Compute < 1 ms) | jedes hass-relevant-Update      |
+| Resolved Colors                          | Config-Hash                     | Config-Change                   |
 
 **Re-Render-Pfade:**
 
@@ -1129,6 +1161,7 @@ Lit's reactive Diff patcht nur die geänderten Attribute (insbesondere
 Parameter überhaupt erst per CSS-Variable steuerbar.
 
 **Verbindlich für v1.0:**
+
 - Lit-Template ist die einzige Render-Quelle.
 - `--dur`, `--flow-color`, `--dot-count` werden via Template-Interpolation
   aus dem CSS-Variable-Wert in `style="..."` geschrieben.
@@ -1168,16 +1201,16 @@ Linien-Streaming-Animation auf eine subtile Pulsation (Opacity 0.6 → 1).
 
 ### 5.9 UX-Zustände
 
-| Zustand | Trigger | Anzeige |
-|---|---|---|
-| **Loading** | `this.hass === undefined` (initial mount) | Skeleton: leerer Knoten-Layout, dezent gepulste Kreise, Mittel-Text „Lade …" |
-| **Stub-Config** | `this.config` ist `getStubConfig()`-Ergebnis (Editor-Preview) | Card rendert nur Netz↔Haus + freundlicher Hinweis: „Füge Solar, Akku oder Verbraucher hinzu, um das Energie-Diagramm zu sehen." |
-| **Sensor unavailable** | einzelne Sensoren liefern `unavailable`/`unknown` | betroffener Knoten zeigt Wert `—`, Stroke gestrichelt, aria-label „Sensor nicht verfügbar"; Card insgesamt funktioniert weiter |
-| **Config invalid (YAML-Mode)** | `setConfig` wirft | HA Lovelace zeigt sein Standard-Error-Banner (kein Card-eigener Render — wir werfen einfach mit lesbarer Message) |
-| **Engine-Warnings vorhanden** | `FlowResult.warnings.length > 0` | siehe §5.12 (Diagnostik-UX) |
-| **Fully empty** | sonniger Mitternacht-Edge-Case (alle Werte 0) | normale Card mit allen Knoten bei 0 W; alle Pfade `display:none` |
-| **Hover** | Mouse-Over auf Knoten | `cursor:pointer`, Stroke 2.5 → 3.5 |
-| **Focus** | Keyboard-Fokus auf Knoten | `:focus-visible` mit dezentem Outer-Ring |
+| Zustand                        | Trigger                                                       | Anzeige                                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Loading**                    | `this.hass === undefined` (initial mount)                     | Skeleton: leerer Knoten-Layout, dezent gepulste Kreise, Mittel-Text „Lade …"                                                    |
+| **Stub-Config**                | `this.config` ist `getStubConfig()`-Ergebnis (Editor-Preview) | Card rendert nur Netz↔Haus + freundlicher Hinweis: „Füge Solar, Akku oder Verbraucher hinzu, um das Energie-Diagramm zu sehen." |
+| **Sensor unavailable**         | einzelne Sensoren liefern `unavailable`/`unknown`             | betroffener Knoten zeigt Wert `—`, Stroke gestrichelt, aria-label „Sensor nicht verfügbar"; Card insgesamt funktioniert weiter  |
+| **Config invalid (YAML-Mode)** | `setConfig` wirft                                             | HA Lovelace zeigt sein Standard-Error-Banner (kein Card-eigener Render — wir werfen einfach mit lesbarer Message)               |
+| **Engine-Warnings vorhanden**  | `FlowResult.warnings.length > 0`                              | siehe §5.12 (Diagnostik-UX)                                                                                                     |
+| **Fully empty**                | sonniger Mitternacht-Edge-Case (alle Werte 0)                 | normale Card mit allen Knoten bei 0 W; alle Pfade `display:none`                                                                |
+| **Hover**                      | Mouse-Over auf Knoten                                         | `cursor:pointer`, Stroke 2.5 → 3.5                                                                                              |
+| **Focus**                      | Keyboard-Fokus auf Knoten                                     | `:focus-visible` mit dezentem Outer-Ring                                                                                        |
 
 **Initial-Mount-Animation:** Card fadet von `opacity: 0` auf `1` über 200 ms ein.
 Animation läuft 1×, dann reine reactive Updates.
@@ -1229,16 +1262,16 @@ im Editor.
 
 ### 5.11 Accessibility (a11y)
 
-| Aspekt | Umsetzung |
-|---|---|
-| **Semantik** | Knoten als `role="button"` mit `tabindex="0"` |
-| **aria-label** | `<Knoten-Name>: <formatierter Wert> <Einheit>`, z. B. „Solar Dach: 2 000 Watt" |
-| **Tastatur-Navigation** | Tab durch alle Knoten in fester Reihenfolge (siehe §5.3); Enter/Space öffnet `more-info` |
-| **Reduced Motion** | siehe §5.8 |
-| **Color-Blindness** | Akzentfarben sind nicht der einzige Bedeutungsträger — jeder Pfad hat zusätzlich Strich-Stil + Punktbewegungs-Richtung |
-| **Kontrast** | Texte auf `var(--primary-text-color)`/`var(--secondary-text-color)`, automatisch theme-konform; Akzentfarben primär für Pfade, nicht für Text-Lesbarkeit |
-| **Loading-State** | Skeleton mit `aria-busy="true"` |
-| **Error-State** | Error-Banner mit `role="alert"` |
+| Aspekt                  | Umsetzung                                                                                                                                                |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Semantik**            | Knoten als `role="button"` mit `tabindex="0"`                                                                                                            |
+| **aria-label**          | `<Knoten-Name>: <formatierter Wert> <Einheit>`, z. B. „Solar Dach: 2 000 Watt"                                                                           |
+| **Tastatur-Navigation** | Tab durch alle Knoten in fester Reihenfolge (siehe §5.3); Enter/Space öffnet `more-info`                                                                 |
+| **Reduced Motion**      | siehe §5.8                                                                                                                                               |
+| **Color-Blindness**     | Akzentfarben sind nicht der einzige Bedeutungsträger — jeder Pfad hat zusätzlich Strich-Stil + Punktbewegungs-Richtung                                   |
+| **Kontrast**            | Texte auf `var(--primary-text-color)`/`var(--secondary-text-color)`, automatisch theme-konform; Akzentfarben primär für Pfade, nicht für Text-Lesbarkeit |
+| **Loading-State**       | Skeleton mit `aria-busy="true"`                                                                                                                          |
+| **Error-State**         | Error-Banner mit `role="alert"`                                                                                                                          |
 
 Verifikation in Phase 2: Card mit Tastatur durchsteppen, jeder Knoten
 fokussierbar; Chrome DevTools → Rendering → Color-Vision-Deficiency-Emulation
@@ -1269,14 +1302,14 @@ card-mod nicht trivial mit `style:` durchstylen.
 **Lösung:** zentrale Elemente bekommen `part`-Attribute, sodass card-mod via
 `::part()` zugreifen kann:
 
-| Element | `part`-Wert |
-|---|---|
-| Card-Wrapper | `card` |
-| Knoten allgemein | `node` |
-| Knoten-Typ | `node-solar` / `node-battery` / `node-grid` / `node-home` / `node-consumer` |
-| Pfad allgemein | `flow` |
-| Pfad-Typ | `flow-pv-to-home` etc. |
-| Anteils-Ring | `home-ring` |
+| Element          | `part`-Wert                                                                 |
+| ---------------- | --------------------------------------------------------------------------- |
+| Card-Wrapper     | `card`                                                                      |
+| Knoten allgemein | `node`                                                                      |
+| Knoten-Typ       | `node-solar` / `node-battery` / `node-grid` / `node-home` / `node-consumer` |
+| Pfad allgemein   | `flow`                                                                      |
+| Pfad-Typ         | `flow-pv-to-home` etc.                                                      |
+| Anteils-Ring     | `home-ring`                                                                 |
 
 README dokumentiert diese als „Erweiterte Anpassung". Volle Theming-Integration
 (z. B. dynamische Farb-Themes) ist v2-Thema.
@@ -1303,10 +1336,11 @@ console.info(
 
 (window as unknown as { customCards?: unknown[] }).customCards =
   (window as unknown as { customCards?: unknown[] }).customCards ?? [];
-((window as unknown as { customCards: unknown[] }).customCards).push({
+(window as unknown as { customCards: unknown[] }).customCards.push({
   type: CARD_TYPE,
   name: CARD_NAME,
-  description: 'Multi-Source Energie-Flow-Visualisierung mit beliebig vielen PVs, Akkus und Verbrauchern',
+  description:
+    'Multi-Source Energie-Flow-Visualisierung mit beliebig vielen PVs, Akkus und Verbrauchern',
   preview: true,
   documentationURL: 'https://github.com/<owner>/custom-energy-flow-card',
 });
@@ -1329,7 +1363,7 @@ HA-Konventions-Methoden:
 class CustomEnergyFlowCard extends LitElement {
   // HA-Lifecycle: vom Frontend bei Config-Änderung gerufen
   setConfig(config: unknown): void {
-    const validated = validateConfig(config);  // wirft bei invalid
+    const validated = validateConfig(config); // wirft bei invalid
     this.config = validated;
   }
 
@@ -1391,19 +1425,29 @@ Listen-UI:
 <div class="list-section">
   <h3>Solar-Anlagen</h3>
   ${this.config.solar.map((item, i) => html`
-    <div class="list-item" part="editor-list-item">
-      <ha-form
-        .data=${item}
-        .schema=${solarItemSchema}
-        .hass=${this.hass}
-        @value-changed=${this._onSolarChanged(i)}
-      ></ha-form>
-      <button @click=${this._onRemoveSolar(i)}>Entfernen</button>
-      <button @click=${this._onMoveUp(i)} ?disabled=${i === 0}>↑</button>
-      <button @click=${this._onMoveDown(i)} ?disabled=${i === this.config.solar.length - 1}>↓</button>
-    </div>
+  <div class="list-item" part="editor-list-item">
+    <ha-form
+      .data="${item}"
+      .schema="${solarItemSchema}"
+      .hass="${this.hass}"
+      @value-changed="${this._onSolarChanged(i)}"
+    ></ha-form>
+    <button @click="${this._onRemoveSolar(i)}">Entfernen</button>
+    <button @click="${this._onMoveUp(i)}" ?disabled="${i" ="" ="" ="0}">↑</button>
+    <button
+      @click="${this._onMoveDown(i)}"
+      ?disabled="${i"
+      =""
+      =""
+      ="this.config.solar.length"
+      -
+      1}
+    >
+      ↓
+    </button>
+  </div>
   `)}
-  <button @click=${this._onAddSolar}>+ PV hinzufügen</button>
+  <button @click="${this._onAddSolar}">+ PV hinzufügen</button>
 </div>
 ```
 
@@ -1414,6 +1458,7 @@ Elements**, die im HA-Runtime registriert sind. Sie werden **nicht** als
 npm-Paket geliefert.
 
 Konsequenzen:
+
 - **Niemals** `import 'ha-form'` o. ä.
 - In Lit-Templates direkt verwenden: `html`<ha-form .data=${…}></ha-form>`html`
 - TS-Deklaration für diese Globals in `src/ha/ha-globals.d.ts`:
@@ -1437,7 +1482,7 @@ declare global {
 export {};
 ```
 
-Die Editor-Implementation listet die *real verwendeten* Properties dieser
+Die Editor-Implementation listet die _real verwendeten_ Properties dieser
 Elemente — keine vollständige HA-Typdefinition.
 
 #### 6.4.3 Pairing-Dropdown
@@ -1445,16 +1490,17 @@ Elemente — keine vollständige HA-Typdefinition.
 Beim Akku-Editor enthält `charged_by` ein eigenes Lit-`<select>`:
 
 ```html
-<label>Lädt von:
-  <select .value=${battery.charged_by} @change=${this._onChargedByChange(j)}>
+<label
+  >Lädt von:
+  <select .value="${battery.charged_by}" @change="${this._onChargedByChange(j)}">
     <option value="" disabled>— wählen —</option>
     ${this.config.solar.map(s => html`
-      <option value=${s.id}>${s.name ?? s.id}</option>
+    <option value="${s.id}">${s.name ?? s.id}</option>
     `)}
   </select>
 </label>
 ${this._isPairingInvalid(battery) ? html`
-  <span class="error">PV-ID „${battery.charged_by}" existiert nicht</span>
+<span class="error">PV-ID „${battery.charged_by}" existiert nicht</span>
 ` : ''}
 ```
 
@@ -1503,15 +1549,15 @@ betroffenen Feld; Save-Button visuell disabled.
 
 ### 7.2 Test-Strategie
 
-| Schicht | Tool | Anspruch |
-|---|---|---|
-| `engine/*` | Vitest, tabellengetrieben | ≥ 90 % Coverage, alle 16 Edge-Cases aus 4.11 |
-| `config/*` | Vitest | ≥ 90 % Coverage, alle Validierungs-Regeln |
-| `util/*` | Vitest | ≥ 90 % Coverage, alle Format-/Sensor-Edge-Cases |
-| `render/layout` | Vitest (snapshot oder strukturell) | Knoten-Positionen für 1, 2, 3, 5 PV-Anzahlen |
-| `render/flow-renderer`, `home-ring`, `flow-animation` | Manuell via Sandbox | 8 Mock-Szenarien (siehe 7.3) |
-| `editor.ts` | Vitest (happy-dom env) für Form-Logik + Sandbox manuell | Add/remove/reorder, Pairing-Validierung |
-| `card.ts`, `ha/*` | Code-Review nach HA-Konventionen | Orientierung an power-flow-card-plus |
+| Schicht                                               | Tool                                                    | Anspruch                                        |
+| ----------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------- |
+| `engine/*`                                            | Vitest, tabellengetrieben                               | ≥ 90 % Coverage, alle 16 Edge-Cases aus 4.11    |
+| `config/*`                                            | Vitest                                                  | ≥ 90 % Coverage, alle Validierungs-Regeln       |
+| `util/*`                                              | Vitest                                                  | ≥ 90 % Coverage, alle Format-/Sensor-Edge-Cases |
+| `render/layout`                                       | Vitest (snapshot oder strukturell)                      | Knoten-Positionen für 1, 2, 3, 5 PV-Anzahlen    |
+| `render/flow-renderer`, `home-ring`, `flow-animation` | Manuell via Sandbox                                     | 8 Mock-Szenarien (siehe 7.3)                    |
+| `editor.ts`                                           | Vitest (happy-dom env) für Form-Logik + Sandbox manuell | Add/remove/reorder, Pairing-Validierung         |
+| `card.ts`, `ha/*`                                     | Code-Review nach HA-Konventionen                        | Orientierung an power-flow-card-plus            |
 
 Coverage-Threshold von 90 % gilt für `engine/`, `config/`, `util/` (Pflicht via
 `vitest.config.ts`). `render/`, `card.ts`, `editor.ts` werden über
@@ -1533,7 +1579,9 @@ export interface MockScenario {
   hassStates: Record<string, { state: string; attributes?: Record<string, unknown> }>;
 }
 
-export const scenarios: MockScenario[] = [ /* siehe Liste unten */ ];
+export const scenarios: MockScenario[] = [
+  /* siehe Liste unten */
+];
 
 export function buildMockHass(scenario: MockScenario): HomeAssistant {
   return {
@@ -1641,30 +1689,35 @@ Da v1.0 als ersten Test eingespielt wird, sind das **interne Etappen**.
 Abhängigkeiten zwischen Phasen sind explizit:
 
 ### Phase 1 — Foundation: Util + Config + Engine
+
 **Output:** `util/`, `config/`, `engine/`, `i18n/`, alle Tests grün, Coverage ≥ 90 %
 **Abhängigkeiten:** keine
 **Verifikation:** `pnpm test:coverage` zeigt grünen Lauf
 **Reihenfolge intern:**
-  1. `util/format-power.ts` + Test
-  2. `util/resolve-color.ts`
-  3. `util/svg-path.ts`
-  4. `util/memo.ts`
-  5. `util/read-sensor.ts` + Test (alle Sensor-Edge-Cases)
-  6. `i18n/de.ts`
-  7. `engine/types.ts`, `engine/flow-graph.ts`
-  8. `engine/energy-engine.ts` (TDD: Edge-Case 1 → 16)
-  9. `config/types.ts`, `config/schema.ts` (inkl. `buildSystemState`) + Test
+
+1. `util/format-power.ts` + Test
+2. `util/resolve-color.ts`
+3. `util/svg-path.ts`
+4. `util/memo.ts`
+5. `util/read-sensor.ts` + Test (alle Sensor-Edge-Cases)
+6. `i18n/de.ts`
+7. `engine/types.ts`, `engine/flow-graph.ts`
+8. `engine/energy-engine.ts` (TDD: Edge-Case 1 → 16)
+9. `config/types.ts`, `config/schema.ts` (inkl. `buildSystemState`) + Test
 
 ### Phase 2 — Renderer + Sandbox
+
 **Output:** `render/`, `examples/preview.html`, `examples/preview-mocks.ts`
 **Abhängigkeiten:** Phase 1 (Typen + Util)
 **Verifikation:** Sandbox lädt direkt mit Mock-FlowResult (Engine wird hier nicht
 aufgerufen), optisches OK in 10 Szenarien (inkl. neuer Sensor-Unavailable + Stub-Config-Szenarien)
 
 ### Phase 3 — HA-Integration
+
 **Output:** `card.ts`, `ha/`, `index.ts`, `const.ts`
 **Abhängigkeiten:** Phase 1 + 2
 **Verifikation:**
+
 - Sandbox umstellen auf vollen Card-Pfad (Mock-`hass` → `buildSystemState` → Engine → Renderer)
 - Crash-Resilienz testen: Mock-Sensoren auf `unavailable` setzen, Card rendert weiter
 - Tastatur-Navigation testen (Tab durch alle Knoten)
@@ -1673,12 +1726,14 @@ aufgerufen), optisches OK in 10 Szenarien (inkl. neuer Sensor-Unavailable + Stub
 - `pnpm typecheck` grün
 
 ### Phase 4 — Editor
+
 **Output:** `editor.ts`, Editor in der Sandbox testbar
 **Abhängigkeiten:** Phase 3
 **Verifikation:** Editor in Sandbox: alle Listen-Operationen, Pairing-Validierung,
 Save-Flow, Sensor-Existenz-Check.
 
 ### Phase 5 — Polish & Release
+
 **Output:** `hacs.json`, `README.md`, GitHub-Workflows, husky-Setup,
 `examples/2-pv-2-batt.yaml`, GitHub-Release-Asset
 **Abhängigkeiten:** Phase 1–4
@@ -1756,6 +1811,7 @@ werden im Code-Review zurückgewiesen.
 ### 11.1 Reine Funktionen für die Engine
 
 `src/engine/*` enthält **ausschließlich pure functions**:
+
 - Keine Klassen mit Instanz-State
 - Kein Lesen aus globalem State (kein `Date.now()`, kein `Math.random()`,
   kein `localStorage`, kein DOM-Zugriff)
@@ -1767,7 +1823,7 @@ werden im Code-Review zurückgewiesen.
 - `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`,
   `noFallthroughCasesInSwitch: true`, `noPropertyAccessFromIndexSignature: true`
 - **Kein `any`** ohne `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
-  *plus* einzeiliger Kommentar mit Begründung
+  _plus_ einzeiliger Kommentar mit Begründung
 - **Kein `unknown`** ohne explizite Type-Narrowing-Schritte
 - **Kein `as` cast** ohne Kommentar (außer `as const`)
 - **Keine non-null assertion `!`** ohne Kommentar (Engine: niemals; sonst nur an HA-Boundary)
@@ -1775,6 +1831,7 @@ werden im Code-Review zurückgewiesen.
 ### 11.3 Test-Driven für die Engine
 
 Reihenfolge in Phase 1:
+
 1. `engine/types.ts` schreiben
 2. **Tests** für Edge-Case 1 schreiben
 3. Engine-Code so weit implementieren, dass Edge-Case 1 grün ist
@@ -1796,25 +1853,39 @@ module.exports = {
     'plugin:import/typescript',
   ],
   rules: {
-    'import/no-restricted-paths': ['error', {
-      zones: [
-        { target: './src/engine', from: './src',
-          except: ['./engine', './util/memo.ts'] },
-        { target: './src/config', from: './src',
-          except: ['./config', './util', './engine/types.ts', './i18n'] },
-        { target: './src/render', from: './src',
-          except: ['./render', './util', './engine/types.ts', './i18n'] },
-        { target: './src/util', from: './src', except: ['./util'] },
-        { target: './src/i18n', from: './src', except: ['./i18n'] },
-        { target: './src/ha', from: './src',
-          except: ['./ha', './config/types.ts', './engine/types.ts'] },
-      ],
-    }],
+    'import/no-restricted-paths': [
+      'error',
+      {
+        zones: [
+          { target: './src/engine', from: './src', except: ['./engine', './util/memo.ts'] },
+          {
+            target: './src/config',
+            from: './src',
+            except: ['./config', './util', './engine/types.ts', './i18n'],
+          },
+          {
+            target: './src/render',
+            from: './src',
+            except: ['./render', './util', './engine/types.ts', './i18n'],
+          },
+          { target: './src/util', from: './src', except: ['./util'] },
+          { target: './src/i18n', from: './src', except: ['./i18n'] },
+          {
+            target: './src/ha',
+            from: './src',
+            except: ['./ha', './config/types.ts', './engine/types.ts'],
+          },
+        ],
+      },
+    ],
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-non-null-assertion': 'error',
-    '@typescript-eslint/explicit-function-return-type': ['error', {
-      allowExpressions: true,
-    }],
+    '@typescript-eslint/explicit-function-return-type': [
+      'error',
+      {
+        allowExpressions: true,
+      },
+    ],
   },
 };
 ```
@@ -1867,16 +1938,16 @@ Commit-Body. Niemals auf main.
 
 ## 12. Glossar
 
-| Begriff | Bedeutung |
-|---|---|
-| **Pairing** | 1:1-Zuordnung einer Battery zu einer PV (`charged_by`) |
-| **Pairing-Defizit** | charge[j] − P_pv→batt[i] > 0; PV reicht nicht zum Akku-Laden |
-| **Reconcile** | Anpassung der berechneten Per-Source-Flüsse an Netz-Sensor-Realität |
-| **Anteils-Ring** | Doughnut um Haus-Knoten, zeigt Quellen-Verteilung |
-| **Active flow** | Pfad mit `power > display.active_threshold_w` |
-| **Greenfield** | Frisches Repo ohne Bestandscode |
-| **Stub-Config** | Default-Config aus `getStubConfig()`, beim Card-Hinzufügen via UI |
-| **HA-Globals** | von HA bereitgestellte Custom Elements (`ha-form`, …), nicht importierbar |
-| **`::part()`** | CSS-Mechanismus für Shadow-DOM-Styling (z. B. via card-mod) |
-| **a11y** | Accessibility-Konformität (WAI-ARIA, Tastatur, Screenreader) |
-| **CVD** | Color-Vision-Deficiency / Farbenblindheit |
+| Begriff             | Bedeutung                                                                 |
+| ------------------- | ------------------------------------------------------------------------- |
+| **Pairing**         | 1:1-Zuordnung einer Battery zu einer PV (`charged_by`)                    |
+| **Pairing-Defizit** | charge[j] − P_pv→batt[i] > 0; PV reicht nicht zum Akku-Laden              |
+| **Reconcile**       | Anpassung der berechneten Per-Source-Flüsse an Netz-Sensor-Realität       |
+| **Anteils-Ring**    | Doughnut um Haus-Knoten, zeigt Quellen-Verteilung                         |
+| **Active flow**     | Pfad mit `power > display.active_threshold_w`                             |
+| **Greenfield**      | Frisches Repo ohne Bestandscode                                           |
+| **Stub-Config**     | Default-Config aus `getStubConfig()`, beim Card-Hinzufügen via UI         |
+| **HA-Globals**      | von HA bereitgestellte Custom Elements (`ha-form`, …), nicht importierbar |
+| **`::part()`**      | CSS-Mechanismus für Shadow-DOM-Styling (z. B. via card-mod)               |
+| **a11y**            | Accessibility-Konformität (WAI-ARIA, Tastatur, Screenreader)              |
+| **CVD**             | Color-Vision-Deficiency / Farbenblindheit                                 |

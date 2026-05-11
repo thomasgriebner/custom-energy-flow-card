@@ -245,3 +245,160 @@ describe('validateConfig (negative paths)', () => {
     expect(() => validateConfig(c)).toThrow(/import.*export.*entity/i);
   });
 });
+
+describe('BatteryConfig split charge/discharge', () => {
+  const buildHass = (
+    states: Record<string, { state: string; attributes?: Record<string, unknown> }>,
+  ): ReadSensorHassShape => ({ states });
+
+  it('validateConfig accepts split variant (charge_power + discharge_power)', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    expect(() => validateConfig(c)).not.toThrow();
+  });
+
+  it('validateConfig throws when both "power" AND "charge_power" are set', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          power: 'sensor.b_p',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        } as unknown as Config['battery'][number],
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/battery.*both|either/i);
+  });
+
+  it('validateConfig throws when neither "power" nor split sensors are set', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charged_by: 'dach',
+        } as unknown as Config['battery'][number],
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/battery.*power.*required/i);
+  });
+
+  it('validateConfig throws on bad charge_power entity_id', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'not_an_entity',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/charge_power.*entity/i);
+  });
+
+  it('validateConfig throws on bad discharge_power entity_id', () => {
+    const c = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'not_an_entity',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    expect(() => validateConfig(c)).toThrow(/discharge_power.*entity/i);
+  });
+
+  it('buildSystemState aggregates split variant: charging only → +powerW', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    const hass = buildHass({
+      'sensor.s': { state: '1000', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_soc': { state: '50', attributes: { unit_of_measurement: '%' } },
+      'sensor.b_chg': { state: '600', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_dch': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0' },
+      'sensor.x': { state: '0' },
+    });
+    expect(buildSystemState(config, hass).state.battery[0]?.powerW).toBe(600);
+  });
+
+  it('buildSystemState aggregates split variant: discharging only → −powerW', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    const hass = buildHass({
+      'sensor.s': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_soc': { state: '40', attributes: { unit_of_measurement: '%' } },
+      'sensor.b_chg': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_dch': { state: '400', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0' },
+      'sensor.x': { state: '0' },
+    });
+    expect(buildSystemState(config, hass).state.battery[0]?.powerW).toBe(-400);
+  });
+
+  it('buildSystemState aggregates split variant: both 0 → 0', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s' }],
+      battery: [
+        {
+          id: 'b',
+          soc: 'sensor.b_soc',
+          charge_power: 'sensor.b_chg',
+          discharge_power: 'sensor.b_dch',
+          charged_by: 'dach',
+        },
+      ],
+    });
+    const hass = buildHass({
+      'sensor.s': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_soc': { state: '30', attributes: { unit_of_measurement: '%' } },
+      'sensor.b_chg': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_dch': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0' },
+      'sensor.x': { state: '0' },
+    });
+    expect(buildSystemState(config, hass).state.battery[0]?.powerW).toBe(0);
+  });
+});

@@ -222,6 +222,43 @@ export const scenarios: MockScenario[] = [
       'sensor.stove': { state: '100', attributes: wAttrs },
     },
   },
+  // Split-Sensor-Variante (ADR-0015): Hardware wie Sungrow oder Solarwatt
+  // liefert zwei separate Sensoren (charge_power, discharge_power) statt einem
+  // signierten Wert. Aggregation passiert in `buildSystemState`.
+  {
+    name: 'Split-Sensoren · Solarwatt-Stil',
+    emoji: '🔀',
+    config: {
+      type: 'custom:custom-energy-flow-card',
+      title: 'Energiefluss (split sensors)',
+      solar: [{ id: 'dach', name: 'Solar Dach', power: 'sensor.s_dach' }],
+      battery: [
+        {
+          id: 'b_dach',
+          name: 'Dach-Speicher',
+          soc: 'sensor.b_dach_soc',
+          charge_power: 'sensor.b_dach_charge',
+          discharge_power: 'sensor.b_dach_discharge',
+          charged_by: 'dach',
+        },
+      ],
+      grid: { power: 'sensor.grid_power' },
+      consumers: [
+        { name: 'Wärmepumpe', power: 'sensor.heatpump' },
+        { name: 'Wallbox', power: 'sensor.wallbox' },
+      ],
+      display: { active_threshold_w: 5, number_format: 'grouped' },
+    },
+    hassStates: {
+      'sensor.s_dach': { state: '2200', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '64', attributes: pctAttrs },
+      'sensor.b_dach_charge': { state: '800', attributes: wAttrs },
+      'sensor.b_dach_discharge': { state: '0', attributes: wAttrs },
+      'sensor.grid_power': { state: '-500', attributes: wAttrs },
+      'sensor.heatpump': { state: '400', attributes: wAttrs },
+      'sensor.wallbox': { state: '500', attributes: wAttrs },
+    },
+  },
   // Sensor-Jitter (M5): simuliert reale HA-Bedingungen mit Noise auf allen
   // Sensoren. Engine-Warnings sollten nicht durchgehend feuern. Wird in der
   // Sandbox per setInterval aktualisiert.

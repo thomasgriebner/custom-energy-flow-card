@@ -11,18 +11,18 @@ Verbraucher, 1 Netz, 1 Haus). Greenfield, TypeScript, Lit 3, HACS-distribuiert.
 
 ## Tech-Stack (kompakt)
 
-| Was | Version | Rolle |
-|---|---|---|
-| **Node** | ≥ 20 LTS | Runtime |
-| **pnpm** | ≥ 9 | Package-Manager (verbindlich) |
-| **TypeScript** | `^5.4` strict | Sprache |
-| **Lit** | `^3.2` | LitElement, einzige Runtime-Dep |
-| **Rollup** | `^4.13` | Single-File-Bundle |
-| **Vitest** | `^1.4` | Tests (node + happy-dom) |
-| **happy-dom** | `^14.0` | DOM-Env für Editor/Card-Tests |
-| **ESLint** | `^8.57` | Lint, Layer-Boundaries erzwingen |
-| **Prettier** | `^3.2` | Formatter |
-| **husky + lint-staged** | `^9 / ^15` | Pre-Commit-Hook |
+| Was                     | Version       | Rolle                            |
+| ----------------------- | ------------- | -------------------------------- |
+| **Node**                | ≥ 20 LTS      | Runtime                          |
+| **pnpm**                | ≥ 9           | Package-Manager (verbindlich)    |
+| **TypeScript**          | `^5.4` strict | Sprache                          |
+| **Lit**                 | `^3.2`        | LitElement, einzige Runtime-Dep  |
+| **Rollup**              | `^4.13`       | Single-File-Bundle               |
+| **Vitest**              | `^1.4`        | Tests (node + happy-dom)         |
+| **happy-dom**           | `^14.0`       | DOM-Env für Editor/Card-Tests    |
+| **ESLint**              | `^8.57`       | Lint, Layer-Boundaries erzwingen |
+| **Prettier**            | `^3.2`        | Formatter                        |
+| **husky + lint-staged** | `^9 / ^15`    | Pre-Commit-Hook                  |
 
 **Decorators:** `experimentalDecorators: true`. **Bundle-Budget:** 60 kB
 minified. **Keine Runtime-Deps außer Lit.**
@@ -31,27 +31,27 @@ Volle Versionsliste: Spec §2.1.
 
 ## Dokumentations-Karte
 
-| Was suchst du? | Wo es liegt |
-|---|---|
-| Was bauen wir & warum (Vollspec) | [`docs/specs/2026-05-10-custom-energy-flow-card-design.md`](./docs/specs/2026-05-10-custom-energy-flow-card-design.md) |
-| Architektur-Überblick (lebendig) | [`docs/architecture.md`](./docs/architecture.md) |
-| Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`) |
-| Code-/Workflow-Konventionen | [`docs/conventions.md`](./docs/conventions.md) |
-| Beispiel-Configs (User) | `examples/2-pv-2-batt.yaml` |
-| Sandbox (Renderer-Verifikation) | `examples/preview.html` |
-| User-facing Doku | `README.md` (im Repo-Root, wird mit v1.0 angelegt) |
+| Was suchst du?                            | Wo es liegt                                                                                                            |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Was bauen wir & warum (Vollspec)          | [`docs/specs/2026-05-10-custom-energy-flow-card-design.md`](./docs/specs/2026-05-10-custom-energy-flow-card-design.md) |
+| Architektur-Überblick (lebendig)          | [`docs/architecture.md`](./docs/architecture.md)                                                                       |
+| Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
+| Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
+| Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
+| Sandbox (Renderer-Verifikation)           | `examples/preview.html`                                                                                                |
+| User-facing Doku                          | `README.md` (im Repo-Root, wird mit v1.0 angelegt)                                                                     |
 
 ## Wo dokumentiere ich was?
 
-| Wenn du … | … dann |
-|---|---|
+| Wenn du …                                                                              | … dann                                                                                                                                  |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | eine **Architektur-Entscheidung** triffst (Lib-Wahl, Layer-Änderung, Algorithmus-Wahl) | neuer ADR in `docs/adr/00XX-kurz-titel.md` (Template: `0000-template.md`), Index in `docs/adr/README.md` + `architecture.md §4` updaten |
-| eine **Spec-Änderung** machst | Spec-Header `Status` und `Datum` aktualisieren, Commit `docs(specs): …` |
-| eine **Konvention** ergänzt/änderst (Code-Stil, Workflow) | `docs/conventions.md` |
-| den **Tech-Stack** änderst | dieses `CLAUDE.md` + ADR + Spec §2.1 |
-| ein **User-facing Verhalten** änderst | `README.md` + ggf. Spec |
-| einen **Bug** fixt | Commit + Test, keine Doku-Pflicht |
-| eine neue **Subspec** für ein Feature schreibst | `docs/specs/YYYY-MM-DD-<topic>.md` |
+| eine **Spec-Änderung** machst                                                          | Spec-Header `Status` und `Datum` aktualisieren, Commit `docs(specs): …`                                                                 |
+| eine **Konvention** ergänzt/änderst (Code-Stil, Workflow)                              | `docs/conventions.md`                                                                                                                   |
+| den **Tech-Stack** änderst                                                             | dieses `CLAUDE.md` + ADR + Spec §2.1                                                                                                    |
+| ein **User-facing Verhalten** änderst                                                  | `README.md` + ggf. Spec                                                                                                                 |
+| einen **Bug** fixt                                                                     | Commit + Test, keine Doku-Pflicht                                                                                                       |
+| eine neue **Subspec** für ein Feature schreibst                                        | `docs/specs/YYYY-MM-DD-<topic>.md`                                                                                                      |
 
 ## Module-Layer (Kurzform)
 
@@ -124,16 +124,14 @@ pnpm preview            # Sandbox in Browser öffnen
 
 ## Out-of-Scope (v1.0)
 
-* Energie-Tagesstatistiken (HA-Energy-Cards)
-* Phasen-aufgelöste Anzeige (L1/L2/L3)
-* Dynamische Stromtarif-Anzeige
-* Internationalisierung (Strings auf Deutsch in `i18n/de.ts`, v1.x-Kandidat)
-* Mehr als ein signierter Battery-Power-Sensor (zwei separate
-  charge/discharge → v1.x)
+- Energie-Tagesstatistiken (HA-Energy-Cards)
+- Phasen-aufgelöste Anzeige (L1/L2/L3)
+- Dynamische Stromtarif-Anzeige
+- Internationalisierung (Strings auf Deutsch in `i18n/de.ts`, v1.x-Kandidat)
 
 ## Bei Unklarheit
 
-* Zuerst **Spec** in `docs/specs/`
-* Dann **ADRs** für „warum so?"-Fragen
-* Dann **conventions.md** für „wie schreiben wir das?"-Fragen
-* Dann nachfragen
+- Zuerst **Spec** in `docs/specs/`
+- Dann **ADRs** für „warum so?"-Fragen
+- Dann **conventions.md** für „wie schreiben wir das?"-Fragen
+- Dann nachfragen

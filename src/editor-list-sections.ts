@@ -13,6 +13,7 @@ export interface SolarSectionHandlers {
 export interface BatterySectionHandlers {
   onItemChange: (i: number, value: BatteryConfig) => void;
   onPairChange: (i: number, charged_by: string) => void;
+  onModeChange: (i: number, mode: 'signed' | 'split') => void;
   onAdd: () => void;
   onRemove: (i: number) => void;
   onMove: (i: number, delta: number) => void;
@@ -73,39 +74,90 @@ export function renderBatterySection(
   hass: HomeAssistant | undefined,
   h: BatterySectionHandlers,
 ): TemplateResult {
-  const itemSchema = [
-    { name: 'id', selector: { text: {} }, required: true },
-    { name: 'name', selector: { text: {} } },
-    {
-      name: 'soc',
-      selector: { entity: { domain: 'sensor', device_class: 'battery' } },
-      required: true,
-    },
-    {
-      name: 'power',
-      selector: { entity: { domain: 'sensor', device_class: 'power' } },
-      required: true,
-    },
-    { name: 'power_invert', selector: { boolean: {} } },
-    { name: 'icon', selector: { icon: {} } },
-  ];
   return html`
     <div class="section">
       <h3>${DE.editor.sectionBattery}</h3>
       ${battery.map((item, i) => {
         const pairingMissing = !solar.some((s) => s.id === item.charged_by);
+        const isSplit = !('power' in item);
+        const data = isSplit
+          ? {
+              id: item.id,
+              name: item.name ?? '',
+              soc: item.soc,
+              mode: 'split',
+              charge_power: item.charge_power,
+              discharge_power: item.discharge_power,
+              icon: item.icon ?? '',
+            }
+          : {
+              id: item.id,
+              name: item.name ?? '',
+              soc: item.soc,
+              mode: 'signed',
+              power: item.power,
+              power_invert: item.power_invert ?? false,
+              icon: item.icon ?? '',
+            };
+        const itemSchema = isSplit
+          ? [
+              { name: 'id', selector: { text: {} }, required: true },
+              { name: 'name', selector: { text: {} } },
+              {
+                name: 'soc',
+                selector: { entity: { domain: 'sensor', device_class: 'battery' } },
+                required: true,
+              },
+              { name: 'mode', selector: { select: { options: ['signed', 'split'] } } },
+              {
+                name: 'charge_power',
+                selector: { entity: { domain: 'sensor', device_class: 'power' } },
+                required: true,
+              },
+              {
+                name: 'discharge_power',
+                selector: { entity: { domain: 'sensor', device_class: 'power' } },
+                required: true,
+              },
+              { name: 'icon', selector: { icon: {} } },
+            ]
+          : [
+              { name: 'id', selector: { text: {} }, required: true },
+              { name: 'name', selector: { text: {} } },
+              {
+                name: 'soc',
+                selector: { entity: { domain: 'sensor', device_class: 'battery' } },
+                required: true,
+              },
+              { name: 'mode', selector: { select: { options: ['signed', 'split'] } } },
+              {
+                name: 'power',
+                selector: { entity: { domain: 'sensor', device_class: 'power' } },
+                required: true,
+              },
+              { name: 'power_invert', selector: { boolean: {} } },
+              { name: 'icon', selector: { icon: {} } },
+            ];
         return html`
           <div class="list-item">
             <div style="flex:1">
               <ha-form
-                .data=${item}
+                .data=${data}
                 .schema=${itemSchema}
                 .hass=${hass}
-                @value-changed=${(e: CustomEvent) =>
+                @value-changed=${(e: CustomEvent) => {
+                  const v = e.detail.value as Record<string, unknown>;
+                  const newMode = v['mode'] as 'signed' | 'split' | undefined;
+                  const currentMode: 'signed' | 'split' = isSplit ? 'split' : 'signed';
+                  if (newMode && newMode !== currentMode) {
+                    h.onModeChange(i, newMode);
+                    return;
+                  }
                   h.onItemChange(i, {
                     ...item,
-                    ...(e.detail.value as Partial<BatteryConfig>),
-                  })}
+                    ...(v as Partial<BatteryConfig>),
+                  } as BatteryConfig);
+                }}
               ></ha-form>
               <label class="pairing">
                 ${DE.editor.chargedBy}

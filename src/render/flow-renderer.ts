@@ -239,13 +239,25 @@ function isNodeUnavailable(node: LayoutNode, ctx: RenderContext): boolean {
       ctx.unavailableEntities.has(ctx.config.grid.export)
     );
   }
+  if (node.kind === 'battery') {
+    const b = ctx.config.battery.find((x) => x.id === node.id);
+    if (!b) return false;
+    if ('power' in b) return ctx.unavailableEntities.has(b.power);
+    return (
+      ctx.unavailableEntities.has(b.charge_power) || ctx.unavailableEntities.has(b.discharge_power)
+    );
+  }
   const id = entityIdForNode(node, ctx.config);
   return id !== undefined && ctx.unavailableEntities.has(id);
 }
 
 function entityIdForNode(node: LayoutNode, config: Config): string | undefined {
   if (node.kind === 'pv') return config.solar.find((s) => s.id === node.id)?.power;
-  if (node.kind === 'battery') return config.battery.find((b) => b.id === node.id)?.power;
+  if (node.kind === 'battery') {
+    const b = config.battery.find((x) => x.id === node.id);
+    if (!b) return undefined;
+    return 'power' in b ? b.power : b.charge_power;
+  }
   if (node.kind === 'grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
   if (node.kind === 'consumer') {
     const idx = Number.parseInt(node.id.slice(1), 10);

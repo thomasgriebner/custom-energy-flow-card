@@ -17,7 +17,9 @@ export function relevantSensorIds(config: Config): string[] {
   const ids: string[] = [];
   for (const s of config.solar) ids.push(s.power);
   for (const b of config.battery) {
-    ids.push(b.soc, b.power);
+    ids.push(b.soc);
+    if ('power' in b) ids.push(b.power);
+    else ids.push(b.charge_power, b.discharge_power);
   }
   if ('power' in config.grid) ids.push(config.grid.power);
   else ids.push(config.grid.import, config.grid.export);
@@ -45,7 +47,7 @@ export function resolveEntityId(config: Config | undefined, nodeId: string): str
   const solar = config.solar.find((s) => s.id === nodeId);
   if (solar) return solar.power;
   const battery = config.battery.find((b) => b.id === nodeId);
-  if (battery) return battery.power;
+  if (battery) return 'power' in battery ? battery.power : battery.charge_power;
   if (nodeId === '__grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
   if (nodeId === '__home') return config.home?.power;
   if (nodeId.startsWith('c')) {

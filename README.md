@@ -56,6 +56,8 @@ vollständige Beispiel-Konfiguration mit 2 PV-Anlagen, 2 Akkus, 3 Verbrauchern.
 
 ### `battery[]`
 
+Entweder ein signierter Power-Sensor:
+
 ```yaml
 - id: <eindeutig im battery-Array>
   name: <optional>
@@ -65,6 +67,20 @@ vollständige Beispiel-Konfiguration mit 2 PV-Anlagen, 2 Akkus, 3 Verbrauchern.
   charged_by: <solar.id> # Pairing → Pflicht, 1:1
   icon: mdi:<icon>
 ```
+
+oder zwei separate Sensoren (z. B. Sungrow, Solarwatt):
+
+```yaml
+- id: <eindeutig im battery-Array>
+  name: <optional>
+  soc: sensor.<entity> # 0–100 %
+  charge_power: sensor.<entity> # ≥ 0, nur Lade-Leistung
+  discharge_power: sensor.<entity> # ≥ 0, nur Entlade-Leistung
+  charged_by: <solar.id> # Pairing → Pflicht, 1:1
+  icon: mdi:<icon>
+```
+
+Genau eine der beiden Varianten pro Battery — nicht beides, nicht keines.
 
 ### `grid`
 
@@ -158,8 +174,9 @@ Akku ist erlaubt; ein Akku ohne `charged_by` ist nicht erlaubt.
 ## Sensor-Vorzeichen
 
 - **PV-Sensor**: ≥ 0 W
-- **Akku-Sensor**: signiert: `+` = laden, `−` = entladen. Wenn dein Sensor
-  umgekehrt arbeitet → `power_invert: true`
+- **Akku-Sensor**: entweder signiert (`+` = laden, `−` = entladen; `power_invert: true`
+  falls Sensor umgekehrt arbeitet) oder zwei separate ≥ 0-Sensoren
+  (`charge_power` + `discharge_power`)
 - **Netz-Sensor**: signiert: `+` = Bezug, `−` = Einspeisung. Oder alternativ
   zwei separate Sensoren `import`/`export`
 

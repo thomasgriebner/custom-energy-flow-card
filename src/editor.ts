@@ -112,6 +112,7 @@ export class CustomEnergyFlowCardEditor extends LitElement {
       ${renderBatterySection(c.battery, c.solar, this.hass, {
         onItemChange: (i, value) => this._onBatteryItemChange(i, value),
         onPairChange: (i, charged_by) => this._onBatteryPairChange(i, charged_by),
+        onModeChange: (i, mode) => this._onBatteryModeChange(i, mode),
         onAdd: () => this._addBattery(),
         onRemove: (i) => this._removeBattery(i),
         onMove: (i, delta) => this._moveBattery(i, delta),
@@ -281,6 +282,28 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     const item = battery[i];
     if (!item) return;
     battery[i] = { ...item, charged_by };
+    this._emitChange({ ...this._config, battery });
+  }
+
+  private _onBatteryModeChange(i: number, mode: 'signed' | 'split'): void {
+    if (!this._config) return;
+    const battery = [...this._config.battery];
+    const item = battery[i];
+    if (!item) return;
+    // Mode-Wechsel resettet die nicht zur neuen Variante passenden Felder,
+    // analog zu Grid (_onGridChange). Validation-Banner zeigt fehlende Felder
+    // bis der User sie ausfüllt.
+    const base = {
+      id: item.id,
+      name: item.name,
+      soc: item.soc,
+      charged_by: item.charged_by,
+      icon: item.icon,
+    };
+    battery[i] =
+      mode === 'split'
+        ? { ...base, charge_power: '', discharge_power: '' }
+        : { ...base, power: '', power_invert: false };
     this._emitChange({ ...this._config, battery });
   }
 
