@@ -14,6 +14,8 @@ export interface BuildResult {
   state: SystemState;
   warnings: EngineWarning[];
   unavailableEntities: Set<string>;
+  /** Pro-Akku SoC (%); fehlt, wenn der zugehörige soc-Sensor unavailable ist. */
+  batterySoc: Map<string, number>;
 }
 
 const ENTITY_RE = /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/i;
@@ -240,9 +242,17 @@ export function buildSystemState(config: Config, hass: ReadSensorHassShape): Bui
   const home: SystemState['home'] = {};
   if (config.home?.power) home.powerOverrideW = read(config.home.power);
 
+  const batterySoc = new Map<string, number>();
+  for (const b of config.battery) {
+    if (unavailable.has(b.soc)) continue;
+    const s = battery.find((x) => x.id === b.id);
+    if (s && Number.isFinite(s.socPct)) batterySoc.set(b.id, s.socPct);
+  }
+
   return {
     state: { pv, battery, grid: { powerW: gridPowerW }, consumer, home },
     warnings,
     unavailableEntities: unavailable,
+    batterySoc,
   };
 }

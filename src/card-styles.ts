@@ -66,5 +66,13 @@ export const cardStyles: CSSResultGroup = css`
     outline: 2px solid var(--primary-color, #03a9f4);
     outline-offset: 4px;
   }
+  .node-icon,
+  .node-value,
+  .node-name {
+    fill: var(--primary-text-color, #0f172a);
+  }
+  .node-soc {
+    fill: var(--secondary-text-color, #64748b);
+  }
   ${unsafeCSS(ANIMATION_CSS)}
 `;

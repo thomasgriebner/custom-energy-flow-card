@@ -25,6 +25,8 @@ export interface RenderContext {
   theme: ThemeContext;
   buildWarnings: EngineWarning[]; // warnings collected in buildSystemState
   unavailableEntities: Set<string>; // entity_ids that are 'unavailable'/'unknown'
+  /** Pro-Akku SoC (%), nur enthalten wenn der zugehörige soc-Sensor verfügbar ist. */
+  batterySoc: ReadonlyMap<string, number>;
   animation?: AnimationConfig;
   onNodeClick?: (nodeId: string) => void;
 }
@@ -187,12 +189,25 @@ function renderNode(node: LayoutNode, result: FlowResult, ctx: RenderContext): T
   const color = colorFor(nodeColorRole(node.kind), ctx.theme);
   const value = unavailable ? formatPowerW(Number.NaN) : nodeValueText(node, result, ctx);
   const name = nodeName(node, ctx);
-  const ariaLabel = unavailable ? `${name}: ${DE.states.sensorUnavailable}` : `${name}: ${value}`;
+
+  const socPct = node.kind === 'battery' ? ctx.batterySoc.get(node.id) : undefined;
+  const showSoc = !unavailable && socPct !== undefined && Number.isFinite(socPct);
+  const socText = showSoc ? `${Math.round(socPct)}${DE.units.percent}` : '';
+
+  const ariaLabel = unavailable
+    ? `${name}: ${DE.states.sensorUnavailable}`
+    : showSoc
+      ? `${name}: ${value}, ${socText}`
+      : `${name}: ${value}`;
 
   const ring =
     node.kind === 'home' ? renderHomeRing(result.homeAttribution, 0, 0, ctx.theme) : svg``;
   const labelOffset = labelYOffset(node);
   const strokeDash = unavailable ? '4 4' : '';
+
+  // Battery mit sichtbarem SoC: Icon/Wert leicht nach oben rücken, damit SoC darunter passt.
+  const iconY = node.kind === 'home' ? -10 : showSoc ? -10 : -4;
+  const valueY = node.kind === 'home' ? 14 : showSoc ? 10 : 16;
 
   return svg`
     <g
@@ -218,12 +233,21 @@ function renderNode(node: LayoutNode, result: FlowResult, ctx: RenderContext): T
         stroke-width="2.5"
         stroke-dasharray="${strokeDash}"
       ></circle>
-      <text class="node-icon" text-anchor="middle" y="${node.kind === 'home' ? -10 : -4}" font-size="${node.kind === 'home' ? 28 : 22}">
+      <text class="node-icon" text-anchor="middle" y="${iconY}" font-size="${node.kind === 'home' ? 28 : 22}">
         ${nodeIconChar(node, ctx)}
       </text>
-      <text class="node-value" text-anchor="middle" y="${node.kind === 'home' ? 14 : 16}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 13}">
+      <text class="node-value" text-anchor="middle" y="${valueY}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 13}">
         ${value}
       </text>
+      ${
+        showSoc
+          ? svg`
+            <text class="node-soc" text-anchor="middle" y="26" font-size="11" font-weight="600">
+              ${socText}
+            </text>
+          `
+          : svg``
+      }
       <text class="node-name" text-anchor="middle" y="${labelOffset}" font-size="11" font-weight="600">
         ${name}
       </text>

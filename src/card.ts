@@ -38,6 +38,7 @@ export class CustomEnergyFlowCard extends LitElement {
   @state() private _renderError?: string;
   @state() private _buildWarnings: EngineWarning[] = [];
   @state() private _unavailable: Set<string> = new Set();
+  @state() private _batterySoc: Map<string, number> = new Map();
   @state() private _containerW = 720;
   private _resizeObs?: ResizeObserver;
 
@@ -115,6 +116,7 @@ export class CustomEnergyFlowCard extends LitElement {
       const built = buildSystemState(this._config, this.hass);
       this._buildWarnings = built.warnings;
       this._unavailable = built.unavailableEntities;
+      this._batterySoc = built.batterySoc;
       const engineResult = compute(built.state);
       this._flowResult = {
         ...engineResult,
@@ -167,6 +169,7 @@ export class CustomEnergyFlowCard extends LitElement {
           animation: display.animation,
           buildWarnings: this._buildWarnings,
           unavailableEntities: this._unavailable,
+          batterySoc: this._batterySoc,
           onNodeClick: (id) => {
             const entity = resolveEntityId(this._config, id);
             if (entity) fireMoreInfo(this, entity);

@@ -162,6 +162,39 @@ describe('buildSystemState', () => {
     expect(r.warnings.some((w) => w.code === 'SENSOR_UNAVAILABLE')).toBe(true);
     expect(r.unavailableEntities.has('sensor.s_dach')).toBe(true);
   });
+
+  it('exposes batterySoc map for available SoC sensors', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s_dach' }],
+      battery: [{ id: 'b_dach', soc: 'sensor.b_soc', power: 'sensor.b_p', charged_by: 'dach' }],
+    });
+    const hass = buildHass({
+      'sensor.s_dach': { state: '1500', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_soc': { state: '73', attributes: { unit_of_measurement: '%' } },
+      'sensor.b_p': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.x': { state: '0' },
+    });
+    const r = buildSystemState(config, hass);
+    expect(r.batterySoc.get('b_dach')).toBe(73);
+  });
+
+  it('omits battery from batterySoc map when soc sensor is unavailable', () => {
+    const config = minimalConfig({
+      solar: [{ id: 'dach', power: 'sensor.s_dach' }],
+      battery: [{ id: 'b_dach', soc: 'sensor.b_soc', power: 'sensor.b_p', charged_by: 'dach' }],
+    });
+    const hass = buildHass({
+      'sensor.s_dach': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.b_soc': { state: 'unavailable' },
+      'sensor.b_p': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0', attributes: { unit_of_measurement: 'W' } },
+      'sensor.x': { state: '0' },
+    });
+    const r = buildSystemState(config, hass);
+    expect(r.batterySoc.has('b_dach')).toBe(false);
+    expect(r.unavailableEntities.has('sensor.b_soc')).toBe(true);
+  });
 });
 
 describe('validateConfig (negative paths)', () => {
