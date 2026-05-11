@@ -1,10 +1,14 @@
 import { LitElement, html, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { hassRelevantSensorsChanged, isStubConfig, resolveEntityId } from './card-helpers';
+import {
+  buildCardState,
+  hassRelevantSensorsChanged,
+  isStubConfig,
+  resolveEntityId,
+} from './card-helpers';
 import { cardStyles } from './card-styles';
-import { validateConfig, buildSystemState } from './config/schema';
+import { validateConfig } from './config/schema';
 import { CARD_TYPE, DEFAULTS } from './const';
-import { compute } from './engine/energy-engine';
 import { fireMoreInfo } from './ha/ha-helpers';
 import { DE } from './i18n/de';
 import { renderCard } from './render/flow-renderer';
@@ -113,21 +117,17 @@ export class CustomEnergyFlowCard extends LitElement {
     if (isStubConfig(this._config)) return;
     if (!changed.has('hass') && !changed.has('_config')) return;
     try {
-      const built = buildSystemState(this._config, this.hass);
-      this._buildWarnings = built.warnings;
-      this._unavailable = built.unavailableEntities;
-      this._batterySoc = built.batterySoc;
-      const engineResult = compute(built.state);
-      this._flowResult = {
-        ...engineResult,
-        warnings: [...built.warnings, ...engineResult.warnings],
-      };
+      const { build, flow } = buildCardState(this._config, this.hass);
+      this._buildWarnings = build.warnings;
+      this._unavailable = build.unavailableEntities;
+      this._batterySoc = build.batterySoc;
+      this._flowResult = flow;
       this._renderError = undefined;
       if (this._config.display?.debug) {
         console.info('[CEFC] willUpdate', {
-          homeW: engineResult.homeW,
-          warnings: this._flowResult.warnings.length,
-          unavailable: built.unavailableEntities.size,
+          homeW: flow.homeW,
+          warnings: flow.warnings.length,
+          unavailable: build.unavailableEntities.size,
         });
       }
     } catch (err) {

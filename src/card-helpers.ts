@@ -1,5 +1,25 @@
+import { buildSystemState, type BuildResult } from './config/schema';
+import { compute } from './engine/energy-engine';
 import type { Config } from './config/types';
+import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
+
+export interface CardState {
+  build: BuildResult;
+  flow: FlowResult;
+}
+
+export function buildCardState(config: Config, hass: HomeAssistant): CardState {
+  const build = buildSystemState(config, hass);
+  const engineResult = compute(build.state);
+  return {
+    build,
+    flow: {
+      ...engineResult,
+      warnings: [...build.warnings, ...engineResult.warnings],
+    },
+  };
+}
 
 export function isStubConfig(config: unknown): boolean {
   if (!config || typeof config !== 'object') return false;
