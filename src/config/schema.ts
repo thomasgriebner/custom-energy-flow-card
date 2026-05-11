@@ -118,6 +118,13 @@ export function validateConfig(input: unknown): Config {
     throw new Error('home.power must be a valid entity_id');
   }
 
+  if (c.display?.consumer_grouping !== undefined) {
+    const cg = c.display.consumer_grouping;
+    if (cg !== 'none' && cg !== 'by_area') {
+      throw new Error(`display.consumer_grouping must be 'none' or 'by_area', got '${cg}'`);
+    }
+  }
+
   return {
     type: 'custom:custom-energy-flow-card',
     version: c.version ?? 1,

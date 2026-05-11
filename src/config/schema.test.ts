@@ -435,3 +435,20 @@ describe('BatteryConfig split charge/discharge', () => {
     expect(buildSystemState(config, hass).state.battery[0]?.powerW).toBe(0);
   });
 });
+
+describe('validateConfig consumer_grouping', () => {
+  it('accepts consumer_grouping: none', () => {
+    const c = minimalConfig({ display: { consumer_grouping: 'none' } });
+    expect(() => validateConfig(c)).not.toThrow();
+  });
+
+  it('accepts consumer_grouping: by_area', () => {
+    const c = minimalConfig({ display: { consumer_grouping: 'by_area' } });
+    expect(() => validateConfig(c)).not.toThrow();
+  });
+
+  it('throws on invalid consumer_grouping value', () => {
+    const c = minimalConfig({ display: { consumer_grouping: 'invalid' as unknown as 'none' } });
+    expect(() => validateConfig(c)).toThrow(/consumer_grouping/);
+  });
+});

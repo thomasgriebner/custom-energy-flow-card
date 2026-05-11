@@ -63,6 +63,7 @@ export interface DisplayConfig {
   show_inactive_paths?: boolean;
   animation?: AnimationConfig;
   colors?: Partial<Record<ColorRole, string>>;
+  consumer_grouping?: 'none' | 'by_area';
   /** Wenn true: ausführliches console-Logging der HA-Lifecycle-Schritte. Für Bug-Reports. */
   debug?: boolean;
 }
@@ -72,4 +73,17 @@ export interface AnimationConfig {
   reference_power_w?: number;
   min_duration_s?: number;
   max_dots_per_path?: number;
+}
+
+export interface DisplayConsumer {
+  /** Stabile ID. 'none'-Mode: 'c0','c1'… | 'by_area': 'g_<areaId>' bzw. 'g_unassigned'. */
+  id: string;
+  /** Anzeige-Name (von Area oder vom einzelnen consumer). */
+  name: string;
+  /** Optional, Auflösung siehe deriveDisplayConsumers Algorithmus. */
+  icon?: string;
+  /** Entity-IDs, deren powerW in diese Gruppe summiert wird. NIE leer. */
+  members: string[];
+  /** Falls aus Area aufgelöst; undefined im 'none'-Mode oder bei __unassigned. */
+  areaId?: string;
 }
