@@ -17,5 +17,5 @@ export const DEFAULTS = {
   },
 };
 
-export const VIEWBOX = { width: 720, height: 540 } as const;
+export const VIEWBOX = { width: 760, height: 540 } as const;
 export const MIN_CONTAINER_WIDTH_PX = 280;
