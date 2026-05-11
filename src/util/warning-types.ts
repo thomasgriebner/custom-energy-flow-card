@@ -4,7 +4,9 @@ export type EngineWarningCode =
   | 'BALANCE_DRIFT'
   | 'EXPORT_INCONSISTENT'
   | 'SENSOR_UNAVAILABLE'
-  | 'UNIT_UNKNOWN';
+  | 'UNIT_UNKNOWN'
+  | 'REGISTRY_UNAVAILABLE'
+  | 'AREA_NOT_FOUND';
 
 export interface EngineWarning {
   code: EngineWarningCode;
