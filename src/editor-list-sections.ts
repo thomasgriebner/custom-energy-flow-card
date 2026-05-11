@@ -33,7 +33,11 @@ export function renderSolarSection(
   const itemSchema = [
     { name: 'id', selector: { text: {} }, required: true },
     { name: 'name', selector: { text: {} } },
-    { name: 'power', selector: { entity: { domain: 'sensor' } }, required: true },
+    {
+      name: 'power',
+      selector: { entity: { domain: 'sensor', device_class: 'power' } },
+      required: true,
+    },
     { name: 'icon', selector: { icon: {} } },
   ];
   return html`
@@ -72,8 +76,16 @@ export function renderBatterySection(
   const itemSchema = [
     { name: 'id', selector: { text: {} }, required: true },
     { name: 'name', selector: { text: {} } },
-    { name: 'soc', selector: { entity: { domain: 'sensor' } }, required: true },
-    { name: 'power', selector: { entity: { domain: 'sensor' } }, required: true },
+    {
+      name: 'soc',
+      selector: { entity: { domain: 'sensor', device_class: 'battery' } },
+      required: true,
+    },
+    {
+      name: 'power',
+      selector: { entity: { domain: 'sensor', device_class: 'power' } },
+      required: true,
+    },
     { name: 'power_invert', selector: { boolean: {} } },
     { name: 'icon', selector: { icon: {} } },
   ];
@@ -139,7 +151,11 @@ export function renderConsumersSection(
 ): TemplateResult {
   const itemSchema = [
     { name: 'name', selector: { text: {} }, required: true },
-    { name: 'power', selector: { entity: { domain: 'sensor' } }, required: true },
+    {
+      name: 'power',
+      selector: { entity: { domain: 'sensor', device_class: 'power' } },
+      required: true,
+    },
     { name: 'icon', selector: { icon: {} } },
   ];
   return html`

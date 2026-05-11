@@ -187,12 +187,12 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     const schema = isSplit
       ? [
           { name: 'mode', selector: { select: { options: ['signed', 'split'] } } },
-          { name: 'import', selector: { entity: { domain: 'sensor' } } },
-          { name: 'export', selector: { entity: { domain: 'sensor' } } },
+          { name: 'import', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
+          { name: 'export', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
         ]
       : [
           { name: 'mode', selector: { select: { options: ['signed', 'split'] } } },
-          { name: 'power', selector: { entity: { domain: 'sensor' } } },
+          { name: 'power', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
           { name: 'power_invert', selector: { boolean: {} } },
         ];
     return html`
