@@ -4,6 +4,7 @@ import {
   buildCardState,
   hassRelevantSensorsChanged,
   isStubConfig,
+  renderSkeleton,
   resolveEntityId,
 } from './card-helpers';
 import { cardStyles } from './card-styles';
@@ -145,13 +146,13 @@ export class CustomEnergyFlowCard extends LitElement {
       >`;
     }
     if (!this.hass || !this._config) {
-      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton()}</ha-card>`;
     }
     if (isStubConfig(this._config)) {
       return html`<ha-card><div class="stub-hint">${DE.states.stubHint}</div></ha-card>`;
     }
     if (!this._flowResult || !this._layout) {
-      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton()}</ha-card>`;
     }
     const display = this._config.display ?? {};
     const narrow = this._containerW < 280;
@@ -177,18 +178,6 @@ export class CustomEnergyFlowCard extends LitElement {
         })}
       </ha-card>
     `;
-  }
-
-  private _renderSkeleton(): TemplateResult {
-    return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
-      <div class="skeleton" aria-hidden="true">
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-      </div>`;
   }
 }
 

@@ -1,5 +1,7 @@
+import { html, type TemplateResult } from 'lit';
 import { buildSystemState, type BuildResult } from './config/schema';
 import { compute } from './engine/energy-engine';
+import { DE } from './i18n/de';
 import type { Config } from './config/types';
 import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
@@ -19,6 +21,18 @@ export function buildCardState(config: Config, hass: HomeAssistant): CardState {
       warnings: [...build.warnings, ...engineResult.warnings],
     },
   };
+}
+
+export function renderSkeleton(): TemplateResult {
+  return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
+    <div class="skeleton" aria-hidden="true">
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+    </div>`;
 }
 
 export function isStubConfig(config: unknown): boolean {
