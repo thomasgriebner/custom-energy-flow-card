@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildSystemState, validateConfig } from './schema';
+import type { DeriveConsumersHassShape } from './derive-display-consumers';
 import type { Config } from './types';
 import type { ReadSensorHassShape } from '../util/read-sensor';
 
@@ -194,6 +195,73 @@ describe('buildSystemState', () => {
     const r = buildSystemState(config, hass);
     expect(r.batterySoc.has('b_dach')).toBe(false);
     expect(r.unavailableEntities.has('sensor.b_soc')).toBe(true);
+  });
+
+  it('exposes displayConsumers + unavailableGroups (none mode)', () => {
+    const config = minimalConfig({
+      consumers: [{ name: 'TV', power: 'sensor.tv' }],
+    });
+    const hass = buildHass({
+      'sensor.tv': { state: '100', attributes: { unit_of_measurement: 'W' } },
+      'sensor.grid': { state: '0' },
+      'sensor.x': { state: '0' },
+    });
+    const r = buildSystemState(config, hass);
+    expect(r.displayConsumers).toHaveLength(1);
+    expect(r.displayConsumers[0]).toMatchObject({ id: 'c0', members: ['sensor.tv'] });
+    expect(r.unavailableGroups.size).toBe(0);
+  });
+
+  it('marks group as unavailable when ALL members are unavailable', () => {
+    const config = minimalConfig({
+      consumers: [
+        { name: 'A', power: 'sensor.a' },
+        { name: 'B', power: 'sensor.b' },
+      ],
+      display: { consumer_grouping: 'by_area' },
+    });
+    const hass: ReadSensorHassShape & DeriveConsumersHassShape = {
+      states: {
+        'sensor.a': { state: 'unavailable' },
+        'sensor.b': { state: 'unavailable' },
+        'sensor.grid': { state: '0' },
+        'sensor.x': { state: '0' },
+      },
+      entities: {
+        'sensor.a': { area_id: 'kueche' },
+        'sensor.b': { area_id: 'kueche' },
+      },
+      areas: { kueche: { area_id: 'kueche', name: 'Küche' } },
+    };
+    const r = buildSystemState(config, hass);
+    expect(r.displayConsumers[0]?.id).toBe('g_kueche');
+    expect(r.unavailableGroups.has('g_kueche')).toBe(true);
+  });
+
+  it('keeps group available if at least one member is available', () => {
+    const config = minimalConfig({
+      consumers: [
+        { name: 'A', power: 'sensor.a' },
+        { name: 'B', power: 'sensor.b' },
+      ],
+      display: { consumer_grouping: 'by_area' },
+    });
+    const hass: ReadSensorHassShape & DeriveConsumersHassShape = {
+      states: {
+        'sensor.a': { state: 'unavailable' },
+        'sensor.b': { state: '50', attributes: { unit_of_measurement: 'W' } },
+        'sensor.grid': { state: '0' },
+        'sensor.x': { state: '0' },
+      },
+      entities: {
+        'sensor.a': { area_id: 'kueche' },
+        'sensor.b': { area_id: 'kueche' },
+      },
+      areas: { kueche: { area_id: 'kueche', name: 'Küche' } },
+    };
+    const r = buildSystemState(config, hass);
+    expect(r.unavailableGroups.has('g_kueche')).toBe(false);
+    expect(r.state.consumer[0]?.powerW).toBe(50);
   });
 });
 

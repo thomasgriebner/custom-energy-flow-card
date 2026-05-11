@@ -1,9 +1,11 @@
 import { readSensorW, type ReadSensorHassShape } from '../util/read-sensor';
+import { deriveDisplayConsumers, type DeriveConsumersHassShape } from './derive-display-consumers';
 import type {
   BatteryConfig,
   BatteryConfigSigned,
   BatteryConfigSplit,
   Config,
+  DisplayConsumer,
   GridConfig,
   SolarConfig,
 } from './types';
@@ -16,6 +18,10 @@ export interface BuildResult {
   unavailableEntities: Set<string>;
   /** Pro-Akku SoC (%); fehlt, wenn der zugehörige soc-Sensor unavailable ist. */
   batterySoc: Map<string, number>;
+  /** Display-Consumers (resolved by deriveDisplayConsumers). */
+  displayConsumers: DisplayConsumer[];
+  /** Group-IDs deren ALLE members unavailable sind. */
+  unavailableGroups: Set<string>;
 }
 
 const ENTITY_RE = /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/i;
@@ -203,7 +209,10 @@ function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
-export function buildSystemState(config: Config, hass: ReadSensorHassShape): BuildResult {
+export function buildSystemState(
+  config: Config,
+  hass: ReadSensorHassShape & DeriveConsumersHassShape,
+): BuildResult {
   const warnings: EngineWarning[] = [];
   const unavailable = new Set<string>();
 
@@ -244,7 +253,20 @@ export function buildSystemState(config: Config, hass: ReadSensorHassShape): Bui
     gridPowerW = imp - exp;
   }
 
-  const consumer = config.consumers.map((c, i) => ({ id: `c${i}`, powerW: read(c.power) }));
+  const derived = deriveDisplayConsumers(config, hass);
+  warnings.push(...derived.warnings);
+
+  const consumer = derived.consumers.map((g) => {
+    const powerW = g.members.reduce((sum, m) => sum + read(m), 0);
+    return { id: g.id, powerW };
+  });
+
+  const unavailableGroups = new Set<string>();
+  for (const g of derived.consumers) {
+    if (g.members.every((m) => unavailable.has(m))) {
+      unavailableGroups.add(g.id);
+    }
+  }
 
   const home: SystemState['home'] = {};
   if (config.home?.power) home.powerOverrideW = read(config.home.power);
@@ -261,5 +283,7 @@ export function buildSystemState(config: Config, hass: ReadSensorHassShape): Bui
     warnings,
     unavailableEntities: unavailable,
     batterySoc,
+    displayConsumers: derived.consumers,
+    unavailableGroups,
   };
 }
