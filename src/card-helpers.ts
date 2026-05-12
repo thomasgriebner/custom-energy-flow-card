@@ -85,7 +85,7 @@ export function hassRelevantSensorsChanged(
 export function resolveEntityId(
   config: Config | undefined,
   nodeId: string,
-  displayConsumers?: ReadonlyMap<string, DisplayConsumer>,
+  displayConsumers: ReadonlyMap<string, DisplayConsumer>,
 ): string | undefined {
   if (!config) return undefined;
   const solar = config.solar.find((s) => s.id === nodeId);
@@ -94,14 +94,5 @@ export function resolveEntityId(
   if (battery) return 'power' in battery ? battery.power : battery.charge_power;
   if (nodeId === '__grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
   if (nodeId === '__home') return config.home?.power;
-  // Consumer node IDs: c0/c1 (none-mode) OR g_<area>/g_unassigned (by_area)
-  if (displayConsumers) {
-    return displayConsumers.get(nodeId)?.members[0];
-  }
-  // Legacy path (no displayConsumers map provided): c0/c1 → config.consumers[idx]
-  if (nodeId.startsWith('c') && !nodeId.startsWith('g_')) {
-    const idx = Number.parseInt(nodeId.slice(1), 10);
-    return config.consumers[idx]?.power;
-  }
-  return undefined;
+  return displayConsumers.get(nodeId)?.members[0];
 }
