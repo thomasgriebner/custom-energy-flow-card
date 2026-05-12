@@ -19,16 +19,16 @@ const mkDisplayConsumers = (n: number): DisplayConsumer[] =>
   }));
 
 describe('computeLayout — viewBox + grid', () => {
-  it('returns 820×540 viewBox', () => {
+  it('returns 960×540 viewBox', () => {
     const layout = computeLayout(baseConfig(), []);
-    expect(layout.width).toBe(820);
+    expect(layout.width).toBe(960);
     expect(layout.height).toBe(540);
   });
 
-  it('places home at (380, 270)', () => {
+  it('places home at (480, 270)', () => {
     const layout = computeLayout(baseConfig(), []);
     const home = layout.nodes.find((n) => n.kind === 'home');
-    expect(home).toMatchObject({ x: 380, y: 270, r: 50 });
+    expect(home).toMatchObject({ x: 480, y: 270, r: 50 });
   });
 
   it('places grid at (60, 270)', () => {
@@ -40,12 +40,12 @@ describe('computeLayout — viewBox + grid', () => {
 
 describe('computeLayout — sources cluster (PV x-positions)', () => {
   it.each([
-    [1, [180]],
-    [2, [180, 440]],
-    [3, [130, 290, 440]],
-    [4, [130, 230, 330, 440]],
-    [5, [130, 207.5, 285, 362.5, 440]],
-    [6, [130, 192, 254, 316, 378, 440]],
+    [1, [280]],
+    [2, [250, 560]],
+    [3, [200, 380, 560]],
+    [4, [200, 320, 440, 560]],
+    [5, [200, 290, 380, 470, 560]],
+    [6, [200, 272, 344, 416, 488, 560]],
   ] as const)('PV count %d → x-positions %o', (count, expected) => {
     const config = baseConfig({
       solar: Array.from({ length: count }, (_, i) => ({ id: `pv${i}`, power: `sensor.pv${i}` })),
@@ -80,7 +80,7 @@ describe('computeLayout — consumer arc', () => {
     const layout = computeLayout(baseConfig(), mkDisplayConsumers(1));
     const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
     expect(consumers).toHaveLength(1);
-    expect(consumers[0]).toMatchObject({ x: 380 + 275, y: 270 });
+    expect(consumers[0]).toMatchObject({ x: 480 + 350, y: 270 });
   });
 
   it.each([2, 3, 4, 6, 7, 8])(
@@ -93,9 +93,9 @@ describe('computeLayout — consumer arc', () => {
         // ViewBox bounds: consumer (r=24) must stay fully visible
         expect(c.y - c.r).toBeGreaterThanOrEqual(0);
         expect(c.y + c.r).toBeLessThanOrEqual(540);
-        // No physical circle overlap with PV (x=180/440, y=80, r=32)
-        // or Akku (x=180/440, y=460, r=32) — consumers are far right (x>500).
-        for (const cx of [180, 440]) {
+        // No physical circle overlap with PV (x=250/560, y=80, r=32)
+        // or Akku (x=250/560, y=460, r=32) — consumers are far right (x>740).
+        for (const cx of [250, 560]) {
           for (const cy of [80, 460]) {
             const d = Math.hypot(c.x - cx, c.y - cy);
             expect(d).toBeGreaterThan(c.r + 32 + 4); // 4px breathing
@@ -110,9 +110,20 @@ describe('computeLayout — consumer arc', () => {
     const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
     // α = min(42°, (N-1)·14°/2). N=7 → 42° (exactly at cap).
     const alphaRad = (42 * Math.PI) / 180;
-    const dy = 275 * Math.sin(alphaRad);
+    const dy = 350 * Math.sin(alphaRad);
     expect(consumers[0]?.y).toBeCloseTo(270 - dy, 0);
     expect(consumers[6]?.y).toBeCloseTo(270 + dy, 0);
+  });
+
+  it.each([2, 4, 6, 8])('N=%d: consumers stay clear of each other (min gap 4 px)', (n) => {
+    const layout = computeLayout(baseConfig(), mkDisplayConsumers(n));
+    const consumers = layout.nodes.filter((c) => c.kind === 'consumer');
+    for (let i = 0; i < consumers.length; i++) {
+      for (let j = i + 1; j < consumers.length; j++) {
+        const d = Math.hypot(consumers[i].x - consumers[j].x, consumers[i].y - consumers[j].y);
+        expect(d).toBeGreaterThan(consumers[i].r * 2 + 4); // 4 px breathing
+      }
+    }
   });
 });
 

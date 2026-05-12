@@ -34,18 +34,17 @@ const TOP_Y = 80;
 const BOTTOM_Y = 460;
 const MIDDLE_Y = 270;
 const GRID_X = 60;
-const HOME_X = 380;
-const SOURCE_X_MIN = 130;
-const SOURCE_X_MAX = 440;
-const CONSUMER_ARC_R = 275;
-// 42° cap: limited by viewBox-top margin (top consumer y ≈ 86 → 62 px to
+const HOME_X = 480;
+const SOURCE_X_MIN = 200;
+const SOURCE_X_MAX = 560;
+const CONSUMER_ARC_R = 350;
+// 42° cap: limited by viewBox-top margin (top consumer y = 36 → 12 px to
 // viewBox top y=0). PV/Akku collision is NOT the constraint — they sit at
-// x≈180/440 while consumers are at x≈575+, horizontally far apart.
-// At α=42° the closest consumer is 88 px away from PV2's edge (well clear).
+// x≈250/560 while consumers are at x≈740+, horizontally far apart.
 const CONSUMER_ARC_MAX_DEG = 42;
-// 14° step keeps adjacent center-to-center gap at 67 px (= 2·R·sin(7°)),
+// 14° step keeps adjacent center-to-center gap at 85 px (= 2·R·sin(7°)),
 // well above the 48 px consumer diameter, for N=2..7. At N=8 the cap kicks
-// in and gap shrinks to 57.5 px — still 9.5 px margin to diameter.
+// in and gap shrinks to 73 px — still 25 px margin to diameter.
 const CONSUMER_ARC_STEP_DEG = 14;
 
 interface ArcPosition {
@@ -94,10 +93,10 @@ export function computeLayout(
 
 function sourceClusterXs(n: number): number[] {
   if (n <= 0) return [];
-  if (n === 1) return [180];
-  if (n === 2) return [180, 440];
-  if (n === 3) return [130, 290, 440];
-  if (n === 4) return [130, 230, 330, 440];
+  if (n === 1) return [280];
+  if (n === 2) return [250, 560];
+  if (n === 3) return [200, 380, 560];
+  if (n === 4) return [200, 320, 440, 560];
   const span = SOURCE_X_MAX - SOURCE_X_MIN;
   return Array.from({ length: n }, (_, i) => SOURCE_X_MIN + (i * span) / (n - 1));
 }
@@ -158,7 +157,7 @@ function computeEdges(
           kind: 'pv-to-battery',
           fromNodeId: s.id,
           toNodeId: paired.id,
-          d: bezierPath(pvNode, battNode, { x: pvNode.x - 60, y: 270 }),
+          d: bezierPath(pvNode, battNode, { x: pvNode.x - 60, y: MIDDLE_Y }),
         });
       }
     }
