@@ -5,11 +5,33 @@ export interface MockHassEntity {
   attributes?: Record<string, unknown>;
 }
 
+export interface MockEntityRegistry {
+  area_id?: string | null;
+  device_id?: string | null;
+}
+
+export interface MockDeviceRegistry {
+  area_id?: string | null;
+}
+
+export interface MockAreaRegistry {
+  area_id: string;
+  name: string;
+  icon?: string;
+}
+
 export interface MockScenario {
   name: string;
   emoji: string;
   config: Config;
   hassStates: Record<string, MockHassEntity>;
+  // Optional HA-Registry-Mocks für `consumer_grouping: by_area` (ADR-0016).
+  // derive-display-consumers.ts liest hass.entities/devices/areas, um Sensoren
+  // pro Area zu gruppieren. Ohne diese Felder fällt der Renderer auf
+  // einzel-Verbraucher zurück.
+  entities?: Record<string, MockEntityRegistry>;
+  devices?: Record<string, MockDeviceRegistry>;
+  areas?: Record<string, MockAreaRegistry>;
 }
 
 const baseConfig = (): Config => ({
@@ -279,8 +301,101 @@ export const scenarios: MockScenario[] = [
       'sensor.stove': { state: '95', attributes: wAttrs },
     },
   },
+  // by-area Grouping (ADR-0016): 8 Smart-Plug-Sensoren werden automatisch in
+  // 3 Raum-Knoten gemerged (Büro / Küche / Wohnzimmer). Benötigt entities +
+  // areas Registry. Demonstriert das Feature für README-Screenshots.
+  {
+    name: 'Area-Gruppierung · 8 Sensoren → 3 Räume',
+    emoji: '🏠',
+    config: {
+      type: 'custom:custom-energy-flow-card',
+      title: 'Energiefluss · Area-Gruppierung',
+      solar: [
+        { id: 'dach', name: 'Solar Dach', power: 'sensor.s_dach' },
+        { id: 'balkon', name: 'Solar Balkon', power: 'sensor.s_balkon' },
+      ],
+      battery: [
+        {
+          id: 'b_dach',
+          name: 'Dach-Speicher',
+          soc: 'sensor.b_dach_soc',
+          power: 'sensor.b_dach_power',
+          charged_by: 'dach',
+        },
+        {
+          id: 'b_balkon',
+          name: 'Balkon-Speicher',
+          soc: 'sensor.b_balkon_soc',
+          power: 'sensor.b_balkon_power',
+          charged_by: 'balkon',
+        },
+      ],
+      grid: { power: 'sensor.grid_power' },
+      consumers: [
+        { name: 'PC', power: 'sensor.pc' },
+        { name: 'Monitor', power: 'sensor.monitor' },
+        { name: 'Herd', power: 'sensor.stove_area' },
+        { name: 'Geschirrspüler', power: 'sensor.dishwasher' },
+        { name: 'Mikrowelle', power: 'sensor.microwave' },
+        { name: 'TV', power: 'sensor.tv' },
+        { name: 'Soundbar', power: 'sensor.soundbar' },
+        { name: 'Licht', power: 'sensor.light' },
+      ],
+      display: {
+        active_threshold_w: 5,
+        number_format: 'grouped',
+        show_inactive_paths: false,
+        consumer_grouping: 'by_area',
+      },
+    },
+    hassStates: {
+      'sensor.s_dach': { state: '2200', attributes: wAttrs },
+      'sensor.s_balkon': { state: '600', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '65', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '300', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '45', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '100', attributes: wAttrs },
+      'sensor.grid_power': { state: '-685', attributes: wAttrs },
+      // Büro
+      'sensor.pc': { state: '80', attributes: wAttrs },
+      'sensor.monitor': { state: '35', attributes: wAttrs },
+      // Küche
+      'sensor.stove_area': { state: '800', attributes: wAttrs },
+      'sensor.dishwasher': { state: '500', attributes: wAttrs },
+      'sensor.microwave': { state: '120', attributes: wAttrs },
+      // Wohnzimmer
+      'sensor.tv': { state: '100', attributes: wAttrs },
+      'sensor.soundbar': { state: '30', attributes: wAttrs },
+      'sensor.light': { state: '50', attributes: wAttrs },
+    },
+    entities: {
+      'sensor.pc': { area_id: 'office' },
+      'sensor.monitor': { area_id: 'office' },
+      'sensor.stove_area': { area_id: 'kitchen' },
+      'sensor.dishwasher': { area_id: 'kitchen' },
+      'sensor.microwave': { area_id: 'kitchen' },
+      'sensor.tv': { area_id: 'livingroom' },
+      'sensor.soundbar': { area_id: 'livingroom' },
+      'sensor.light': { area_id: 'livingroom' },
+    },
+    areas: {
+      office: { area_id: 'office', name: 'Büro' },
+      kitchen: { area_id: 'kitchen', name: 'Küche' },
+      livingroom: { area_id: 'livingroom', name: 'Wohnzimmer' },
+    },
+  },
 ];
 
-export function buildMockHass(scenario: MockScenario): { states: Record<string, MockHassEntity> } {
-  return { states: scenario.hassStates };
+export function buildMockHass(scenario: MockScenario): {
+  states: Record<string, MockHassEntity>;
+  entities?: Record<string, MockEntityRegistry>;
+  devices?: Record<string, MockDeviceRegistry>;
+  areas?: Record<string, MockAreaRegistry>;
+} {
+  return {
+    states: scenario.hassStates,
+    entities: scenario.entities,
+    devices: scenario.devices,
+    areas: scenario.areas,
+  };
 }
