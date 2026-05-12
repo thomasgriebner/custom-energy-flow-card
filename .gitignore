@@ -6,3 +6,4 @@ coverage/
 .DS_Store
 task13-*.png
 .playwright-mcp/
+*.png
