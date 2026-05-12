@@ -98,12 +98,12 @@ describe('computeLayout — consumer arc', () => {
     },
   );
 
-  it('N=8 hits the α=25° cap (no overlap)', () => {
+  it('N=8 hits the α=25° cap', () => {
     const layout = computeLayout(baseConfig(), mkDisplayConsumers(8));
     const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
-    // α = min(25°, (N-1)·7°/2). N=8 → 24.5° (just under cap).
-    // outermost y = 270 ± 275·sin(24.5°) ≈ 270 ± 114.0
-    const alphaRad = (24.5 * Math.PI) / 180;
+    // α = min(25°, (N-1)·14°/2). N=8 → 49° → capped at 25°.
+    // outermost y = 270 ± 275·sin(25°) ≈ 270 ± 116.2
+    const alphaRad = (25 * Math.PI) / 180;
     const dy = 275 * Math.sin(alphaRad);
     expect(consumers[0]?.y).toBeCloseTo(270 - dy, 0);
     expect(consumers[7]?.y).toBeCloseTo(270 + dy, 0);

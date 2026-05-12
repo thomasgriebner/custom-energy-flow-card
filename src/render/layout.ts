@@ -39,7 +39,11 @@ const SOURCE_X_MIN = 130;
 const SOURCE_X_MAX = 440;
 const CONSUMER_ARC_R = 275;
 const CONSUMER_ARC_MAX_DEG = 25;
-const CONSUMER_ARC_STEP_DEG = 7;
+// 14° per consumer step ensures ≥48px gap between adjacent consumer
+// centers (= consumer diameter), so circles don't overlap up to N=5.
+// At N≥6 the α=25° cap kicks in and the per-pair gap shrinks below 48px —
+// circles start touching/slightly overlapping (documented in Spec §8).
+const CONSUMER_ARC_STEP_DEG = 14;
 
 interface ArcPosition {
   x: number;
