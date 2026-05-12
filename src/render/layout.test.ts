@@ -19,9 +19,9 @@ const mkDisplayConsumers = (n: number): DisplayConsumer[] =>
   }));
 
 describe('computeLayout — viewBox + grid', () => {
-  it('returns 760×540 viewBox', () => {
+  it('returns 820×540 viewBox', () => {
     const layout = computeLayout(baseConfig(), []);
-    expect(layout.width).toBe(760);
+    expect(layout.width).toBe(820);
     expect(layout.height).toBe(540);
   });
 

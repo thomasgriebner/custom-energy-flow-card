@@ -71,8 +71,5 @@ export const cardStyles: CSSResultGroup = css`
   .node-name {
     fill: var(--primary-text-color, #0f172a);
   }
-  .node-soc {
-    fill: var(--secondary-text-color, #64748b);
-  }
   ${unsafeCSS(ANIMATION_CSS)}
 `;

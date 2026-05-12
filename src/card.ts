@@ -14,21 +14,10 @@ import { fireMoreInfo } from './ha/ha-helpers';
 import { DE } from './i18n/de';
 import { renderCard } from './render/flow-renderer';
 import { computeLayout, type LayoutResult } from './render/layout';
-import { memoize } from './util/memo';
-import type { Config } from './config/types';
+import type { Config, DisplayConsumer } from './config/types';
 import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
 import type { EngineWarning } from './util/warning-types';
-
-const memoLayout = memoize(
-  (config: Config) => computeLayout(config),
-  (config: Config) =>
-    JSON.stringify({
-      s: config.solar.map((s) => s.id),
-      b: config.battery.map((b) => ({ i: b.id, p: b.charged_by })),
-      c: config.consumers.length,
-    }),
-);
 
 @customElement(CARD_TYPE)
 export class CustomEnergyFlowCard extends LitElement {
@@ -44,6 +33,8 @@ export class CustomEnergyFlowCard extends LitElement {
   @state() private _buildWarnings: EngineWarning[] = [];
   @state() private _unavailable: Set<string> = new Set();
   @state() private _batterySoc: Map<string, number> = new Map();
+  @state() private _displayConsumers: ReadonlyMap<string, DisplayConsumer> = new Map();
+  @state() private _unavailableGroups: Set<string> = new Set();
   @state() private _containerW = 720;
   private _resizeObs?: ResizeObserver;
 
@@ -54,9 +45,7 @@ export class CustomEnergyFlowCard extends LitElement {
     // all lists empty) — see config/schema.ts.
     const validated = validateConfig(config);
     this._config = validated;
-    if (!isStubConfig(validated)) {
-      this._layout = memoLayout(validated);
-    }
+    // _layout is computed in willUpdate once hass is available
     if (validated.display?.debug) {
       console.info('[CEFC] setConfig accepted', {
         stub: isStubConfig(validated),
@@ -122,13 +111,16 @@ export class CustomEnergyFlowCard extends LitElement {
       this._buildWarnings = build.warnings;
       this._unavailable = build.unavailableEntities;
       this._batterySoc = build.batterySoc;
+      this._displayConsumers = new Map(build.displayConsumers.map((c) => [c.id, c]));
+      this._unavailableGroups = build.unavailableGroups;
+      this._layout = computeLayout(this._config, build.displayConsumers);
       this._flowResult = flow;
       this._renderError = undefined;
       if (this._config.display?.debug) {
         console.info('[CEFC] willUpdate', {
           homeW: flow.homeW,
-          warnings: flow.warnings.length,
-          unavailable: build.unavailableEntities.size,
+          consumers: build.displayConsumers.length,
+          unavailableGroups: this._unavailableGroups.size,
         });
       }
     } catch (err) {
@@ -171,8 +163,10 @@ export class CustomEnergyFlowCard extends LitElement {
           buildWarnings: this._buildWarnings,
           unavailableEntities: this._unavailable,
           batterySoc: this._batterySoc,
+          displayConsumers: this._displayConsumers,
+          unavailableGroups: this._unavailableGroups,
           onNodeClick: (id) => {
-            const entity = resolveEntityId(this._config, id);
+            const entity = resolveEntityId(this._config, id, this._displayConsumers);
             if (entity) fireMoreInfo(this, entity);
           },
         })}
