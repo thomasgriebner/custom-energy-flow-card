@@ -250,6 +250,12 @@ Engine bleibt unverändert — sie konsumiert `ConsumerState[]` ohne zu wissen, 
 
 ### 5.1 ViewBox und Quellen-Cluster
 
+> **Update 2026-05-12:** Die hier genannten Geometrie-Werte sind durch
+> [Subspec 2026-05-12 + ADR-0019](./2026-05-12-aspect-ratio-redesign.md) aktualisiert:
+> ViewBox 960×540 (16:9), HOME_X=480, Source-Cluster x∈[200, 560], Hardcoded-Positionen
+> n=1..4 mit neuen Werten. Konzept (Quellen-Cluster links 2/3, PV oben, Akku unten)
+> bleibt erhalten — siehe [ADR-0017](../adr/0017-adaptive-svg-layout.md) für aktuelle Maße.
+
 **Konstanten in `src/const.ts`:**
 
 ```ts
@@ -277,6 +283,12 @@ Grid: (60, 270). Home: (380, 270). Home-Radius bleibt 50, Source-/Akku-Radius bl
 **Hinweis zu PV-Count > 6:** Die x-Positionen rücken so eng, dass Kreise sich berühren. v1.0 funktioniert visuell für 1–6 PVs sauber; für mehr PVs ist die Card konzeptionell ohnehin nicht gedacht (Out-of-Scope-Doku im README).
 
 ### 5.2 Consumer-Arc
+
+> **Update 2026-05-12:** Die hier genannten Arc-Parameter sind durch
+> [Subspec 2026-05-12 + ADR-0019](./2026-05-12-aspect-ratio-redesign.md) aktualisiert:
+> Radius R=350 (statt 275), α-Cap 42° (statt 25°), Step 14° (statt 7°). Konzept
+> (Arc um Home-Mitte, lineare α-Spread) bleibt erhalten — siehe
+> [ADR-0017](../adr/0017-adaptive-svg-layout.md) für aktuelle Werte und Gap-Begründung.
 
 **Zentrum:** Home-Mitte. **Radius:** 275, fix.
 
