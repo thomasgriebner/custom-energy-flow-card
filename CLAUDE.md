@@ -38,6 +38,7 @@ Volle Versionsliste: Spec §2.1.
 | Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
 | Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
 | Subspec: Verbraucher-Gruppierung & Layout | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
+| Implementation-Pläne (Checkbox-Tasks)     | [`docs/plans/`](./docs/plans/) (per `superpowers:executing-plans` / `subagent-driven-development` abarbeiten)          |
 | Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
 | Sandbox (Renderer-Verifikation)           | `examples/preview.html`                                                                                                |
 | User-facing Doku                          | `README.md` (im Repo-Root, wird mit v1.0 angelegt)                                                                     |
@@ -53,6 +54,7 @@ Volle Versionsliste: Spec §2.1.
 | ein **User-facing Verhalten** änderst                                                  | `README.md` + ggf. Spec                                                                                                                 |
 | einen **Bug** fixt                                                                     | Commit + Test, keine Doku-Pflicht                                                                                                       |
 | eine neue **Subspec** für ein Feature schreibst                                        | `docs/specs/YYYY-MM-DD-<topic>.md`                                                                                                      |
+| eine Spec in eine **Multi-Step-Implementation** zerlegst                               | `docs/plans/YYYY-MM-DD-<topic>.md` (Checkbox-Liste, mit `superpowers:writing-plans` erzeugen)                                           |
 
 ## Module-Layer (Kurzform)
 
