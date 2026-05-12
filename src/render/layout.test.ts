@@ -84,29 +84,35 @@ describe('computeLayout — consumer arc', () => {
   });
 
   it.each([2, 3, 4, 6, 7, 8])(
-    'N=%d: consumer y-positions stay clear of PV (y≥130) and battery (y≤410)',
+    'N=%d: consumers stay within viewBox + clear of PV/Akku circles',
     (n) => {
       const layout = computeLayout(baseConfig(), mkDisplayConsumers(n));
       const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
       expect(consumers).toHaveLength(n);
       for (const c of consumers) {
-        // PV at y=80 with r=32 → consumer top must clear y=112; consumer r=24 → center y > 112+24 = 136
-        // Battery at y=460 with r=32 → consumer bottom < 428; consumer r=24 → center y < 428-24 = 404
-        expect(c.y).toBeGreaterThan(130);
-        expect(c.y).toBeLessThan(410);
+        // ViewBox bounds: consumer (r=24) must stay fully visible
+        expect(c.y - c.r).toBeGreaterThanOrEqual(0);
+        expect(c.y + c.r).toBeLessThanOrEqual(540);
+        // No physical circle overlap with PV (x=180/440, y=80, r=32)
+        // or Akku (x=180/440, y=460, r=32) — consumers are far right (x>500).
+        for (const cx of [180, 440]) {
+          for (const cy of [80, 460]) {
+            const d = Math.hypot(c.x - cx, c.y - cy);
+            expect(d).toBeGreaterThan(c.r + 32 + 4); // 4px breathing
+          }
+        }
       }
     },
   );
 
-  it('N=8 hits the α=25° cap', () => {
-    const layout = computeLayout(baseConfig(), mkDisplayConsumers(8));
+  it('N=7 hits the α=42° cap exactly', () => {
+    const layout = computeLayout(baseConfig(), mkDisplayConsumers(7));
     const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
-    // α = min(25°, (N-1)·14°/2). N=8 → 49° → capped at 25°.
-    // outermost y = 270 ± 275·sin(25°) ≈ 270 ± 116.2
-    const alphaRad = (25 * Math.PI) / 180;
+    // α = min(42°, (N-1)·14°/2). N=7 → 42° (exactly at cap).
+    const alphaRad = (42 * Math.PI) / 180;
     const dy = 275 * Math.sin(alphaRad);
     expect(consumers[0]?.y).toBeCloseTo(270 - dy, 0);
-    expect(consumers[7]?.y).toBeCloseTo(270 + dy, 0);
+    expect(consumers[6]?.y).toBeCloseTo(270 + dy, 0);
   });
 });
 

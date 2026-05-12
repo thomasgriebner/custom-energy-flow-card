@@ -38,11 +38,14 @@ const HOME_X = 380;
 const SOURCE_X_MIN = 130;
 const SOURCE_X_MAX = 440;
 const CONSUMER_ARC_R = 275;
-const CONSUMER_ARC_MAX_DEG = 25;
-// 14° per consumer step ensures ≥48px gap between adjacent consumer
-// centers (= consumer diameter), so circles don't overlap up to N=5.
-// At N≥6 the α=25° cap kicks in and the per-pair gap shrinks below 48px —
-// circles start touching/slightly overlapping (documented in Spec §8).
+// 42° cap: limited by viewBox-top margin (top consumer y ≈ 86 → 62 px to
+// viewBox top y=0). PV/Akku collision is NOT the constraint — they sit at
+// x≈180/440 while consumers are at x≈575+, horizontally far apart.
+// At α=42° the closest consumer is 88 px away from PV2's edge (well clear).
+const CONSUMER_ARC_MAX_DEG = 42;
+// 14° step keeps adjacent center-to-center gap at 67 px (= 2·R·sin(7°)),
+// well above the 48 px consumer diameter, for N=2..7. At N=8 the cap kicks
+// in and gap shrinks to 57.5 px — still 9.5 px margin to diameter.
 const CONSUMER_ARC_STEP_DEG = 14;
 
 interface ArcPosition {
