@@ -1,6 +1,6 @@
 import { VIEWBOX } from '../const';
 import { bezierPath, straightPath, type Point } from '../util/svg-path';
-import type { Config } from '../config/types';
+import type { Config, DisplayConsumer } from '../config/types';
 import type { FlowEdgeKind, NodeKind } from '../engine/flow-graph';
 
 export interface LayoutNode {
@@ -27,56 +27,97 @@ export interface LayoutResult {
 }
 
 const NODE_R_LARGE = 50;
-const NODE_R_MEDIUM = 42;
-const NODE_R_SMALL = 32;
+const NODE_R_MEDIUM = 34;
+const NODE_R_CONSUMER = 24;
+const NODE_R_GRID = 32;
 const TOP_Y = 80;
 const BOTTOM_Y = 460;
 const MIDDLE_Y = 270;
 const GRID_X = 60;
-const HOME_X = 360;
-const CONSUMER_X = 660;
-const PV_BAND_LEFT = 130;
-const PV_BAND_RIGHT = 590;
-const CONSUMER_Y_TOP = 160;
-const CONSUMER_Y_GAP = 110;
+const HOME_X = 380;
+const SOURCE_X_MIN = 130;
+const SOURCE_X_MAX = 440;
+const CONSUMER_ARC_R = 275;
+const CONSUMER_ARC_MAX_DEG = 25;
+const CONSUMER_ARC_STEP_DEG = 7;
 
-export function computeLayout(config: Config): LayoutResult {
+interface ArcPosition {
+  x: number;
+  y: number;
+  theta: number;
+}
+
+export function computeLayout(
+  config: Config,
+  displayConsumers: ReadonlyArray<DisplayConsumer>,
+): LayoutResult {
   const nodes: LayoutNode[] = [];
 
-  // Solar (top): horizontal distribution
-  const solarCount = config.solar.length;
+  // Solar (top): clustered x-positions
+  const solarXs = sourceClusterXs(config.solar.length);
   config.solar.forEach((s, i) => {
-    const x =
-      solarCount === 1
-        ? HOME_X
-        : PV_BAND_LEFT + ((PV_BAND_RIGHT - PV_BAND_LEFT) * i) / Math.max(1, solarCount - 1);
-    nodes.push({ id: s.id, kind: 'pv', x, y: TOP_Y, r: NODE_R_MEDIUM });
+    nodes.push({ id: s.id, kind: 'pv', x: solarXs[i] ?? HOME_X, y: TOP_Y, r: NODE_R_MEDIUM });
   });
 
   // Grid (left)
-  nodes.push({ id: '__grid', kind: 'grid', x: GRID_X, y: MIDDLE_Y, r: NODE_R_MEDIUM });
+  nodes.push({ id: '__grid', kind: 'grid', x: GRID_X, y: MIDDLE_Y, r: NODE_R_GRID });
 
   // Home (center)
   nodes.push({ id: '__home', kind: 'home', x: HOME_X, y: MIDDLE_Y, r: NODE_R_LARGE });
 
-  // Battery (bottom): each battery aligned x with paired PV
+  // Battery (bottom): x follows paired PV
   config.battery.forEach((b) => {
     const pairedPv = nodes.find((n) => n.kind === 'pv' && n.id === b.charged_by);
     const x = pairedPv?.x ?? HOME_X;
     nodes.push({ id: b.id, kind: 'battery', x, y: BOTTOM_Y, r: NODE_R_MEDIUM });
   });
 
-  // Consumers (right): vertical stack
-  config.consumers.forEach((_c, i) => {
-    nodes.push({
-      id: `c${i}`,
-      kind: 'consumer',
-      x: CONSUMER_X,
-      y: CONSUMER_Y_TOP + i * CONSUMER_Y_GAP,
-      r: NODE_R_SMALL,
-    });
+  // Consumers (right): arc around home — compute positions ONCE, reuse for edges
+  const consumerPositions = consumerArcPositions(displayConsumers.length);
+  displayConsumers.forEach((c, i) => {
+    const pos = consumerPositions[i];
+    if (!pos) return;
+    nodes.push({ id: c.id, kind: 'consumer', x: pos.x, y: pos.y, r: NODE_R_CONSUMER });
   });
 
+  const edges = computeEdges(config, displayConsumers, nodes, consumerPositions);
+
+  return { width: VIEWBOX.width, height: VIEWBOX.height, nodes, edges };
+}
+
+function sourceClusterXs(n: number): number[] {
+  if (n <= 0) return [];
+  if (n === 1) return [180];
+  if (n === 2) return [180, 440];
+  if (n === 3) return [130, 290, 440];
+  if (n === 4) return [130, 230, 330, 440];
+  const span = SOURCE_X_MAX - SOURCE_X_MIN;
+  return Array.from({ length: n }, (_, i) => SOURCE_X_MIN + (i * span) / (n - 1));
+}
+
+function consumerArcPositions(n: number): ArcPosition[] {
+  if (n === 0) return [];
+  if (n === 1) {
+    return [{ x: HOME_X + CONSUMER_ARC_R, y: MIDDLE_Y, theta: 0 }];
+  }
+  const alphaDeg = Math.min(CONSUMER_ARC_MAX_DEG, ((n - 1) * CONSUMER_ARC_STEP_DEG) / 2);
+  const alphaRad = (alphaDeg * Math.PI) / 180;
+  return Array.from({ length: n }, (_, i) => {
+    const theta = -alphaRad + (i * 2 * alphaRad) / (n - 1);
+    return {
+      x: HOME_X + CONSUMER_ARC_R * Math.cos(theta),
+      y: MIDDLE_Y + CONSUMER_ARC_R * Math.sin(theta),
+      theta,
+    };
+  });
+}
+
+function computeEdges(
+  config: Config,
+  displayConsumers: ReadonlyArray<DisplayConsumer>,
+  nodes: LayoutNode[],
+  consumerPositions: ReadonlyArray<ArcPosition>,
+): LayoutEdge[] {
   const edges: LayoutEdge[] = [];
   const homeNode = nodes.find((n) => n.kind === 'home');
   const gridNode = nodes.find((n) => n.kind === 'grid');
@@ -143,8 +184,6 @@ export function computeLayout(config: Config): LayoutResult {
     d: straightPath(gridNode, homeNode),
   });
 
-  // Grid → Battery (Pairing-Defizit-Pfad, siehe ADR-0007 v2). Bogen unter dem
-  // Haus durch nach unten zur Battery — gespiegeltes Routing zu battery → grid.
   for (const b of config.battery) {
     const battNode = nodes.find((n) => n.kind === 'battery' && n.id === b.id);
     if (!battNode) continue;
@@ -157,19 +196,41 @@ export function computeLayout(config: Config): LayoutResult {
     });
   }
 
-  config.consumers.forEach((_c, i) => {
-    const consNode = nodes.find((n) => n.kind === 'consumer' && n.id === `c${i}`);
-    if (!consNode) return;
+  // Home → Consumer: reuse computed arc positions, no recompute (ADR-0010).
+  displayConsumers.forEach((c, i) => {
+    const pos = consumerPositions[i];
+    if (!pos) return;
     edges.push({
-      id: `home-to-c${i}`,
+      id: `home-to-${c.id}`,
       kind: 'home-to-consumer',
       fromNodeId: '__home',
-      toNodeId: `c${i}`,
-      d: straightPath(homeNode, consNode),
+      toNodeId: c.id,
+      d: consumerEdgePath(pos.theta, pos.x, pos.y),
     });
   });
 
-  return { width: VIEWBOX.width, height: VIEWBOX.height, nodes, edges };
+  return edges;
+}
+
+function consumerEdgePath(theta: number, cx: number, cy: number): string {
+  if (Math.abs(theta) < 1e-6 && Math.abs(cy - MIDDLE_Y) < 1e-6) {
+    return straightPath({ x: HOME_X, y: MIDDLE_Y }, { x: cx, y: cy });
+  }
+  const homeEdgeR = NODE_R_LARGE + 2;
+  const consEdgeR = NODE_R_CONSUMER + 2;
+  const start: Point = {
+    x: HOME_X + homeEdgeR * Math.cos(theta),
+    y: MIDDLE_Y + homeEdgeR * Math.sin(theta),
+  };
+  const end: Point = {
+    x: cx - consEdgeR * Math.cos(theta),
+    y: cy - consEdgeR * Math.sin(theta),
+  };
+  const control: Point = {
+    x: start.x + 0.55 * (end.x - start.x) - 18 * Math.cos(theta),
+    y: start.y + 0.55 * (end.y - start.y) - 18 * Math.sin(theta),
+  };
+  return bezierPath(start, end, control);
 }
 
 function midpoint(a: Point, b: Point, yOffset: number): Point {

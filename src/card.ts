@@ -1,29 +1,23 @@
 import { LitElement, html, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { hassRelevantSensorsChanged, isStubConfig, resolveEntityId } from './card-helpers';
+import {
+  buildCardState,
+  hassRelevantSensorsChanged,
+  isStubConfig,
+  renderSkeleton,
+  resolveEntityId,
+} from './card-helpers';
 import { cardStyles } from './card-styles';
-import { validateConfig, buildSystemState } from './config/schema';
+import { validateConfig } from './config/schema';
 import { CARD_TYPE, DEFAULTS } from './const';
-import { compute } from './engine/energy-engine';
 import { fireMoreInfo } from './ha/ha-helpers';
 import { DE } from './i18n/de';
 import { renderCard } from './render/flow-renderer';
 import { computeLayout, type LayoutResult } from './render/layout';
-import { memoize } from './util/memo';
-import type { Config } from './config/types';
+import type { Config, DisplayConsumer } from './config/types';
 import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
 import type { EngineWarning } from './util/warning-types';
-
-const memoLayout = memoize(
-  (config: Config) => computeLayout(config),
-  (config: Config) =>
-    JSON.stringify({
-      s: config.solar.map((s) => s.id),
-      b: config.battery.map((b) => ({ i: b.id, p: b.charged_by })),
-      c: config.consumers.length,
-    }),
-);
 
 @customElement(CARD_TYPE)
 export class CustomEnergyFlowCard extends LitElement {
@@ -38,6 +32,9 @@ export class CustomEnergyFlowCard extends LitElement {
   @state() private _renderError?: string;
   @state() private _buildWarnings: EngineWarning[] = [];
   @state() private _unavailable: Set<string> = new Set();
+  @state() private _batterySoc: Map<string, number> = new Map();
+  @state() private _displayConsumers: ReadonlyMap<string, DisplayConsumer> = new Map();
+  @state() private _unavailableGroups: Set<string> = new Set();
   @state() private _containerW = 720;
   private _resizeObs?: ResizeObserver;
 
@@ -48,9 +45,7 @@ export class CustomEnergyFlowCard extends LitElement {
     // all lists empty) — see config/schema.ts.
     const validated = validateConfig(config);
     this._config = validated;
-    if (!isStubConfig(validated)) {
-      this._layout = memoLayout(validated);
-    }
+    // _layout is computed in willUpdate once hass is available
     if (validated.display?.debug) {
       console.info('[CEFC] setConfig accepted', {
         stub: isStubConfig(validated),
@@ -73,8 +68,26 @@ export class CustomEnergyFlowCard extends LitElement {
     };
   }
 
+  getGridOptions(): {
+    columns: number;
+    rows: number;
+    min_columns: number;
+    max_columns: number;
+    min_rows: number;
+    max_rows: number;
+  } {
+    return {
+      columns: 6,
+      rows: 5,
+      min_columns: 4,
+      max_columns: 12,
+      min_rows: 4,
+      max_rows: 8,
+    };
+  }
+
   getCardSize(): number {
-    return 6;
+    return Math.ceil((this.getGridOptions().rows * 56) / 50);
   }
 
   override firstUpdated(): void {
@@ -112,20 +125,20 @@ export class CustomEnergyFlowCard extends LitElement {
     if (isStubConfig(this._config)) return;
     if (!changed.has('hass') && !changed.has('_config')) return;
     try {
-      const built = buildSystemState(this._config, this.hass);
-      this._buildWarnings = built.warnings;
-      this._unavailable = built.unavailableEntities;
-      const engineResult = compute(built.state);
-      this._flowResult = {
-        ...engineResult,
-        warnings: [...built.warnings, ...engineResult.warnings],
-      };
+      const { build, flow } = buildCardState(this._config, this.hass);
+      this._buildWarnings = build.warnings;
+      this._unavailable = build.unavailableEntities;
+      this._batterySoc = build.batterySoc;
+      this._displayConsumers = new Map(build.displayConsumers.map((c) => [c.id, c]));
+      this._unavailableGroups = build.unavailableGroups;
+      this._layout = computeLayout(this._config, build.displayConsumers);
+      this._flowResult = flow;
       this._renderError = undefined;
       if (this._config.display?.debug) {
         console.info('[CEFC] willUpdate', {
-          homeW: engineResult.homeW,
-          warnings: this._flowResult.warnings.length,
-          unavailable: built.unavailableEntities.size,
+          homeW: flow.homeW,
+          consumers: build.displayConsumers.length,
+          unavailableGroups: this._unavailableGroups.size,
         });
       }
     } catch (err) {
@@ -143,13 +156,13 @@ export class CustomEnergyFlowCard extends LitElement {
       >`;
     }
     if (!this.hass || !this._config) {
-      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton()}</ha-card>`;
     }
     if (isStubConfig(this._config)) {
       return html`<ha-card><div class="stub-hint">${DE.states.stubHint}</div></ha-card>`;
     }
     if (!this._flowResult || !this._layout) {
-      return html`<ha-card>${this._renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton()}</ha-card>`;
     }
     const display = this._config.display ?? {};
     const narrow = this._containerW < 280;
@@ -167,25 +180,16 @@ export class CustomEnergyFlowCard extends LitElement {
           animation: display.animation,
           buildWarnings: this._buildWarnings,
           unavailableEntities: this._unavailable,
+          batterySoc: this._batterySoc,
+          displayConsumers: this._displayConsumers,
+          unavailableGroups: this._unavailableGroups,
           onNodeClick: (id) => {
-            const entity = resolveEntityId(this._config, id);
+            const entity = resolveEntityId(this._config, id, this._displayConsumers);
             if (entity) fireMoreInfo(this, entity);
           },
         })}
       </ha-card>
     `;
-  }
-
-  private _renderSkeleton(): TemplateResult {
-    return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
-      <div class="skeleton" aria-hidden="true">
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-        <div class="skeleton-node"></div>
-      </div>`;
   }
 }
 

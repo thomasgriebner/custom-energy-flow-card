@@ -10,6 +10,7 @@ export const DE = {
     grid: 'Netz',
     home: 'Hausverbrauch',
     consumer: 'Verbraucher',
+    unassignedGroup: 'Sonstige',
   },
   units: {
     watt: 'W',
@@ -51,5 +52,8 @@ export const DE = {
     moveUp: '↑',
     moveDown: '↓',
     remove: 'Entfernen',
+    consumerGroupingLabel: 'Verbraucher-Gruppierung',
+    consumerGroupingNone: 'Keine',
+    consumerGroupingByArea: 'Nach HA-Area',
   },
 } as const;

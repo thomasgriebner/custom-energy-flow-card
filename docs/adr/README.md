@@ -61,3 +61,6 @@ siehe [`0000-template.md`](./0000-template.md).
 | [0013](./0013-v0-9-0-first-release-strategy.md)          | v0.9.0 als erstes Live-Release, v1.0.0 nach Stabilisierung | accepted |
 | [0014](./0014-stub-config-validates-as-valid.md)         | HA-Stub-Config wird als valide Config behandelt            | accepted |
 | [0015](./0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren   | accepted |
+| [0016](./0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                   | accepted |
+| [0017](./0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                      | accepted |
+| [0018](./0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API immer aktiv                        | accepted |

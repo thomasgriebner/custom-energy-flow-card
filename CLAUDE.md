@@ -37,6 +37,7 @@ Volle Versionsliste: Spec §2.1.
 | Architektur-Überblick (lebendig)          | [`docs/architecture.md`](./docs/architecture.md)                                                                       |
 | Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
 | Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
+| Subspec: Verbraucher-Gruppierung & Layout | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
 | Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
 | Sandbox (Renderer-Verifikation)           | `examples/preview.html`                                                                                                |
 | User-facing Doku                          | `README.md` (im Repo-Root, wird mit v1.0 angelegt)                                                                     |

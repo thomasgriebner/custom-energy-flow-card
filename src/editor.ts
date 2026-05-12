@@ -134,6 +134,7 @@ export class CustomEnergyFlowCardEditor extends LitElement {
       title: c.title ?? '',
       number_format: c.display?.number_format ?? 'grouped',
       show_inactive_paths: c.display?.show_inactive_paths ?? false,
+      consumer_grouping: c.display?.consumer_grouping ?? 'none',
     };
     const schema = [
       { name: 'title', selector: { text: {} } },
@@ -142,6 +143,18 @@ export class CustomEnergyFlowCardEditor extends LitElement {
         selector: { select: { options: ['standard', 'grouped'] } },
       },
       { name: 'show_inactive_paths', selector: { boolean: {} } },
+      {
+        name: 'consumer_grouping',
+        selector: {
+          select: {
+            mode: 'dropdown',
+            options: [
+              { value: 'none', label: DE.editor.consumerGroupingNone },
+              { value: 'by_area', label: DE.editor.consumerGroupingByArea },
+            ],
+          },
+        },
+      },
     ];
     return html`
       <div class="section">
@@ -150,6 +163,8 @@ export class CustomEnergyFlowCardEditor extends LitElement {
           .data=${data}
           .schema=${schema}
           .hass=${this.hass}
+          .computeLabel=${(s: { name: string }): string =>
+            s.name === 'consumer_grouping' ? DE.editor.consumerGroupingLabel : s.name}
           @value-changed=${(e: CustomEvent) => this._onGeneralChange(e.detail.value)}
         ></ha-form>
       </div>
@@ -165,6 +180,7 @@ export class CustomEnergyFlowCardEditor extends LitElement {
         ...this._config.display,
         number_format: value['number_format'] as 'standard' | 'grouped',
         show_inactive_paths: Boolean(value['show_inactive_paths']),
+        consumer_grouping: value['consumer_grouping'] === 'by_area' ? 'by_area' : undefined,
       },
     };
     this._emitChange(newConfig);

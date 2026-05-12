@@ -1,4 +1,3 @@
-import { readSensorW, type ReadSensorHassShape } from '../util/read-sensor';
 import type {
   BatteryConfig,
   BatteryConfigSigned,
@@ -7,14 +6,6 @@ import type {
   GridConfig,
   SolarConfig,
 } from './types';
-import type { SystemState } from '../engine/types';
-import type { EngineWarning } from '../util/warning-types';
-
-export interface BuildResult {
-  state: SystemState;
-  warnings: EngineWarning[];
-  unavailableEntities: Set<string>;
-}
 
 const ENTITY_RE = /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/i;
 
@@ -116,6 +107,13 @@ export function validateConfig(input: unknown): Config {
     throw new Error('home.power must be a valid entity_id');
   }
 
+  if (c.display?.consumer_grouping !== undefined) {
+    const cg = c.display.consumer_grouping;
+    if (cg !== 'none' && cg !== 'by_area') {
+      throw new Error(`display.consumer_grouping must be 'none' or 'by_area', got '${cg}'`);
+    }
+  }
+
   return {
     type: 'custom:custom-energy-flow-card',
     version: c.version ?? 1,
@@ -192,57 +190,4 @@ function validateUniqueIds(ids: string[], scope: string): void {
 
 function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
-}
-
-export function buildSystemState(config: Config, hass: ReadSensorHassShape): BuildResult {
-  const warnings: EngineWarning[] = [];
-  const unavailable = new Set<string>();
-
-  const read = (entityId: string, opts?: Parameters<typeof readSensorW>[2]): number => {
-    const r = readSensorW(hass, entityId, opts);
-    if (r.warning) {
-      warnings.push(r.warning);
-      if (r.warning.code === 'SENSOR_UNAVAILABLE') unavailable.add(entityId);
-    }
-    return r.value;
-  };
-
-  const pv = config.solar.map((s) => ({ id: s.id, powerW: read(s.power) }));
-
-  const battery = config.battery.map((b) => {
-    let powerW: number;
-    if ('power' in b) {
-      powerW = read(b.power, { invertSign: b.power_invert });
-    } else {
-      const charge = read(b.charge_power);
-      const discharge = read(b.discharge_power);
-      powerW = charge - discharge;
-    }
-    return {
-      id: b.id,
-      pairedPvId: b.charged_by,
-      powerW,
-      socPct: read(b.soc, { expectedUnit: '%' }),
-    };
-  });
-
-  let gridPowerW = 0;
-  if ('power' in config.grid) {
-    gridPowerW = read(config.grid.power, { invertSign: config.grid.power_invert });
-  } else {
-    const imp = read(config.grid.import);
-    const exp = read(config.grid.export);
-    gridPowerW = imp - exp;
-  }
-
-  const consumer = config.consumers.map((c, i) => ({ id: `c${i}`, powerW: read(c.power) }));
-
-  const home: SystemState['home'] = {};
-  if (config.home?.power) home.powerOverrideW = read(config.home.power);
-
-  return {
-    state: { pv, battery, grid: { powerW: gridPowerW }, consumer, home },
-    warnings,
-    unavailableEntities: unavailable,
-  };
 }

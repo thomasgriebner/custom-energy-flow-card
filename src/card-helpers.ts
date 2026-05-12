@@ -1,5 +1,39 @@
-import type { Config } from './config/types';
+import { html, type TemplateResult } from 'lit';
+import { buildSystemState, type BuildResult } from './config/system-state';
+import { compute } from './engine/energy-engine';
+import { DE } from './i18n/de';
+import type { Config, DisplayConsumer } from './config/types';
+import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
+
+export interface CardState {
+  build: BuildResult;
+  flow: FlowResult;
+}
+
+export function buildCardState(config: Config, hass: HomeAssistant): CardState {
+  const build = buildSystemState(config, hass);
+  const engineResult = compute(build.state);
+  return {
+    build,
+    flow: {
+      ...engineResult,
+      warnings: [...build.warnings, ...engineResult.warnings],
+    },
+  };
+}
+
+export function renderSkeleton(): TemplateResult {
+  return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
+    <div class="skeleton" aria-hidden="true">
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+      <div class="skeleton-node"></div>
+    </div>`;
+}
 
 export function isStubConfig(config: unknown): boolean {
   if (!config || typeof config !== 'object') return false;
@@ -34,6 +68,12 @@ export function hassRelevantSensorsChanged(
   config: Config | undefined,
 ): boolean {
   if (!prev || !next || !config) return true;
+  // by_area mode: registry-reassignment triggers re-derive even without state change
+  if (config.display?.consumer_grouping === 'by_area') {
+    if (prev.entities !== next.entities) return true;
+    if (prev.devices !== next.devices) return true;
+    if (prev.areas !== next.areas) return true;
+  }
   for (const id of relevantSensorIds(config)) {
     const a = prev.states[id]?.state;
     const b = next.states[id]?.state;
@@ -42,7 +82,11 @@ export function hassRelevantSensorsChanged(
   return false;
 }
 
-export function resolveEntityId(config: Config | undefined, nodeId: string): string | undefined {
+export function resolveEntityId(
+  config: Config | undefined,
+  nodeId: string,
+  displayConsumers: ReadonlyMap<string, DisplayConsumer>,
+): string | undefined {
   if (!config) return undefined;
   const solar = config.solar.find((s) => s.id === nodeId);
   if (solar) return solar.power;
@@ -50,9 +94,5 @@ export function resolveEntityId(config: Config | undefined, nodeId: string): str
   if (battery) return 'power' in battery ? battery.power : battery.charge_power;
   if (nodeId === '__grid') return 'power' in config.grid ? config.grid.power : config.grid.import;
   if (nodeId === '__home') return config.home?.power;
-  if (nodeId.startsWith('c')) {
-    const idx = Number.parseInt(nodeId.slice(1), 10);
-    return config.consumers[idx]?.power;
-  }
-  return undefined;
+  return displayConsumers.get(nodeId)?.members[0];
 }

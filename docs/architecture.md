@@ -1,7 +1,7 @@
 # Architecture Overview
 
 > **Lebendiges Dokument.** Bei jeder größeren Architektur-Änderung
-> hier mit-pflegen *und* einen ADR unter [`adr/`](./adr/) anlegen.
+> hier mit-pflegen _und_ einen ADR unter [`adr/`](./adr/) anlegen.
 >
 > Vollständige Spezifikation: [`specs/2026-05-10-custom-energy-flow-card-design.md`](./specs/2026-05-10-custom-energy-flow-card-design.md).
 
@@ -55,16 +55,16 @@ Sieben Schichten mit klaren Aufgaben und **lint-erzwungenen** Import-Grenzen
        └────────────────┘
 ```
 
-| Layer | Aufgabe | Darf importieren | Darf NICHT |
-|---|---|---|---|
-| **`util/`** | Wiederverwendbare Helfer (Formatierung, Sensor-Lesen, SVG-Pfade, Memoization) | nur eigene Files | alles andere |
-| **`i18n/`** | Anwender-Strings | nur eigene Files | alles andere |
-| **`engine/`** | Pure Energie-Bilanz-Berechnung | `engine/types.ts`, `util/memo` | Lit, HA, Renderer, Config, DOM |
-| **`config/`** | Schema-Validation + `buildSystemState` | `util/*`, `engine/types`, `i18n/*` | Lit, Renderer, Engine-Logik |
-| **`render/`** | SVG-Rendering, CSS-Animation | `util/*`, `engine/types`, `i18n/*`, Lit | HA, Engine-Logik |
-| **`ha/`** | HA-Event-Helfer, HA-Type-Skelett | Lit, externe HA-Typen | Engine, Renderer, Config-Logik |
-| **`card.ts`** | LitElement-Orchestrator | alles | – |
-| **`editor.ts`** | Lovelace-Editor-LitElement | `config/*`, `ha/*`, `util/*`, `i18n/*` | Engine, Renderer |
+| Layer           | Aufgabe                                                                       | Darf importieren                        | Darf NICHT                     |
+| --------------- | ----------------------------------------------------------------------------- | --------------------------------------- | ------------------------------ |
+| **`util/`**     | Wiederverwendbare Helfer (Formatierung, Sensor-Lesen, SVG-Pfade, Memoization) | nur eigene Files                        | alles andere                   |
+| **`i18n/`**     | Anwender-Strings                                                              | nur eigene Files                        | alles andere                   |
+| **`engine/`**   | Pure Energie-Bilanz-Berechnung                                                | `engine/types.ts`, `util/memo`          | Lit, HA, Renderer, Config, DOM |
+| **`config/`**   | Schema-Validation, `buildSystemState`, `derive-display-consumers`             | `util/*`, `engine/types`, `i18n/*`      | Lit, Renderer, Engine-Logik    |
+| **`render/`**   | SVG-Rendering, CSS-Animation, `battery-ring`                                  | `util/*`, `engine/types`, `i18n/*`, Lit | HA, Engine-Logik               |
+| **`ha/`**       | HA-Event-Helfer, HA-Type-Skelett                                              | Lit, externe HA-Typen                   | Engine, Renderer, Config-Logik |
+| **`card.ts`**   | LitElement-Orchestrator                                                       | alles                                   | –                              |
+| **`editor.ts`** | Lovelace-Editor-LitElement                                                    | `config/*`, `ha/*`, `util/*`, `i18n/*`  | Engine, Renderer               |
 
 **Konkrete Modulaufteilung im Repo:** siehe Spec §2.2.
 
@@ -73,18 +73,20 @@ Sieben Schichten mit klaren Aufgaben und **lint-erzwungenen** Import-Grenzen
 ```
 HA hass.states  ─→  card.ts liest Sensor-Werte (via util/read-sensor)
                 ↓
-          buildSystemState(config, hass)        ← config/schema.ts
+          buildSystemState(config, hass)        ← config/system-state.ts
                 ↓
           EnergyEngine.compute(SystemState)     ← engine/energy-engine.ts
                 ↓                                 (pure function)
           Layout.compute(config, viewBox)       ← render/layout.ts
                 ↓                                 (memoized)
-          FlowRenderer.render(FlowResult, …)    ← render/flow-renderer.ts
-                ↓
+          renderCard(layout, FlowResult, ctx)   ← render/flow-renderer.ts
+                ↓                                 (delegiert renderNode → render/node-renderer.ts;
+                ↓                                  RenderContext-Typ in render/context.ts)
           SVG mit CSS-Animation (offset-path)
 ```
 
 Lit-Lifecycle:
+
 - `setConfig()` → Validation (wirft bei invalid)
 - `firstUpdated()` → ResizeObserver, einmalige Setup
 - `willUpdate()` → Engine-Compute, FlowResult-Diff (try/catch für Crash-Resilienz)
@@ -96,22 +98,22 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 
 ## 4. Zentrale Architektur-Entscheidungen
 
-| ADR | Entscheidung | Kurz-Begründung |
-|---|---|---|
-| [0001](./adr/0001-greenfield-not-fork.md) | Greenfield neu bauen, nicht power-flow-card-plus forken | Multi-Source-Fähigkeit braucht andere Architektur als Single-Source-Vorlage |
-| [0002](./adr/0002-layered-modular-architecture.md) | 7 Layer mit klaren Aufgaben | Testbar, wartbar, refactoring-sicher |
-| [0003](./adr/0003-typescript-lit-rollup.md) | TypeScript + Lit 3 + Rollup | Konsistent mit HA-Card-Ökosystem, schlankes Bundle |
-| [0004](./adr/0004-pure-functions-engine.md) | Engine = pure functions, keine Klassen | Tabellen-getriebene Tests, kein verstecktes State |
-| [0005](./adr/0005-css-offset-path-animation.md) | CSS `offset-path` statt SVG `<animateMotion>` | CSS-Variable updateable, Performance |
-| [0006](./adr/0006-strict-1-to-1-pv-battery-pairing.md) | Akku ↔ PV strikt 1:1 | Spiegelt physische Realität der Hybrid-Wechselrichter |
-| [0007](./adr/0007-energy-balance-with-reconcile.md) | Bilanz + Netz-Sensor-Reconcile | Kompensiert Sensor-Latenz, Netz-Sensor als ground truth |
-| [0008](./adr/0008-manual-list-editor.md) | Listen im Editor manuell mit Lit | `ha-form` unterstützt Listen-Editing nicht zuverlässig |
-| [0009](./adr/0009-eslint-enforced-layer-boundaries.md) | ESLint `no-restricted-paths` als CI-Gate | Layer-Boundaries dokumentieren *und* erzwingen |
-| [0010](./adr/0010-shared-util-module.md) | Single-Source-Util-Modul | Format-/Sensor-/Color-Logik niemals doppelt |
-| [0011](./adr/0011-shouldupdate-over-property-haschanged.md) | `shouldUpdate` statt `@property hasChanged` | Lit's hasChanged-Callback hat kein `this`-Binding |
-| [0012](./adr/0012-headless-smoke-test-pre-release-gate.md) | Headless Smoke-Test als Pre-Release-Gate | Class-Load-Crashes vor Live-Install fangen, da kein HA-Test-Environment |
-| [0013](./adr/0013-v0-9-0-first-release-strategy.md) | v0.9.0 first, v1.0.0 nach Stabilisierung | Realistische Erwartungen + semver-konforme Bug-Fix-Releases |
-| [0014](./adr/0014-stub-config-validates-as-valid.md) | HA-Stub-Config gilt als valide | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor |
+| ADR                                                         | Entscheidung                                            | Kurz-Begründung                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [0001](./adr/0001-greenfield-not-fork.md)                   | Greenfield neu bauen, nicht power-flow-card-plus forken | Multi-Source-Fähigkeit braucht andere Architektur als Single-Source-Vorlage |
+| [0002](./adr/0002-layered-modular-architecture.md)          | 7 Layer mit klaren Aufgaben                             | Testbar, wartbar, refactoring-sicher                                        |
+| [0003](./adr/0003-typescript-lit-rollup.md)                 | TypeScript + Lit 3 + Rollup                             | Konsistent mit HA-Card-Ökosystem, schlankes Bundle                          |
+| [0004](./adr/0004-pure-functions-engine.md)                 | Engine = pure functions, keine Klassen                  | Tabellen-getriebene Tests, kein verstecktes State                           |
+| [0005](./adr/0005-css-offset-path-animation.md)             | CSS `offset-path` statt SVG `<animateMotion>`           | CSS-Variable updateable, Performance                                        |
+| [0006](./adr/0006-strict-1-to-1-pv-battery-pairing.md)      | Akku ↔ PV strikt 1:1                                    | Spiegelt physische Realität der Hybrid-Wechselrichter                       |
+| [0007](./adr/0007-energy-balance-with-reconcile.md)         | Bilanz + Netz-Sensor-Reconcile                          | Kompensiert Sensor-Latenz, Netz-Sensor als ground truth                     |
+| [0008](./adr/0008-manual-list-editor.md)                    | Listen im Editor manuell mit Lit                        | `ha-form` unterstützt Listen-Editing nicht zuverlässig                      |
+| [0009](./adr/0009-eslint-enforced-layer-boundaries.md)      | ESLint `no-restricted-paths` als CI-Gate                | Layer-Boundaries dokumentieren _und_ erzwingen                              |
+| [0010](./adr/0010-shared-util-module.md)                    | Single-Source-Util-Modul                                | Format-/Sensor-/Color-Logik niemals doppelt                                 |
+| [0011](./adr/0011-shouldupdate-over-property-haschanged.md) | `shouldUpdate` statt `@property hasChanged`             | Lit's hasChanged-Callback hat kein `this`-Binding                           |
+| [0012](./adr/0012-headless-smoke-test-pre-release-gate.md)  | Headless Smoke-Test als Pre-Release-Gate                | Class-Load-Crashes vor Live-Install fangen, da kein HA-Test-Environment     |
+| [0013](./adr/0013-v0-9-0-first-release-strategy.md)         | v0.9.0 first, v1.0.0 nach Stabilisierung                | Realistische Erwartungen + semver-konforme Bug-Fix-Releases                 |
+| [0014](./adr/0014-stub-config-validates-as-valid.md)        | HA-Stub-Config gilt als valide                          | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor   |
 
 ## 5. Konventionen kurz
 

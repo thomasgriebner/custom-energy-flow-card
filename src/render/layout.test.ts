@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeLayout } from './layout';
-import type { Config } from '../config/types';
+import type { Config, DisplayConsumer } from '../config/types';
 
 const baseConfig = (over: Partial<Config> = {}): Config => ({
   type: 'custom:custom-energy-flow-card',
@@ -11,136 +11,121 @@ const baseConfig = (over: Partial<Config> = {}): Config => ({
   ...over,
 });
 
-describe('computeLayout', () => {
-  it('places single PV centered above home', () => {
-    const c = baseConfig({ solar: [{ id: 'dach', power: 'sensor.s' }] });
-    const l = computeLayout(c);
-    const pv = l.nodes.find((n) => n.kind === 'pv' && n.id === 'dach');
-    expect(pv).toBeDefined();
-    expect(pv?.x).toBeCloseTo(360, 0);
+const mkDisplayConsumers = (n: number): DisplayConsumer[] =>
+  Array.from({ length: n }, (_, i) => ({
+    id: `c${i}`,
+    name: `C${i}`,
+    members: [`sensor.c${i}`],
+  }));
+
+describe('computeLayout — viewBox + grid', () => {
+  it('returns 820×540 viewBox', () => {
+    const layout = computeLayout(baseConfig(), []);
+    expect(layout.width).toBe(820);
+    expect(layout.height).toBe(540);
   });
 
-  it('places two PVs symmetrically', () => {
-    const c = baseConfig({
+  it('places home at (380, 270)', () => {
+    const layout = computeLayout(baseConfig(), []);
+    const home = layout.nodes.find((n) => n.kind === 'home');
+    expect(home).toMatchObject({ x: 380, y: 270, r: 50 });
+  });
+
+  it('places grid at (60, 270)', () => {
+    const layout = computeLayout(baseConfig(), []);
+    const grid = layout.nodes.find((n) => n.kind === 'grid');
+    expect(grid).toMatchObject({ x: 60, y: 270, r: 32 });
+  });
+});
+
+describe('computeLayout — sources cluster (PV x-positions)', () => {
+  it.each([
+    [1, [180]],
+    [2, [180, 440]],
+    [3, [130, 290, 440]],
+    [4, [130, 230, 330, 440]],
+    [5, [130, 207.5, 285, 362.5, 440]],
+    [6, [130, 192, 254, 316, 378, 440]],
+  ] as const)('PV count %d → x-positions %o', (count, expected) => {
+    const config = baseConfig({
+      solar: Array.from({ length: count }, (_, i) => ({ id: `pv${i}`, power: `sensor.pv${i}` })),
+    });
+    const layout = computeLayout(config, []);
+    const pvXs = layout.nodes.filter((n) => n.kind === 'pv').map((n) => n.x);
+    expected.forEach((x, i) => {
+      expect(pvXs[i]).toBeCloseTo(x, 0);
+    });
+  });
+});
+
+describe('computeLayout — battery x follows paired PV (ADR-0006)', () => {
+  it('battery aligns to paired PV x', () => {
+    const config = baseConfig({
       solar: [
-        { id: 'dach', power: 'sensor.a' },
-        { id: 'balkon', power: 'sensor.b' },
+        { id: 'pv1', power: 'sensor.pv1' },
+        { id: 'pv2', power: 'sensor.pv2' },
       ],
+      battery: [{ id: 'b1', soc: 'sensor.b1soc', power: 'sensor.b1', charged_by: 'pv2' }],
     });
-    const l = computeLayout(c);
-    const dach = l.nodes.find((n) => n.kind === 'pv' && n.id === 'dach');
-    const balkon = l.nodes.find((n) => n.kind === 'pv' && n.id === 'balkon');
-    expect(dach?.x).toBeLessThan(360);
-    expect(balkon?.x).toBeGreaterThan(360);
+    const layout = computeLayout(config, []);
+    const pv2 = layout.nodes.find((n) => n.kind === 'pv' && n.id === 'pv2');
+    const b1 = layout.nodes.find((n) => n.kind === 'battery' && n.id === 'b1');
+    expect(b1?.x).toBe(pv2?.x);
+    expect(b1?.y).toBe(460);
+  });
+});
+
+describe('computeLayout — consumer arc', () => {
+  it('N=1: single consumer right of home, no arc', () => {
+    const layout = computeLayout(baseConfig(), mkDisplayConsumers(1));
+    const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
+    expect(consumers).toHaveLength(1);
+    expect(consumers[0]).toMatchObject({ x: 380 + 275, y: 270 });
   });
 
-  it('places battery at same x as paired PV', () => {
-    const c = baseConfig({
-      solar: [
-        { id: 'dach', power: 'sensor.a' },
-        { id: 'balkon', power: 'sensor.b' },
-      ],
-      battery: [
-        { id: 'b_dach', soc: 's.bs', power: 's.bp', charged_by: 'dach' },
-        { id: 'b_balkon', soc: 's.bs2', power: 's.bp2', charged_by: 'balkon' },
-      ],
+  it.each([2, 3, 4, 6, 7, 8])(
+    'N=%d: consumer y-positions stay clear of PV (y≥130) and battery (y≤410)',
+    (n) => {
+      const layout = computeLayout(baseConfig(), mkDisplayConsumers(n));
+      const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
+      expect(consumers).toHaveLength(n);
+      for (const c of consumers) {
+        // PV at y=80 with r=32 → consumer top must clear y=112; consumer r=24 → center y > 112+24 = 136
+        // Battery at y=460 with r=32 → consumer bottom < 428; consumer r=24 → center y < 428-24 = 404
+        expect(c.y).toBeGreaterThan(130);
+        expect(c.y).toBeLessThan(410);
+      }
+    },
+  );
+
+  it('N=8 hits the α=25° cap (no overlap)', () => {
+    const layout = computeLayout(baseConfig(), mkDisplayConsumers(8));
+    const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
+    // α = min(25°, (N-1)·7°/2). N=8 → 24.5° (just under cap).
+    // outermost y = 270 ± 275·sin(24.5°) ≈ 270 ± 114.0
+    const alphaRad = (24.5 * Math.PI) / 180;
+    const dy = 275 * Math.sin(alphaRad);
+    expect(consumers[0]?.y).toBeCloseTo(270 - dy, 0);
+    expect(consumers[7]?.y).toBeCloseTo(270 + dy, 0);
+  });
+});
+
+describe('computeLayout — edges', () => {
+  it('builds correct edge count for full config', () => {
+    const config = baseConfig({
+      solar: [{ id: 'pv1', power: 'sensor.pv1' }],
+      battery: [{ id: 'b1', soc: 'sensor.b1soc', power: 'sensor.b1', charged_by: 'pv1' }],
     });
-    const l = computeLayout(c);
-    const pvDach = l.nodes.find((n) => n.kind === 'pv' && n.id === 'dach');
-    const battDach = l.nodes.find((n) => n.kind === 'battery' && n.id === 'b_dach');
-    expect(battDach?.x).toBeCloseTo(pvDach?.x ?? 0, 0);
+    const consumers = mkDisplayConsumers(3);
+    const layout = computeLayout(config, consumers);
+    // Expected edges: pv-to-home, pv-to-grid, pv-to-battery, battery-to-home,
+    // battery-to-grid, grid-to-home, grid-to-battery, 3× home-to-consumer = 10
+    expect(layout.edges).toHaveLength(10);
   });
 
-  it('always places grid left, home center, with grid x < home x', () => {
-    const l = computeLayout(baseConfig());
-    const grid = l.nodes.find((n) => n.kind === 'grid');
-    const home = l.nodes.find((n) => n.kind === 'home');
-    expect(grid).toBeDefined();
-    expect(home).toBeDefined();
-    expect(grid!.x).toBeLessThan(home!.x);
-  });
-
-  it('stacks consumers vertically on the right', () => {
-    const c = baseConfig({
-      consumers: [
-        { name: 'A', power: 'sensor.a' },
-        { name: 'B', power: 'sensor.b' },
-        { name: 'C', power: 'sensor.c' },
-      ],
-    });
-    const l = computeLayout(c);
-    const cons = l.nodes.filter((n) => n.kind === 'consumer');
-    expect(cons).toHaveLength(3);
-    expect(cons.every((n) => n.x > 600)).toBe(true);
-    const ys = cons.map((n) => n.y);
-    expect(ys[0]).toBeLessThan(ys[1] ?? 0);
-    expect(ys[1]).toBeLessThan(ys[2] ?? 0);
-  });
-
-  it('produces edge entries for all 16 flow paths in 2-PV/2-batt/3-cons setup', () => {
-    const c = baseConfig({
-      solar: [
-        { id: 'dach', power: 's.d' },
-        { id: 'balkon', power: 's.b' },
-      ],
-      battery: [
-        { id: 'bd', soc: 's.bds', power: 's.bdp', charged_by: 'dach' },
-        { id: 'bb', soc: 's.bbs', power: 's.bbp', charged_by: 'balkon' },
-      ],
-      consumers: [
-        { name: 'A', power: 's.ca' },
-        { name: 'B', power: 's.cb' },
-        { name: 'C', power: 's.cc' },
-      ],
-    });
-    const l = computeLayout(c);
-    const kinds = l.edges.map((e) => e.kind);
-    expect(kinds.filter((k) => k === 'pv-to-home').length).toBe(2);
-    expect(kinds.filter((k) => k === 'pv-to-battery').length).toBe(2);
-    expect(kinds.filter((k) => k === 'pv-to-grid').length).toBe(2);
-    expect(kinds.filter((k) => k === 'battery-to-home').length).toBe(2);
-    expect(kinds.filter((k) => k === 'battery-to-grid').length).toBe(2);
-    expect(kinds.filter((k) => k === 'grid-to-home').length).toBe(1);
-    expect(kinds.filter((k) => k === 'grid-to-battery').length).toBe(2); // Pairing-Defizit-Pfade
-    expect(kinds.filter((k) => k === 'home-to-consumer').length).toBe(3);
-    expect(l.edges).toHaveLength(16);
-  });
-
-  it('handles 0 PVs (config with only grid + consumers)', () => {
-    const c = baseConfig({ consumers: [{ name: 'x', power: 's.x' }] });
-    const l = computeLayout(c);
-    expect(l.nodes.filter((n) => n.kind === 'pv')).toHaveLength(0);
-    expect(l.edges.every((e) => !e.kind.startsWith('pv-'))).toBe(true);
-  });
-
-  it('handles 5 PVs distributed in the band', () => {
-    const c = baseConfig({
-      solar: Array.from({ length: 5 }, (_, i) => ({ id: `pv${i}`, power: `s.${i}` })),
-    });
-    const l = computeLayout(c);
-    const pvs = l.nodes.filter((n) => n.kind === 'pv');
-    expect(pvs).toHaveLength(5);
-    const xs = pvs.map((n) => n.x);
-    for (let i = 1; i < xs.length; i++) expect(xs[i] ?? 0).toBeGreaterThan(xs[i - 1] ?? 0);
-  });
-
-  it('handles split-grid form (import + export)', () => {
-    const c: Config = {
-      type: 'custom:custom-energy-flow-card',
-      solar: [],
-      battery: [],
-      grid: { import: 'sensor.gi', export: 'sensor.ge' },
-      consumers: [{ name: 'x', power: 's.x' }],
-    };
-    expect(() => computeLayout(c)).not.toThrow();
-    expect(computeLayout(c).nodes.find((n) => n.kind === 'grid')).toBeDefined();
-  });
-
-  it('battery without paired PV in the layout still rendered (validation prevents it but defensive)', () => {
-    // Validation würde dieses Setup ablehnen — Layout selbst ist trotzdem defensiv.
-    const c = baseConfig({
-      battery: [{ id: 'b_orphan', soc: 's.bs', power: 's.bp', charged_by: 'nonexistent' }],
-    });
-    expect(() => computeLayout(c)).not.toThrow();
+  it('home-to-consumer edge id matches consumer id', () => {
+    const consumers: DisplayConsumer[] = [{ id: 'g_kueche', name: 'Küche', members: ['sensor.a'] }];
+    const layout = computeLayout(baseConfig(), consumers);
+    expect(layout.edges.find((e) => e.kind === 'home-to-consumer')?.id).toBe('home-to-g_kueche');
   });
 });

@@ -16,7 +16,13 @@ export default {
   plugins: [
     resolve(),
     typescript({ tsconfig: './tsconfig.json' }),
-    isProd && terser(),
+    isProd &&
+      terser({
+        compress: {
+          passes: 2,
+          pure_funcs: ['console.info'],
+        },
+      }),
     isAnalyze && visualizer({ filename: 'dist/bundle-stats.html', open: false }),
   ].filter(Boolean),
 };
