@@ -1,0 +1,44 @@
+# Beispiel: Verbraucher werden automatisch nach HA-Area gruppiert.
+# Voraussetzung: in HA Areas definiert + Sensoren bzw. Geräte zugewiesen.
+#
+# Die Card listet Sensoren wie heute einzeln. Mit consumer_grouping: by_area
+# fragt sie pro Sensor die zugewiesene Area aus dem HA-Registry und gruppiert
+# Sensoren gleicher Area zu einem Anzeige-Knoten (Name = Area-Name).
+
+type: custom:custom-energy-flow-card
+
+solar:
+  - id: dach
+    name: PV Dach
+    power: sensor.pv_dach_power
+  - id: garage
+    name: PV Garage
+    power: sensor.pv_garage_power
+
+battery:
+  - id: b1
+    name: Akku 1
+    power: sensor.batt1_power
+    soc: sensor.batt1_soc
+    charged_by: dach
+
+grid:
+  import: sensor.netz_bezug
+  export: sensor.netz_einspeisung
+
+# Diese 5 Sensoren werden nach HA-Area gruppiert.
+# Beispiel-Resultat: 2–3 Gruppen-Knoten statt 5 Einzel-Sensoren.
+consumers:
+  - name: Herd
+    power: sensor.herd_power
+  - name: Geschirrspüler
+    power: sensor.geschirrspueler_power
+  - name: TV
+    power: sensor.tv_power
+  - name: PC
+    power: sensor.pc_power
+  - name: Monitor
+    power: sensor.monitor_power
+
+display:
+  consumer_grouping: by_area

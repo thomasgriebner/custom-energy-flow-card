@@ -145,6 +145,25 @@ display:
     warning: '#eab308' # Diagnose-Icon (Engine-Warnings)
 ```
 
+### `display.consumer_grouping`
+
+Optional. Default: `none`.
+
+- `none` (Default) — jeder Sensor aus `consumers[]` wird als eigener Knoten gezeigt.
+- `by_area` — die Card resolvt für jeden Sensor die zugewiesene Area
+  (aus HAs Entity/Device-Registry) und merged Sensoren gleicher Area zu einer
+  Gruppe. Anzeige-Name = Area-Name.
+
+Beispiel: siehe [`examples/with-grouping.yaml`](./examples/with-grouping.yaml).
+
+**Hinweise zur Visualisierung:**
+
+- Optimiert für 1–6 PV-Anlagen und 1–8 sichtbare Verbraucher (Einzel-Sensoren
+  oder Area-Gruppen).
+- Bei > 8 Verbrauchern wird der Bogen visuell dicht — funktional bleibt alles
+  erhalten, aber die Lesbarkeit leidet.
+- Sensoren ohne Area landen in einer Gruppe „Sonstige".
+
 ### Sensor-Format
 
 Alle `power`/`soc`-Felder erwarten die HA-Standard-Form `domain.object_id`
@@ -192,6 +211,28 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 | `flow`                                                                      | jeder Fluss  |
 | `flow-pv-to-home` / …                                                       | per Pfad-Typ |
 | `home-ring`                                                                 | Anteils-Ring |
+
+## Changelog
+
+### v0.10.0 (unreleased)
+
+**Breaking visual change.** Existierende Configs funktionieren unverändert,
+aber die Optik der Card ist neu:
+
+- ViewBox 720×540 → **820×540** (breiter wegen Verbraucher-Labels rechts neben den Knoten).
+- PVs und Akkus clustern in der linken 2/3-Fläche (x ∈ [130, 440]) statt voll verteilt.
+- Verbraucher sind ein Bogen rechts um Home (statt vertikale Spalte).
+- Akku-Ladestand als **Ring** statt Text-Label (analog zum Home-Attribution-Ring).
+- Card deklariert ihre bevorzugte Größe an HA Sections-View via `getGridOptions()`.
+
+**Neu:**
+
+- `display.consumer_grouping: by_area` — automatische Verbraucher-Gruppierung
+  nach HA-Area (siehe `examples/with-grouping.yaml`).
+- SoC-Sensor wird im Akku-Knoten als gefüllter Ring visualisiert (0–100 %).
+
+Falls das alte Aussehen explizit benötigt wird: GitHub-Issue eröffnen —
+`display.layout: 'classic'` ist als v1.x-Option vorgesehen.
 
 ## Lizenz
 
