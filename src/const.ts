@@ -6,7 +6,7 @@ export const CARD_NAME = 'Custom Energy Flow Card';
 export const CARD_DOC_URL = 'https://github.com/thomasgriebner/custom-energy-flow-card';
 
 export const DEFAULTS = {
-  active_threshold_w: 5,
+  active_threshold_w: 1,
   number_format: 'grouped' as const,
   show_inactive_paths: false,
   animation: {
