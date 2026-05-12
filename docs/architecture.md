@@ -79,8 +79,9 @@ HA hass.states  ─→  card.ts liest Sensor-Werte (via util/read-sensor)
                 ↓                                 (pure function)
           Layout.compute(config, viewBox)       ← render/layout.ts
                 ↓                                 (memoized)
-          FlowRenderer.render(FlowResult, …)    ← render/flow-renderer.ts
-                ↓
+          renderCard(layout, FlowResult, ctx)   ← render/flow-renderer.ts
+                ↓                                 (delegiert renderNode → render/node-renderer.ts;
+                ↓                                  RenderContext-Typ in render/context.ts)
           SVG mit CSS-Animation (offset-path)
 ```
 
