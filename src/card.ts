@@ -68,28 +68,6 @@ export class CustomEnergyFlowCard extends LitElement {
     };
   }
 
-  getGridOptions(): {
-    columns: number;
-    rows: number;
-    min_columns: number;
-    max_columns: number;
-    min_rows: number;
-    max_rows: number;
-  } {
-    return {
-      columns: 6,
-      rows: 5,
-      min_columns: 4,
-      max_columns: 12,
-      min_rows: 4,
-      max_rows: 8,
-    };
-  }
-
-  getCardSize(): number {
-    return Math.ceil((this.getGridOptions().rows * 56) / 50);
-  }
-
   override firstUpdated(): void {
     this.setAttribute('data-mounted', '');
     this._resizeObs = new ResizeObserver((entries) => {
