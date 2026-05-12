@@ -392,13 +392,33 @@ for (const cx of [250, 560]) {
 const dy = 350 * Math.sin(alphaRad); // war 275
 ```
 
-### 3.2 Neue Tests
+### 3.2 Neuer Test — Consumer-zu-Consumer-Gap
 
-Es werden **keine** neuen Tests hinzugefügt. Das Constraint-Set bleibt identisch — nur Zahlen ändern sich. Die bestehende Suite deckt:
+Ein neuer Test schließt eine pre-existing Coverage-Lücke. Bestehende Suite prüft `consumer-vs-PV/Akku`-Kollision, aber NICHT `consumer-vs-consumer`-Überlappung. Bei R=275/α=42°/N=8 war das Edge-Gap 9.5 px (knapp). Bei neuer Geometrie 25 px. Test schützt zukünftige Regression, wenn jemand R reduziert.
 
-- ViewBox-Bounds
-- N=8 ohne Überlappung
-- PV/Akku-Kollisions-Freiheit
+Datei: `src/render/layout.test.ts` (im `describe('computeLayout — consumer arc', ...)`-Block):
+
+```ts
+it.each([2, 4, 6, 8])('N=%d: consumers stay clear of each other (min gap 4 px)', (n) => {
+  const layout = computeLayout(baseConfig(), mkDisplayConsumers(n));
+  const consumers = layout.nodes.filter((c) => c.kind === 'consumer');
+  for (let i = 0; i < consumers.length; i++) {
+    for (let j = i + 1; j < consumers.length; j++) {
+      const d = Math.hypot(consumers[i].x - consumers[j].x, consumers[i].y - consumers[j].y);
+      expect(d).toBeGreaterThan(consumers[i].r * 2 + 4); // 4 px breathing
+    }
+  }
+});
+```
+
+**Threshold-Begründung:** Center-Distanz > 2·r + 4 = 52 px ⇒ Edge-Gap ≥ 4 px. Mit altem R=275 ist Center-Distanz 57.5 px → Test grün (Gap 9.5 px). Mit neuem R=350 ist Center-Distanz 73 px → Test grün (Gap 25 px). Bei R<250 fällt der Test → catched Regression früh.
+
+**TDD-Hinweis:** Da der Test mit altem UND neuem Code grün ist, ist es kein klassischer TDD-Rot-Test, sondern eine **defensive Coverage-Erweiterung**. Wird in Task 1.1 zusammen mit den anderen Test-Edits hinzugefügt.
+
+Die bestehende Test-Suite deckt weiter:
+
+- ViewBox-Bounds (consumer.y±r ∈ [0, 540])
+- Consumer-vs-PV/Akku-Kollision (jetzt zusätzlich Consumer-vs-Consumer durch neuen Test)
 - α=42°-Cap-Verhalten
 
 ab — alle bleiben gültig im neuen Koordinatensystem.
