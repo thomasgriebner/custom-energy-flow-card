@@ -4,6 +4,6 @@ dist/
 coverage/
 *.log
 .DS_Store
-task13-*.png
 .playwright-mcp/
-*.png
+# Test/debug screenshots in repo root (production screenshots live in docs/screenshots/)
+/*.png

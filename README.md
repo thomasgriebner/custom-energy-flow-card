@@ -4,6 +4,27 @@ Lovelace-Custom-Card für Home Assistant zur Live-Visualisierung des
 Energieflusses in Mehr-Quellen-Haushalten — beliebig viele PV-Anlagen,
 Akkus (1:1 mit ihrer ladenden PV gepairt), Großverbraucher.
 
+## Vorschau
+
+**Standard: Verbraucher einzeln**
+
+![Custom Energy Flow Card mit Einzel-Verbrauchern](./docs/screenshots/individual-consumers.png)
+
+Zwei PV-Anlagen (Dach + Balkon), zwei Akkus (Dach-Speicher + Balkon-Speicher
+mit SoC-Ring), Netz links, Hausverbrauch mittig, drei Verbraucher rechts
+(Wärmepumpe, Wallbox, Herd). Animierte Punktströme zeigen die aktiven
+Energieflüsse; der Ring um den Haus-Knoten visualisiert die Quellen-Anteile.
+
+**Optional: Gruppierung nach HA-Area**
+
+![Custom Energy Flow Card mit Area-Gruppierung](./docs/screenshots/by-area-grouping.png)
+
+Mit `display.consumer_grouping: by_area` listest du Sensoren wie gewohnt
+einzeln, die Card resolvt pro Sensor aber die HA-Area und merged sie
+automatisch zu Gruppen-Knoten. Hier: 8 Smart-Plug-Sensoren werden in der
+Anzeige zu **3 Räumen** zusammengefasst — Büro (PC + Monitor), Küche
+(Herd + Geschirrspüler + Mikrowelle), Wohnzimmer (TV + Soundbar + Licht).
+
 ## Was sie kann
 
 - Solar oben, Netz links, Akkus unten, Verbraucher rechts, Haus mittig — alle Knoten als Kreise
