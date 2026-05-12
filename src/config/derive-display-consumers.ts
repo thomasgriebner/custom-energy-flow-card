@@ -14,7 +14,8 @@ export interface DeriveConsumersHassShape {
   areas?: Record<string, { area_id: string; name: string; icon?: string } | undefined>;
 }
 
-const collator = new Intl.Collator('de', { sensitivity: 'base' });
+const compareDe = (a: string, b: string): number =>
+  a.localeCompare(b, 'de', { sensitivity: 'base' });
 
 export function deriveDisplayConsumers(
   config: Config,
@@ -102,8 +103,8 @@ function groupByArea(
   groups.sort((a, b) => {
     if (a.id === 'g_unassigned') return 1;
     if (b.id === 'g_unassigned') return -1;
-    const byName = collator.compare(a.name, b.name);
-    return byName !== 0 ? byName : collator.compare(a.id, b.id);
+    const byName = compareDe(a.name, b.name);
+    return byName !== 0 ? byName : compareDe(a.id, b.id);
   });
 
   return { consumers: groups, warnings };
