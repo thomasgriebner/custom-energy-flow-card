@@ -23,13 +23,13 @@ Das ursprüngliche Layout (Quellen voll-breit verteilt, Verbraucher als vertikal
 
 ## Entscheidung
 
-**Gewählt: Option A.** Bogen mit Radius 275 um Home (380, 270), Winkel ±α=`min(25°, (N-1)·7°/2)`, fixer ViewBox 820×540. Quellen (PV/Akku) clustern in der linken 2/3-Fläche (x ∈ [130, 440]).
+**Gewählt: Option A.** Bogen mit Radius 350 um Home (480, 270), Winkel ±α=`min(42°, (N-1)·14°/2)`, fixer ViewBox 960×540 (Aspect 16:9, [ADR-0019](./0019-aspect-16-9-no-grid-options.md)). Quellen (PV/Akku) clustern in der linken 2/3-Fläche (x ∈ [200, 560]).
 
 ### Positive Konsequenzen
 
 - Pro Verbraucher eine eigene animierte Bezier-Kurve — Schaltbild-DNA bleibt erhalten
-- α-Cap bei 25° verhindert PV/Akku-Kollision bis N=8
-- ViewBox-Höhe bleibt fix (vereinfacht `getGridOptions`)
+- α-Cap bei 42° / Step 14° verhindert PV/Akku-Kollision UND Consumer-Überlappung bis N=8 (Gap 25 px bei R=350)
+- ViewBox-Höhe bleibt fix (fixer Aspect 16:9, [ADR-0019](./0019-aspect-16-9-no-grid-options.md))
 
 ### Negative Konsequenzen
 

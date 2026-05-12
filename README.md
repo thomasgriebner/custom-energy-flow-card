@@ -244,7 +244,6 @@ aber die Optik der Card ist neu:
 - PVs und Akkus clustern in der linken 2/3-Fläche (x ∈ [130, 440]) statt voll verteilt.
 - Verbraucher sind ein Bogen rechts um Home (statt vertikale Spalte).
 - Akku-Ladestand als **Ring** statt Text-Label (analog zum Home-Attribution-Ring).
-- Card deklariert ihre bevorzugte Größe an HA Sections-View via `getGridOptions()`.
 
 **Neu:**
 
@@ -254,6 +253,19 @@ aber die Optik der Card ist neu:
 
 Falls das alte Aussehen explizit benötigt wird: GitHub-Issue eröffnen —
 `display.layout: 'classic'` ist als v1.x-Option vorgesehen.
+
+### v0.11.0 — 2026-05-12
+
+#### Visueller Update (Breaking Visual Change)
+
+- **ViewBox-Aspect 16:9 (statt ~1.52:1)**: Die Card nutzt jetzt die Dashboard-Breite besser. Funktionalität und Daten unverändert — Sensoren, Edges, Animation, Theme sind identisch zu 0.10.x.
+- **HA-Layout-API entfernt**: Die Card deklariert keine `getGridOptions` mehr → HA's Layout-Editor erlaubt freie Skalierung ohne künstliche Slider-Obergrenze.
+
+#### Was zu tun ist nach Update
+
+1. Browser-Cache leeren (Strg+Shift+R / Cmd+Shift+R), falls die alte Optik noch erscheint
+2. Falls der Default-Slot nach Update zu klein wirkt: HA-Dashboard → "Card bearbeiten" → "Layout" → Größe manuell anpassen
+3. Optimaler HA-Sections-Slot: 12×9 oder 12×10
 
 ## Lizenz
 

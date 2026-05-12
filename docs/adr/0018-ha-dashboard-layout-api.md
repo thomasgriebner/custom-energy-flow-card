@@ -1,8 +1,14 @@
 # ADR-0018: HA-Dashboard-Layout-API immer aktiv
 
-- **Status:** accepted
+- **Status:** superseded by [ADR-0019](./0019-aspect-16-9-no-grid-options.md) (2026-05-12)
 - **Datum:** 2026-05-12
 - **Entscheider:** @griebner
+
+> **Superseded:** Diese Entscheidung wurde am 2026-05-12 nach User-Feedback durch
+> [ADR-0019](./0019-aspect-16-9-no-grid-options.md) abgelöst. Die deklarierten
+> Slider-Bounds (`max_columns: 12, max_rows: 8`) erwiesen sich in der Praxis
+> als künstliche Einschränkung gegenüber HAs nativem Auto-Layout.
+> Siehe [ADR-0019](./0019-aspect-16-9-no-grid-options.md) für die finale Entscheidung.
 
 ## Kontext und Problem
 

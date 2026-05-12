@@ -44,23 +44,24 @@ siehe [`0000-template.md`](./0000-template.md).
 
 ## Index
 
-| Nr                                                       | Titel                                                      | Status   |
-| -------------------------------------------------------- | ---------------------------------------------------------- | -------- |
-| [0001](./0001-greenfield-not-fork.md)                    | Greenfield neu bauen statt power-flow-card-plus forken     | accepted |
-| [0002](./0002-layered-modular-architecture.md)           | Schicht-getrennte modulare Architektur                     | accepted |
-| [0003](./0003-typescript-lit-rollup.md)                  | TypeScript + Lit 3 + Rollup als Tech-Stack                 | accepted |
-| [0004](./0004-pure-functions-engine.md)                  | Energie-Engine als pure functions                          | accepted |
-| [0005](./0005-css-offset-path-animation.md)              | CSS `offset-path` statt SVG `<animateMotion>`              | accepted |
-| [0006](./0006-strict-1-to-1-pv-battery-pairing.md)       | Strikte 1:1-Pairing-Regel zwischen PV und Akku             | accepted |
-| [0007](./0007-energy-balance-with-reconcile.md)          | Energie-Bilanz mit Netz-Sensor-Reconcile                   | accepted |
-| [0008](./0008-manual-list-editor.md)                     | Editor-Listen manuell mit Lit (statt ha-form-Listen)       | accepted |
-| [0009](./0009-eslint-enforced-layer-boundaries.md)       | Layer-Grenzen via ESLint erzwingen                         | accepted |
-| [0010](./0010-shared-util-module.md)                     | Single-Source-Util-Modul gegen Code-Doppelungen            | accepted |
-| [0011](./0011-shouldupdate-over-property-haschanged.md)  | `shouldUpdate` statt `@property({ hasChanged })`           | accepted |
-| [0012](./0012-headless-smoke-test-pre-release-gate.md)   | Headless Smoke-Test als Pre-Release-Gate                   | accepted |
-| [0013](./0013-v0-9-0-first-release-strategy.md)          | v0.9.0 als erstes Live-Release, v1.0.0 nach Stabilisierung | accepted |
-| [0014](./0014-stub-config-validates-as-valid.md)         | HA-Stub-Config wird als valide Config behandelt            | accepted |
-| [0015](./0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren   | accepted |
-| [0016](./0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                   | accepted |
-| [0017](./0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                      | accepted |
-| [0018](./0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API immer aktiv                        | accepted |
+| Nr                                                       | Titel                                                      | Status                                                      |
+| -------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
+| [0001](./0001-greenfield-not-fork.md)                    | Greenfield neu bauen statt power-flow-card-plus forken     | accepted                                                    |
+| [0002](./0002-layered-modular-architecture.md)           | Schicht-getrennte modulare Architektur                     | accepted                                                    |
+| [0003](./0003-typescript-lit-rollup.md)                  | TypeScript + Lit 3 + Rollup als Tech-Stack                 | accepted                                                    |
+| [0004](./0004-pure-functions-engine.md)                  | Energie-Engine als pure functions                          | accepted                                                    |
+| [0005](./0005-css-offset-path-animation.md)              | CSS `offset-path` statt SVG `<animateMotion>`              | accepted                                                    |
+| [0006](./0006-strict-1-to-1-pv-battery-pairing.md)       | Strikte 1:1-Pairing-Regel zwischen PV und Akku             | accepted                                                    |
+| [0007](./0007-energy-balance-with-reconcile.md)          | Energie-Bilanz mit Netz-Sensor-Reconcile                   | accepted                                                    |
+| [0008](./0008-manual-list-editor.md)                     | Editor-Listen manuell mit Lit (statt ha-form-Listen)       | accepted                                                    |
+| [0009](./0009-eslint-enforced-layer-boundaries.md)       | Layer-Grenzen via ESLint erzwingen                         | accepted                                                    |
+| [0010](./0010-shared-util-module.md)                     | Single-Source-Util-Modul gegen Code-Doppelungen            | accepted                                                    |
+| [0011](./0011-shouldupdate-over-property-haschanged.md)  | `shouldUpdate` statt `@property({ hasChanged })`           | accepted                                                    |
+| [0012](./0012-headless-smoke-test-pre-release-gate.md)   | Headless Smoke-Test als Pre-Release-Gate                   | accepted                                                    |
+| [0013](./0013-v0-9-0-first-release-strategy.md)          | v0.9.0 als erstes Live-Release, v1.0.0 nach Stabilisierung | accepted                                                    |
+| [0014](./0014-stub-config-validates-as-valid.md)         | HA-Stub-Config wird als valide Config behandelt            | accepted                                                    |
+| [0015](./0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren   | accepted                                                    |
+| [0016](./0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                   | accepted                                                    |
+| [0017](./0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                      | accepted                                                    |
+| [0018](./0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API immer aktiv                        | superseded by [0019](./0019-aspect-16-9-no-grid-options.md) |
+| [0019](./0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API   | accepted                                                    |

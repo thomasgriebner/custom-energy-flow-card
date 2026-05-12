@@ -77,7 +77,7 @@ HA hass.states  ─→  card.ts liest Sensor-Werte (via util/read-sensor)
                 ↓
           EnergyEngine.compute(SystemState)     ← engine/energy-engine.ts
                 ↓                                 (pure function)
-          Layout.compute(config, viewBox)       ← render/layout.ts
+          computeLayout(config, displayConsumers) ← render/layout.ts
                 ↓                                 (memoized)
           renderCard(layout, FlowResult, ctx)   ← render/flow-renderer.ts
                 ↓                                 (delegiert renderNode → render/node-renderer.ts;
@@ -116,8 +116,9 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 | [0014](./adr/0014-stub-config-validates-as-valid.md)         | HA-Stub-Config gilt als valide                           | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor    |
 | [0015](./adr/0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren | Reale Wechselrichter liefern oft getrennte Sensoren statt einem signierten   |
 | [0016](./adr/0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                 | Aggregiert 10–20 Smart-Plug-Sensoren auf lesbare 5–7 Knoten ohne YAML-Pflege |
-| [0017](./adr/0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                    | Skaliert bis 7 Verbraucher ohne ViewBox-Überschreitung                       |
-| [0018](./adr/0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API (`getGridOptions`) immer aktiv   | Konsistente Card-Größe in HA Sections-View                                   |
+| [0017](./adr/0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                    | Skaliert bis N=8 Verbraucher ohne ViewBox-Überschreitung (16:9, Arc-Bogen)   |
+| [0018](./adr/0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API (`getGridOptions`) immer aktiv   | superseded — Slider-Bounds erwiesen sich als künstliche Einschränkung        |
+| [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
 
 ## 5. Konventionen kurz
 

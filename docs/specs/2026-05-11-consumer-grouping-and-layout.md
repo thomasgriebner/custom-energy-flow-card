@@ -369,6 +369,10 @@ export function renderBatteryRing(
 
 ### 6.1 `getGridOptions()` (`card.ts`)
 
+> **Update 2026-05-12:** Diese Sektion ist superseded durch
+> [Subspec 2026-05-12 + ADR-0019](./2026-05-12-aspect-ratio-redesign.md).
+> `getGridOptions` und `getCardSize` werden ersatzlos gestrichen.
+
 ```ts
 getGridOptions(): {
   columns: number;
@@ -392,6 +396,10 @@ getGridOptions(): {
 Statisch, weil der ViewBox fix ist (§5.1). Wenn künftig eine adaptive Höhe eingeführt würde, kann hier ein `_displayConsumerCount @state` einfließen.
 
 ### 6.2 `getCardSize()` an Grid ankoppeln
+
+> **Update 2026-05-12:** Diese Sektion ist superseded durch
+> [Subspec 2026-05-12 + ADR-0019](./2026-05-12-aspect-ratio-redesign.md).
+> `getGridOptions` und `getCardSize` werden ersatzlos gestrichen.
 
 ```ts
 getCardSize(): number {
