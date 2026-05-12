@@ -73,7 +73,7 @@ Sieben Schichten mit klaren Aufgaben und **lint-erzwungenen** Import-Grenzen
 ```
 HA hass.states  ─→  card.ts liest Sensor-Werte (via util/read-sensor)
                 ↓
-          buildSystemState(config, hass)        ← config/schema.ts
+          buildSystemState(config, hass)        ← config/system-state.ts
                 ↓
           EnergyEngine.compute(SystemState)     ← engine/energy-engine.ts
                 ↓                                 (pure function)

@@ -1,5 +1,5 @@
 import { html, type TemplateResult } from 'lit';
-import { buildSystemState, type BuildResult } from './config/schema';
+import { buildSystemState, type BuildResult } from './config/system-state';
 import { compute } from './engine/energy-engine';
 import { DE } from './i18n/de';
 import type { Config, DisplayConsumer } from './config/types';

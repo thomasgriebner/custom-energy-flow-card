@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildSystemState, validateConfig } from './schema';
+import { validateConfig } from './schema';
+import { buildSystemState } from './system-state';
 import type { DeriveConsumersHassShape } from './derive-display-consumers';
 import type { Config } from './types';
 import type { ReadSensorHassShape } from '../util/read-sensor';
