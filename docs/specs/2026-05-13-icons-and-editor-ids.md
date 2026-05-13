@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v3 (post-review-2, ready for plan)
+**Status:** v4 (post-section-review, ready for plan)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -19,6 +19,27 @@ Architektonisch wandert die Icon-Logik in ein **neues Modul `src/render/icon.ts`
 
 Die Strategie-Änderung von Hauptspec §5.3 (inline `mdi-paths.ts`) zu **ha-icon via foreignObject** ist eine Architektur-Entscheidung und braucht **ADR-0020**.
 
+### 0.0 TL;DR — Was der Planer NICHT tun darf
+
+**Verbotener Scope** (Planer-Guard-Rail, oberste Liste vor Code-Schreiben durchgehen):
+
+1. ❌ `SolarConfig.id` / `BatteryConfigBase.id` aus den TypeScript-Typen entfernen — bleiben Pflichtfelder.
+2. ❌ Neue Felder im Editor-Schema hinzufügen — `icon`-Feld existiert bereits in allen drei Sektionen.
+3. ❌ Engine-Code (`src/engine/`) anfassen — Engine bleibt pure und icon-frei.
+4. ❌ `RenderContext`-Typ in `src/render/context.ts` erweitern — keine neuen Felder nötig.
+5. ❌ `derive-display-consumers.ts` anfassen — `icon`-Resolver-Logik dort ist schon korrekt.
+6. ❌ `card.ts` Lifecycle-Hooks ändern — Card bleibt unter 200 LOC, keine willUpdate-Erweiterung.
+7. ❌ Neue `ColorRole` oder `Theme`-Erweiterung — Farbe kommt via `currentColor`.
+8. ❌ `card-styles.ts` CSS-Regeln **entfernen** — `.node-icon { fill: ... }` bleibt für Emoji-Pass-Through.
+9. ❌ `ha-globals.d.ts:16` Type-Declaration für `ha-icon` ändern — reicht so wie sie ist.
+10. ❌ Battery-Section-Handler in `editor-list-sections.ts:156-159` anfassen — der hat das Merge-Pattern schon.
+11. ❌ `mdi-paths.ts`-Datei anlegen (Hauptspec §5.3-Plan wurde verworfen, siehe ADR-0020).
+12. ❌ Neue i18n-Strings in `i18n/de.ts` anlegen — keine User-facing-Strings hinzu.
+13. ❌ `@mdi/js` aus `src/` importieren — ESLint-Restriction blockt das; nur in `examples/lib/` erlaubt.
+14. ❌ Coverage-Konfig in `vitest.config.ts` um `render/**` erweitern — Renderer ist nicht hard-coverage-gated.
+
+**Was der Planer MUSS tun:** siehe §12 Plan-Schritte. Bei Konflikt zwischen den 14 Verboten und einem geplanten Schritt: STOP und nachfragen.
+
 ### 0.1 Harte Constraints für den Planer
 
 ESLint-Layer-Zonen aus `.eslintrc.cjs` (authoritative — Spec hier nicht doppelpflegen, im Zweifel die `.eslintrc.cjs` lesen):
@@ -31,18 +52,20 @@ ESLint-Layer-Zonen aus `.eslintrc.cjs` (authoritative — Spec hier nicht doppel
 
 Weitere Constraints:
 
-| Constraint                                       | Quelle            | Konsequenz bei Verletzung                                                                          |
-| ------------------------------------------------ | ----------------- | -------------------------------------------------------------------------------------------------- |
-| Keine Runtime-Deps außer Lit                     | ADR-0003          | `@mdi/js` **MUSS** `devDependencies` sein; ESLint `no-restricted-imports` blockt Import aus `src/` |
-| `ha-icon` ist HA-global, kein Import             | Hauptspec §6.4.2  | Nur via Lit-Template benutzen; Type-Declaration bereits in `src/ha/ha-globals.d.ts:16`             |
-| Single-Source für Icon-Rendering                 | ADR-0010          | `nodeIcon`/`diagnosticsIcon` liegen in `src/render/icon.ts`, **nicht** dupliziert in den Renderern |
-| Modul-LOC-Limit 250                              | conventions.md §3 | `node-renderer.ts` ist bei 246 LOC — Auslagerung ist Pflicht, nicht optional                       |
-| Engine pure                                      | ADR-0004          | Icon-Resolution passiert im render-Layer; Engine bleibt unberührt                                  |
-| `card.ts` ≤ 200 LOC                              | CLAUDE.md Regel 3 | Keine Änderung an card.ts erwartet                                                                 |
-| User-Strings aus `i18n/de.ts`                    | CLAUDE.md Regel 8 | Diese Subspec führt keine neuen User-Strings ein                                                   |
-| `noUncheckedIndexedAccess`                       | tsconfig.json     | Index-Zugriffe (`p[0]`) müssen explizit auf `undefined` geprüft sein                               |
-| TDD für `util/` ≥ 90 % Coverage                  | CLAUDE.md Regel 9 | `iconNameToCamelCase` test-first                                                                   |
-| Bundle ≤ 60 kB minified, `@mdi/js` nicht in Prod | Hauptspec §2.1    | `pnpm build:analyze`-Verifikation im Plan; ESLint-Restriction als Sicherheitsnetz                  |
+| Constraint                                                                 | Quelle              | Konsequenz bei Verletzung                                                                          |
+| -------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------- |
+| Keine Runtime-Deps außer Lit                                               | ADR-0003            | `@mdi/js` **MUSS** `devDependencies` sein; ESLint `no-restricted-imports` blockt Import aus `src/` |
+| `ha-icon` ist HA-global, kein Import                                       | Hauptspec §6.4.2    | Nur via Lit-Template benutzen; Type-Declaration bereits in `src/ha/ha-globals.d.ts:16`             |
+| Single-Source für Icon-Rendering                                           | ADR-0010            | `nodeIcon`/`diagnosticsIcon` liegen in `src/render/icon.ts`, **nicht** dupliziert in den Renderern |
+| Modul-LOC-Limit 250                                                        | conventions.md §3   | `node-renderer.ts` ist bei 246 LOC — Auslagerung ist Pflicht, nicht optional                       |
+| Engine pure                                                                | ADR-0004            | Icon-Resolution passiert im render-Layer; Engine bleibt unberührt                                  |
+| `card.ts` ≤ 200 LOC                                                        | CLAUDE.md Regel 3   | Keine Änderung an card.ts erwartet                                                                 |
+| User-Strings aus `i18n/de.ts`                                              | CLAUDE.md Regel 8   | Diese Subspec führt keine neuen User-Strings ein                                                   |
+| `noUncheckedIndexedAccess`                                                 | tsconfig.json       | Index-Zugriffe (`p[0]`) müssen explizit auf `undefined` geprüft sein                               |
+| TDD für `util/` ≥ 90 % Coverage                                            | CLAUDE.md Regel 9   | `iconNameToCamelCase` test-first                                                                   |
+| Bundle ≤ 60 kB minified, `@mdi/js` nicht in Prod                           | Hauptspec §2.1      | `pnpm build:analyze`-Verifikation im Plan; ESLint-Restriction als Sicherheitsnetz                  |
+| `RenderContext`, `derive-display-consumers.ts`, Engine-Module unangetastet | ADR-0004 + ADR-0009 | Diese Module sind out-of-scope. Icon-Resolution geschieht im Renderer-Layer, nicht im Daten-Layer  |
+| `card.ts` Lifecycle-Hooks unangetastet                                     | Hauptspec §5.7      | Keine willUpdate/render/firstUpdated-Änderung nötig; Icon-Migration ist rein im render/-Layer      |
 
 ## 1. Kontext und Motivation
 
@@ -74,11 +97,29 @@ Sekundäre Motivation: In WSL/Linux ohne Color-Emoji-Font werden die heutigen Em
 
 ### 2.2 Non-Goals
 
+**Editor / Config:**
+
 - Keine Änderung an `SolarConfig.id` / `BatteryConfigBase.id`-Typen — sie bleiben Pflichtfelder in YAML und TypeScript. Reine Editor-Sichtbarkeitsänderung.
 - Keine Migration von Configs ohne ID — Validierung verlangt sie weiterhin (entstehen automatisch beim Hinzufügen).
 - Keine Änderung am Verbraucher-Editor (hat heute kein ID-Feld, wird nicht eingeführt).
-- Keine inline-`<path>`-Map in der Prod-Card (`mdi-paths.ts` aus Hauptspec §5.3 wird durch ha-icon ersetzt — dokumentiert in ADR-0020).
+- Kein neues `icon`-Feld im Editor-Schema — existiert bereits in allen drei Sektionen (Solar/Battery/Consumer).
 - Kein neues `icon`-Feld auf Home/Grid in der Editor-UI. Home/Grid-Editor-Erweiterungen sind separate Arbeit.
+- Keine Änderung am Battery-Section-Handler — der hat das Merge-Pattern bereits.
+
+**Render / Engine / Config-Data-Layer:**
+
+- Keine inline-`<path>`-Map in der Prod-Card (`mdi-paths.ts` aus Hauptspec §5.3 wird durch ha-icon ersetzt — dokumentiert in ADR-0020).
+- Keine Änderung an `derive-display-consumers.ts` — Icon-Resolver-Logik dort ist bereits korrekt (`icon = areaEntry.icon` für `by_area`-Mode).
+- Keine Änderung an `src/render/context.ts` (`RenderContext`-Typ) — keine neuen Felder nötig.
+- Keine Änderung an `src/engine/*` — Engine bleibt pure und icon-frei.
+- Keine Änderung an `card.ts` Lifecycle-Hooks (`willUpdate`, `render`, `firstUpdated`).
+- Keine Entfernung der CSS-Regel `.node-icon { fill: ... }` in `card-styles.ts:69-73` — bleibt für Emoji-Pass-Through.
+- Keine Änderung an `src/ha/ha-globals.d.ts:16` — `ha-icon`-Type-Decl reicht so wie sie ist.
+
+**Konfiguration / Tooling:**
+
+- Keine Erweiterung von `vitest.config.ts:coverage.include` um `render/**` — `icon.ts` bleibt aus dem ≥90 %-Coverage-Gate (siehe §6.6).
+- Keine neue `ColorRole` oder Theme-Erweiterung — Farbe kommt via `currentColor`.
 - Keine i18n-Erweiterung — keine neuen User-Strings.
 
 ## 3. Architektur
@@ -109,9 +150,12 @@ Das ist eine Verbesserung (Name first), für User mit Muskelgedächtnis aber mer
 }}
 ```
 
-**Pairing-Dropdown in `renderBatterySection`:**
+**Battery-Section-Handler bleibt unverändert** — der hat das Merge-Pattern bereits (`editor-list-sections.ts:156-159`). Nur das Schema-Item `{ name: 'id', ... }` wird dort wie bei Solar entfernt; der Event-Handler selbst nicht angefasst.
+
+**Pairing-Dropdown in `renderBatterySection`:** Nur das `<option>`-Template ändert sich. Der umgebende `<label class="pairing">`, `<select>`-Element, `<option value="" disabled>`-Placeholder und die `pairing-missing`-Error-Span bleiben **unverändert**.
 
 ```ts
+// nur dieser Block — Rest des Pairing-Markups unverändert:
 ${solar.map((s, idx) => html`
   <option value=${s.id} ?selected=${item.charged_by === s.id}>
     ${s.name ?? `${DE.nodes.solar} ${idx + 1}`}
@@ -223,6 +267,8 @@ function renderIconForeignObject(name: string, box: IconBox): SVGTemplateResult 
 
 **Vorteil der Datentrennung:** Sizes/Positionen sind in `NODE_ICON_BOX` zentral; Anpassung pro Knoten-Kind ist eine Datenänderung, kein Code-Diff. Tests können `nodeIcon` aufrufen und das Lit-`SVGTemplateResult` strukturell prüfen (siehe §6).
 
+**Hinweis zu Kommentaren im Code-Snippet:** Die `// Werte aus dem heutigen Code …`-Kommentare im Spec-Code sind **Doku für den Planer** (Wert-Herkunft). Im finalen Code als reine Datenstruktur **ohne diese Kommentare** umsetzen — `conventions.md §2` verbietet WHAT-Kommentare. Die Werte selbst sind selbsterklärend genug.
+
 ### 3.3 Renderer-Migration — `src/render/node-renderer.ts`
 
 Konkrete Änderungen in `renderNode` (Zeilen 36–117):
@@ -254,13 +300,16 @@ Konkrete Änderungen in `renderNode` (Zeilen 36–117):
    (Sizing/Positionierung liegt jetzt im `nodeIcon`-Modul, nicht mehr inline.)
 4. **`nodeIconChar` und `DEFAULT_ICONS` löschen** — beide werden durch `icon.ts` ersetzt. `configEntryForNode` bleibt private in `node-renderer.ts` (Resolver-Logik gegen RenderContext gehört hierher).
 5. **Lokale `iconY` / Inline-font-size-Logik** (Zeilen 62, 93) für das Icon-Element entfernen. Sie werden durch `NODE_ICON_BOX` in `icon.ts` ersetzt. Achtung: `valueY` (Zeile 63) bleibt — das ist für `<text class="node-value">`, **nicht** für das Icon.
-6. **`<foreignObject>` bekommt `part="node-icon"`** (in `icon.ts:renderIconForeignObject`), damit Card-Mod-User das Icon-Element via `::part(node-icon)` über die Card-Shadow-Boundary stylen können. Bestandsverhalten heute: `<text class="node-icon">` ist im light-DOM via `.node-icon`-Klasse ansprechbar; mit `<foreignObject>` wäre der ha-icon-Shadow-DOM unerreichbar ohne `part`-Hook.
+
+Das `part="node-icon"`-Attribut auf dem `<foreignObject>` ist bereits im `icon.ts:renderIconForeignObject`-Code aus §3.2 enthalten — hier in `node-renderer.ts` nichts zusätzlich zu tun. Card-Mod-User können dadurch `::part(node-icon)` als Hook nutzen.
 
 **Bewusste visuelle Änderung (Diff für User sichtbar):**
 
 Heute setzt `card-styles.ts:69-73` `fill: var(--primary-text-color)` auf `.node-icon` — Emojis erscheinen daher in der primären Text-Farbe (schwarz/weiß je nach Theme). Nach Migration übernimmt `<ha-icon>` via `color: inherit` die Farbe vom `<g style="color: ${color}">` — und `color` ist die **Knoten-Farbe** (`colorFor(nodeColorRole(node.kind), ctx.theme)`, also z. B. Solar-Gelb, Battery-Grün). Das ist gewollt — Icons werden farbig statt monochrom, harmoniert mit den Stroke-Farben der Kreise.
 
 Die CSS-Regel `.node-icon { fill: … }` in `card-styles.ts:69-73` bleibt erhalten und greift weiterhin für den Emoji-Pass-Through-Pfad. Sie kann nicht entfernt werden, ohne den Emoji-Fallback zu brechen.
+
+**Dokumentations-Pflicht:** Die visuelle Änderung wird in README-Changelog dokumentiert (Plan-Schritt 18) — User mit existierenden Configs sehen den Diff sofort.
 
 **A11y-Bonus (kein Plan-Schritt nötig):** `<ha-icon>` setzt intern `aria-hidden="true"`. Damit ist das Icon für Screenreader nicht mehr doppelt vorgelesen (heute könnte Emoji-`<text>` als "Sonne" interpretiert werden zusätzlich zum `aria-label` des `<g>`). Akzeptabel als stillschweigende Verbesserung.
 
@@ -338,16 +387,22 @@ export function registerHaIconStub(): void {
 }
 ```
 
-**Sandbox-Wire-up:** `scripts/build-preview.mjs` baut `dist/preview/_preview-entry.ts` aus einem inline-Template-String. Dieses Template wird erweitert: erste Zeile der `previewSrc`-Variable wird
+**Sandbox-Wire-up:** `scripts/build-preview.mjs` baut `dist/preview/_preview-entry.ts` aus einem inline-Template-String namens `previewSrc` (ab Zeile 8 der Datei). Konkrete Änderung: die ersten zwei Zeilen des Template-Inhalts (nach dem öffnenden Backtick) werden:
 
 ```ts
+// scripts/build-preview.mjs, innerhalb des `const previewSrc = \`…\`` Template-Strings:
 import { registerHaIconStub } from '../../examples/lib/ha-icon-stub';
 registerHaIconStub();
+// ↑ NEU — vor der heutigen ersten Zeile:
+import { scenarios, buildMockHass } from '../../examples/preview-mocks';
+// (heutige Zeile bleibt unverändert)
 ```
 
-vor dem heutigen `import { scenarios, buildMockHass } from '../../examples/preview-mocks';`. Damit ist `ha-icon` definiert, bevor das Card-Module via `examples/preview.html` Script-Tag den ersten Lit-Render auslöst.
+Damit ist `ha-icon` definiert, bevor das Card-Module via `examples/preview.html` Script-Tag den ersten Lit-Render auslöst.
 
 **`examples/preview.html`** wird **nicht** geändert — sie lädt nur die fertigen `.js`-Files. Der Stub wird als TypeScript-Quelle in den Preview-Bundle gerollt.
+
+**Hinweis zu `console.warn` im Stub:** Bei unbekanntem Icon-Namen warnt der Stub. In Vitest-Tests verschmutzt das den Output. Tests (§6.3) müssen `vi.spyOn(console, 'warn').mockImplementation(() => {})` setzen oder unbekannte Icons vermeiden.
 
 ### 3.6 Test-Setup — `tests/setup/ha-icon.ts` und Vitest-Konfig
 
@@ -359,35 +414,55 @@ import { registerHaIconStub } from '../../examples/lib/ha-icon-stub';
 registerHaIconStub();
 ```
 
-`vitest.config.ts` erweitern:
+`vitest.config.ts` erweitern — **additive Änderung**, NICHT Replace. Bestehende Felder (`globals`, `environment`, `coverage`) bleiben unverändert:
+
+**Konkret zwei Änderungen:**
+
+1. **Neues Feld `setupFiles`** zur `test`-Sektion hinzufügen:
+   ```ts
+   setupFiles: ['./tests/setup/ha-icon.ts'],
+   ```
+2. **`environmentMatchGlobs` ersetzen** (das alte Array hat `'**/editor.test.ts'`, neu ein Glob mit `*`-Wildcard):
+   ```ts
+   environmentMatchGlobs: [
+     ['**/editor*.test.ts', 'happy-dom'],   // matched editor.test.ts UND editor-list-sections.test.ts
+     ['**/card.test.ts', 'happy-dom'],
+   ],
+   ```
+
+Beispiel der finalen `test`-Sektion (zur Orientierung — der Planer liest die heutige `vitest.config.ts` und ergänzt minimal):
 
 ```ts
 test: {
-  globals: true,
-  environment: 'node',
-  setupFiles: ['./tests/setup/ha-icon.ts'],   // NEU — wird in jedem Env vor Tests geladen
-  environmentMatchGlobs: [
-    ['**/editor*.test.ts', 'happy-dom'],       // matched editor.test.ts UND editor-list-sections.test.ts
+  globals: true,                                      // bestehend
+  environment: 'node',                                // bestehend
+  setupFiles: ['./tests/setup/ha-icon.ts'],           // NEU
+  environmentMatchGlobs: [                            // ERWEITERT (editor.test.ts → editor*.test.ts)
+    ['**/editor*.test.ts', 'happy-dom'],
     ['**/card.test.ts', 'happy-dom'],
-    // ha-icon-stub.dom.test.ts nutzt file-level `// @vitest-environment happy-dom`
   ],
-  ...
-}
+  coverage: { /* bestehend, unverändert */ },         // bestehend
+},
 ```
+
+`ha-icon-stub.dom.test.ts` nutzt file-level `// @vitest-environment happy-dom`-Comment statt eines Glob-Eintrags.
 
 `setupFiles` läuft pro Test-Env. Der Stub-Guard `typeof customElements === 'undefined'` (im Code aus §3.5) macht den `registerHaIconStub`-Aufruf in Node-Env zu einem no-op. In Node-Env ist der Stub also inaktiv; Tests, die ha-icon-DOM-Verhalten brauchen, laufen explizit in happy-dom.
 
 ### 3.7 ESLint `no-restricted-imports` für `@mdi/js`
 
-Verbindlicher Plan-Schritt — `@mdi/js` darf niemals von `src/` importiert werden, sonst landet es im Prod-Bundle. In `.eslintrc.cjs` zur `rules`-Sektion (greift global; `examples/` wird vom Lint-Script `eslint 'src/**/*.ts'` ohnehin ausgeschlossen):
+Verbindlicher Plan-Schritt — `@mdi/js` darf niemals von `src/` importiert werden, sonst landet es im Prod-Bundle. **Additive Änderung** in `.eslintrc.cjs`: neuer Eintrag in der bestehenden `rules:`-Sektion (greift global; `examples/` wird vom Lint-Script `eslint 'src/**/*.ts'` ohnehin ausgeschlossen):
 
 ```js
+// in .eslintrc.cjs, rules-Sektion: NEUER Eintrag neben den bestehenden Regeln:
 'no-restricted-imports': ['error', {
   patterns: [
     { group: ['@mdi/js', '@mdi/js/*'], message: 'Nur in examples/lib/ erlaubt; @mdi/js würde sonst ins Prod-Bundle.' },
   ],
 }],
 ```
+
+Bestehende `rules`-Einträge (`import/no-restricted-paths`, `@typescript-eslint/no-explicit-any`, etc.) bleiben unverändert.
 
 ### 3.8 Layer-Boundaries — Kontrollpunkte
 
@@ -431,6 +506,7 @@ Für Area-Icons gilt derselbe Pfad — `consumer.icon` wird durch `displayConsum
 - **Leerer/undefined Icon-String + Standard-Knoten:** kann nicht auftreten, weil `DEFAULT_MDI_ICONS` und `NODE_ICON_BOX` für alle `LayoutNode['kind']`-Werte definiert sind (TypeScript Record-Typ erzwingt Exhaustiveness).
 - **Emoji im `icon`-Feld:** Pass-Through-Pfad rendert weiter `<text>` mit korrekten font-size/y-Werten aus `NODE_ICON_BOX[kind].emojiY/emojiFontSize`. Test deckt das ab (§6.2).
 - **Node-Env-Tests + customElements nicht definiert:** `registerHaIconStub` guard'ed via `typeof customElements === 'undefined'`. Stub inaktiv, kein Throw.
+- **`<ha-icon>` in HA noch nicht registriert beim Card-Mount (Race):** HA-Frontend-Bootstrap garantiert, dass `ha-icon` vor Custom-Cards registriert ist. **Annahme dokumentiert** — kein expliziter Defensiv-Code in der Card nötig. Falls in Produktion auftretend: leeres `<ha-icon>` rendert als leere Box, ohne Crash.
 
 ## 6. Tests
 
@@ -491,6 +567,21 @@ it('diagnosticsIcon uses alert-circle-outline', () => {
 `examples/lib/ha-icon-stub.dom.test.ts` mit `// @vitest-environment happy-dom`:
 
 ```ts
+// @vitest-environment happy-dom
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { registerHaIconStub } from './ha-icon-stub';
+
+let warnSpy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  // Stub warnt bei unbekannten Icons — unterdrücken, damit Test-Output sauber bleibt
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
+});
+
 it('renders <svg><path> with d-attribute when icon is known', () => {
   registerHaIconStub();
   const el = document.createElement('ha-icon');
@@ -498,6 +589,17 @@ it('renders <svg><path> with d-attribute when icon is known', () => {
   document.body.appendChild(el);
   expect(el.innerHTML).toContain('<svg');
   expect(el.innerHTML).toMatch(/<path d="[^"]+"/);
+});
+
+it('renders placeholder rectangle for unknown icon and warns', () => {
+  registerHaIconStub();
+  const el = document.createElement('ha-icon');
+  el.setAttribute('icon', 'mdi:does-not-exist-foo-bar');
+  document.body.appendChild(el);
+  expect(el.innerHTML).toContain('<rect');
+  expect(warnSpy).toHaveBeenCalledWith(
+    expect.stringContaining('unknown icon: mdi:does-not-exist-foo-bar'),
+  );
 });
 ```
 
@@ -516,7 +618,9 @@ Manuelle Verifikation: `pnpm preview` öffnen, Card mit Default-Config rendern, 
 
 ### 6.6 Coverage
 
-`icon.ts` und `iconNameToCamelCase` fallen unter die ≥90 %-Coverage-Pflicht für `util/`-artige Module nicht direkt (nicht in `src/util/`), aber die Tests oben decken alle Branches ab. Die `vitest.config.ts` `coverage.include` ist heute auf `src/engine/**`, `src/config/**`, `src/util/**` beschränkt — Renderer-Coverage ist nicht hard-enforced. Plan-Schritt prüft nur grün, nicht ≥90 %.
+`vitest.config.ts:coverage.include` ist heute auf `src/engine/**`, `src/config/**`, `src/util/**` beschränkt. **`render/icon.ts` wird bewusst NICHT in `coverage.include` aufgenommen** — Renderer-Coverage ist Card-weit nicht hard-enforced (siehe `conventions.md §5.1`). `iconNameToCamelCase` liegt in `examples/lib/`, also außerhalb jedes `coverage.include`-Pfads.
+
+Die Tests in §6.1–§6.4 decken alle Branches der neuen Funktionen ab; eine manuelle Branch-Verifikation durch den Planer beim Test-Schreiben reicht. Die `coverage.include`-Konfig wird **nicht** geändert — siehe §2.2 Non-Goals.
 
 ## 7. Auswirkung auf Hauptspec
 
@@ -570,17 +674,19 @@ Der Editor zeigt das `icon`-Feld trotzdem pro Consumer in jedem Mode (es ist Tei
 
 ## 10. Risiken
 
+Sortiert nach Schwere (Wahrscheinlichkeit × Auswirkung), absteigend:
+
 | Risiko                                                                                                 | Wahrscheinlichkeit | Auswirkung                                               | Mitigation                                                                                                   |
 | ------------------------------------------------------------------------------------------------------ | ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Lit-Namespace-Problem: `<ha-icon>` im `svg`-Template wird SVG- statt HTML-namespaced** (siehe §10.1) | **hoch**           | **Icons rendern nicht — Custom Element nicht aktiviert** | **Plan-Schritt 0: Spike + Workaround** — siehe §10.1                                                         |
-| `<foreignObject>` in HA-Dashboard nicht zuverlässig (alte Browser)                                     | niedrig            | Icons fehlen in Prod                                     | Manuelle Verifikation in echtem HA vor Release; Hauptspec §9 Browser-Kompatibilität gilt                     |
-| `@mdi/js` versehentlich in Prod-Bundle                                                                 | mittel             | Bundle >> 60 kB                                          | DevDependency + ESLint `no-restricted-imports` + `pnpm build:analyze` als Plan-Schritt                       |
-| ha-form verliert die `id` nicht-im-Schema beim `value-changed`-Event                                   | niedrig            | ID geht beim ersten Edit verloren                        | Solar-Handler auf Merge-Pattern; Test deckt das ab (§6.4)                                                    |
+| **Lit-Namespace-Problem: `<ha-icon>` im `svg`-Template wird SVG- statt HTML-namespaced** (siehe §10.1) | **hoch**           | **Icons rendern nicht — Custom Element nicht aktiviert** | **Plan-Schritt 1: Spike + Workaround** — siehe §10.1                                                         |
+| `@mdi/js` versehentlich in Prod-Bundle                                                                 | mittel             | Bundle >> 60 kB, ADR-0003 verletzt                       | DevDependency + ESLint `no-restricted-imports` + `pnpm build:analyze` als Plan-Schritt                       |
 | Default-Icon-Größen passen nicht zu allen Knoten optisch                                               | mittel             | Visuell unsauber, leichte Layout-Drift                   | `NODE_ICON_BOX` zentral; manuelle Sandbox-Verifikation; Anpassung als Datenänderung möglich                  |
 | `@mdi/js` namespace-Import bläht Sandbox-Bundle auf                                                    | hoch               | Längerer Dev-Build (kein Prod-Impact)                    | Akzeptiert (Dev-only). Falls Build > 10 s wird: später auf curated path-map oder dynamische Imports wechseln |
+| `<foreignObject>` in HA-Dashboard nicht zuverlässig (alte Browser)                                     | niedrig            | Icons fehlen in Prod                                     | Manuelle Verifikation in echtem HA vor Release; Hauptspec §9 Browser-Kompatibilität gilt                     |
+| ha-form verliert die `id` nicht-im-Schema beim `value-changed`-Event                                   | niedrig            | ID geht beim ersten Edit verloren                        | Solar-Handler auf Merge-Pattern; Test deckt das ab (§6.4)                                                    |
 | happy-dom Custom-Element-Reaktivität (`attributeChangedCallback`) ist unvollständig                    | niedrig            | Stub-DOM-Test (§6.3) failed                              | Test umschreiben — Stub manuell instantiieren statt via `document.createElement`                             |
-| `card-mod`-User können `currentColor` nicht mehr via `color:` override                                 | niedrig            | Edge-Case Theming-Inkompatibilität                       | Dokumentiert in §9 Out-of-Scope; v1.x-Refinement falls gewünscht                                             |
 | Smoke-Test (`scripts/smoke-test.mjs`) bricht durch `<ha-icon>`-Render                                  | niedrig            | CI-Gate failed                                           | Happy-dom akzeptiert unbekannte CE als `HTMLUnknownElement` (kein Crash). Plan-Schritt verifiziert grün      |
+| `card-mod`-User können `currentColor` nicht mehr via `color:` override                                 | niedrig            | Edge-Case Theming-Inkompatibilität                       | Dokumentiert in §9 Out-of-Scope; v1.x-Refinement falls gewünscht                                             |
 
 ### 10.1 Lit-Namespace-Problem — verschärfter Risiko-Block
 
@@ -588,7 +694,7 @@ Lit's `svg`-Template-Tag erzeugt **alle** Child-Elemente im SVG-Namespace via `c
 
 **Symptom bei Bug:** `<ha-icon>` wird als generisches SVG-Element instanziiert, das `connectedCallback` des HTML-Custom-Element feuert nie, kein MDI-SVG erscheint.
 
-**Verifikation im Spike (Plan-Schritt 0):**
+**Verifikation im Spike (Plan-Schritt 1):**
 
 ```ts
 // Im Spike, nach Render:
@@ -603,7 +709,7 @@ console.assert(!(haIcon instanceof SVGElement), 'ha-icon must NOT be SVG-namespa
 2. **Render-Lifecycle-Hook in `card.ts`** der nach jedem `updated()` foreignObject-Inhalte via `document.createElement('ha-icon')` (HTML-Namespace) ersetzt. Aufwendig, deshalb nur als Notbremse.
 3. **Verzicht auf foreignObject** und Fallback auf Inline-`<path>`-Map (`mdi-paths.ts` wie Hauptspec §5.3 ursprünglich vorsah) — wäre dann ADR-0020-Wiederruf und Area-Icons funktionieren nicht.
 
-Spike (Plan-Schritt 0) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`-Variante fehlschlägt. Spec-Update + ADR-0020-Anpassung danach.
+Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`-Variante fehlschlägt. Spec-Update + ADR-0020-Anpassung danach.
 
 ## 11. Erfolgs-Kriterien
 
@@ -623,6 +729,8 @@ Spike (Plan-Schritt 0) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 - [ ] `examples/preview-mocks.ts` enthält **mindestens ein** Szenario mit User-Icon (`consumer.icon: 'mdi:heat-pump'`) und ein Szenario mit Area-Icon (`hass.areas[*].icon: 'mdi:sofa'`)
 - [ ] README enthält Hinweis "MDI-Icons werden ab v1.x gerendert; Area-Icons werden im `by_area`-Mode automatisch verwendet" (Changelog-Eintrag oder Feature-Sektion)
 - [ ] Bewusste UX-Änderung dokumentiert: Editor-Feldreihenfolge (`name` first statt `id` first); Icon farbig statt monochrom (Knoten-Farbe via currentColor)
+- [ ] **Keine LOC-Regression**: `wc -l src/render/node-renderer.ts` < 246 (Icon-Logik ist ausgelagert, nicht zusätzlich aufgebaut). `card.ts` ≤ 200 LOC unverändert.
+- [ ] Engine, `RenderContext`, `derive-display-consumers.ts`, `card-styles.ts:69-73`, `ha-globals.d.ts:16` unverändert (`git diff` zeigt keine Änderungen an diesen Pfaden)
 
 ## 12. Plan-Schritte (Reihenfolge mit Begründung)
 
@@ -632,19 +740,22 @@ Spike (Plan-Schritt 0) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 2. **ADR-0020 anlegen** + ADR-Index aktualisieren. Strategie-Entscheidung dokumentiert (conventions.md §12). Falls Spike (Schritt 1) den Workaround forderte: ADR-0020-Text entsprechend anpassen.
 3. **`@mdi/js` als DevDep installieren** (`pnpm add -D @mdi/js`) + ESLint `no-restricted-imports`-Regel für `@mdi/js` in `.eslintrc.cjs`.
 4. **`examples/lib/ha-icon-stub.ts` + `ha-icon-stub.test.ts`** — `iconNameToCamelCase`-Tests test-first (Node-Env), Stub-Klasse implementieren mit `customElements`-Guard.
-5. **`tests/setup/ha-icon.ts` + `vitest.config.ts`** — setupFiles erweitern; `editor*.test.ts`-Glob auf happy-dom.
-6. **`src/render/icon.ts` neu anlegen + `src/render/icon.test.ts`** — TDD für `nodeIcon` und `diagnosticsIcon` über Lit-`SVGTemplateResult`-Strukturprüfung. **Verbindlich:** Theme-agnostisch, nur Icon-Geometrie, kein `RenderContext`-Bezug (siehe §3.2 Architektur-Prinzipien).
-7. **`node-renderer.ts` migrieren** — `nodeIconChar`/`DEFAULT_ICONS` löschen, `<g>` bekommt `style="color: ${color};"`, neuer `nodeIcon`-Aufruf, lokale `iconY`-Variable löschen. **Wichtig:** Visuelle Diff dokumentieren (Icons werden farbig, siehe §3.3 "bewusste visuelle Änderung"). `configEntryForNode` bleibt private — nicht versuchen, sie nach `icon.ts` zu ziehen.
-8. **`flow-renderer.ts` migrieren** — Diagnostics auf `diagnosticsIcon()`, `<g>` bekommt `style="cursor: help; color: ${fill};"` + `part="diagnostics diagnostics-icon"`.
-9. **`editor-list-sections.ts` bereinigen** — `id`-Feld aus Solar- und Battery-Schemata entfernen (icon-Feld bleibt unverändert vorhanden, siehe §3.1), Solar-Handler auf Merge-Pattern (analog Battery), Pairing-Dropdown-Fallback auf `${DE.nodes.solar} ${idx + 1}`.
-10. **Editor-Tests (`editor-list-sections.test.ts`, happy-dom-Env)** — Schema-ohne-`id` + Merge-Verhalten + Pairing-Fallback. Feldreihenfolge `name, power, icon` verifizieren.
-11. **`scripts/build-preview.mjs`** — Preview-Entry-Template um `registerHaIconStub()`-Import erweitern (erste Zeile vor `import { scenarios, … }`).
-12. **`examples/preview-mocks.ts` erweitern** — mindestens zwei neue Szenarien (oder bestehende anreichern): (a) Custom-Icon im `none`-Mode mit `consumer.icon: 'mdi:heat-pump'`, (b) Area-Icon-Demo mit `hass.areas['wohnzimmer'].icon: 'mdi:sofa'` und entity-Mapping. Damit Sandbox visuell zeigt, dass beide Icon-Quellen funktionieren.
-13. **`pnpm smoke` verifizieren** — Bundle lädt in happy-dom ohne Crash trotz unbekanntem `<ha-icon>`. Falls fail: ha-icon-Stub auch in `scripts/smoke-test.mjs` registrieren.
-14. **`pnpm check` + `pnpm build:analyze`** — Bundle ≤ 60 kB, `@mdi/js` nicht in `dist/`. ESLint-Restriction-Regel greift.
-15. **Sandbox + manuelle Verifikation** — `pnpm preview`, alle Default-Szenarien durchklicken; neue Icon-Demo-Szenarien aus Schritt 12 prüfen; visuelle Verifikation der bewussten Visual-Diffs aus §3.3 (Icons farbig).
-16. **Hauptspec aktualisieren** — §3.2 als Quelle bestätigen, §5.3 auf ha-icon umschreiben, §9 MDI-Punkt entfernen, §7 auf `mdi:alert-circle-outline` aktualisieren, §5.13 (Card-Mod-Hooks) um `::part(node-icon)` erweitern. Conventional-Commit `docs(specs): …`.
-17. **README aktualisieren** — Changelog-Eintrag "MDI-Icons werden ab v1.x gerendert; Area-Icons werden im `by_area`-Mode automatisch verwendet". Editor-Feldreihenfolge erwähnen falls README das beschreibt.
-18. **README-Screenshots regenerieren** — `pnpm preview` als Quelle, neue Screenshots in `docs/screenshots/`. Insbesondere `by-area-grouping.png` zeigt jetzt Area-Icons statt Default-Emoji.
+5. **`tests/setup/ha-icon.ts` anlegen** — Importiert und ruft `registerHaIconStub()` auf. Kurze Datei (3 Zeilen).
+6. **`vitest.config.ts` erweitern** — additive: `setupFiles` neu, `environmentMatchGlobs` von `editor.test.ts` auf `editor*.test.ts` (siehe §3.6).
+7. **`src/render/icon.ts` neu anlegen + `src/render/icon.test.ts`** — TDD für `nodeIcon` und `diagnosticsIcon` über Lit-`SVGTemplateResult`-Strukturprüfung. **Verbindlich:** Theme-agnostisch, nur Icon-Geometrie, kein `RenderContext`-Bezug (siehe §3.2 Architektur-Prinzipien). Im finalen Code KEINE WHAT-Kommentare (siehe §3.2-Hinweis).
+8. **`node-renderer.ts` migrieren** — `nodeIconChar`/`DEFAULT_ICONS` löschen, `<g>` bekommt `style="color: ${color};"`, neuer `nodeIcon`-Aufruf, lokale `iconY`-Variable löschen. **Wichtig:** Visuelle Diff dokumentieren (Icons werden farbig, siehe §3.3 "bewusste visuelle Änderung"). `configEntryForNode` bleibt private — nicht versuchen, sie nach `icon.ts` zu ziehen.
+9. **`flow-renderer.ts` migrieren** — **identisches Pattern wie Schritt 8, zweimal angewendet**: Diagnostics auf `diagnosticsIcon()`, `<g>` bekommt `style="cursor: help; color: ${fill};"` + `part="diagnostics diagnostics-icon"`. Beide Renderer nutzen jetzt dieselbe `icon.ts`-API; Single-Source-of-Truth ist hergestellt.
+10. **`editor-list-sections.ts` bereinigen** — `id`-Feld aus Solar- und Battery-Schemata entfernen (icon-Feld bleibt unverändert vorhanden, siehe §3.1), Solar-Handler auf Merge-Pattern (analog Battery), Pairing-Dropdown-Fallback auf `${DE.nodes.solar} ${idx + 1}`. Battery-Handler wird NICHT angefasst.
+11. **Editor-Tests (`editor-list-sections.test.ts`, happy-dom-Env)** — Schema-ohne-`id` + Merge-Verhalten + Pairing-Fallback. Feldreihenfolge `name, power, icon` verifizieren.
+12. **`scripts/build-preview.mjs`** — Preview-Entry-Template um `registerHaIconStub()`-Import erweitern (erste Zeilen vor `import { scenarios, … }`, siehe §3.5 Sandbox-Wire-up).
+13. **`examples/preview-mocks.ts` erweitern** — mindestens zwei neue Szenarien (oder bestehende anreichern): (a) Custom-Icon im `none`-Mode mit `consumer.icon: 'mdi:heat-pump'`, (b) Area-Icon-Demo mit `hass.areas['wohnzimmer'].icon: 'mdi:sofa'` und entity-Mapping. Damit Sandbox visuell zeigt, dass beide Icon-Quellen funktionieren. Aktiv testbar nach Schritten 7-9 (Renderer-Migration abgeschlossen).
+14. **`pnpm smoke` verifizieren** — Bundle lädt in happy-dom ohne Crash trotz unbekanntem `<ha-icon>`. Falls fail: ha-icon-Stub auch in `scripts/smoke-test.mjs` registrieren.
+15. **`pnpm check` + `pnpm build:analyze`** — Bundle ≤ 60 kB, `@mdi/js` nicht in `dist/`. ESLint-Restriction-Regel greift. **Zusätzliche Verifikation: `wc -l src/render/node-renderer.ts` < 246** (LOC-Regression-Check, siehe §11).
+16. **Sandbox + manuelle Verifikation** — `pnpm preview`, alle Default-Szenarien durchklicken; neue Icon-Demo-Szenarien aus Schritt 13 prüfen; visuelle Verifikation der bewussten Visual-Diffs aus §3.3 (Icons farbig).
+17. **Hauptspec aktualisieren** — §3.2 als Quelle bestätigen, §5.3 auf ha-icon umschreiben, §9 MDI-Punkt entfernen, §7 auf `mdi:alert-circle-outline` aktualisieren, §5.13 (Card-Mod-Hooks) um `::part(node-icon)` erweitern. Conventional-Commit `docs(specs): …`.
+18. **README aktualisieren** — Changelog-Eintrag "MDI-Icons werden ab v1.x gerendert; Area-Icons werden im `by_area`-Mode automatisch verwendet". Editor-Feldreihenfolge erwähnen falls README das beschreibt. **Visuelle Änderung (Icons farbig statt monochrom) im Changelog ergänzen.**
+19. **README-Screenshots regenerieren** — `pnpm preview` als Quelle, neue Screenshots in `docs/screenshots/`. Insbesondere `by-area-grouping.png` zeigt jetzt Area-Icons statt Default-Emoji.
 
-Erwarteter Gesamtumfang: 18 Plan-Schritte (1+2 sind Vorab-Gates, 3–14 sind Implementation, 15–18 sind Verifikation/Doku/Assets).
+Erwarteter Gesamtumfang: 19 Plan-Schritte (1+2 sind Vorab-Gates, 3–15 sind Implementation/Verifikation, 16–19 sind Doku/Assets).
+
+**Kritische Abhängigkeit:** Schritt 1 (Spike) MUSS grün sein, bevor Schritt 7 startet. Falls Spike-Workaround nötig: ADR-0020 in Schritt 2 anpassen, `renderIconForeignObject`-Code in Schritt 7 entsprechend ändern.
