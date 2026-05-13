@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v4 (post-section-review, ready for plan)
+**Status:** v5 (post-conventions-alignment, ready for plan)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -622,15 +622,36 @@ Manuelle Verifikation: `pnpm preview` öffnen, Card mit Default-Config rendern, 
 
 Die Tests in §6.1–§6.4 decken alle Branches der neuen Funktionen ab; eine manuelle Branch-Verifikation durch den Planer beim Test-Schreiben reicht. Die `coverage.include`-Konfig wird **nicht** geändert — siehe §2.2 Non-Goals.
 
-## 7. Auswirkung auf Hauptspec
+## 7. Auswirkung auf Doku (Hauptspec, architecture.md, ADR-0016)
 
-§3.2 (Default-Icons): unverändert, wird jetzt tatsächlich Quelle der Wahrheit.
+Per `conventions.md §12 Doku-Pflicht` braucht ein neuer ADR drei Updates: ADR-File, ADR-Index, `architecture.md §4`. Zusätzlich:
 
-§5.3 (Icon-Rendering): Plan zur inline-`<path>`-Map (`mdi-paths.ts`) wird **verworfen**. Stattdessen `ha-icon` via foreignObject. Spec-Text muss aktualisiert werden — entweder im selben PR oder als Folge-Doc-Commit. Begründung in ADR-0020 (siehe §8).
+**Hauptspec `2026-05-10-…-design.md`:**
 
-§9 (Offene Punkte): MDI-Icon-Rendering verschwindet aus der „offene Punkte"-Liste.
+- §3.2 (Default-Icons): unverändert, wird jetzt tatsächlich Quelle der Wahrheit.
+- §5.3 (Icon-Rendering): Plan zur inline-`<path>`-Map (`mdi-paths.ts`) wird **verworfen**. Stattdessen `ha-icon` via foreignObject. Begründung in ADR-0020.
+- §9 (Offene Punkte): MDI-Icon-Rendering verschwindet aus der „offene Punkte"-Liste.
+- §7 (Diagnostics-Icon): `mdi:alert-circle-outline` wird umgesetzt statt des „!"-Textes.
+- §5.13 (Card-Mod-Hooks): `::part(node-icon)` als neuer Hook ergänzen.
 
-§7 (Diagnostics-Icon): `mdi:alert-circle-outline` wird umgesetzt statt des „!"-Textes.
+**`docs/architecture.md`:**
+
+- §2 (Layer-Tabelle): `render/`-Aufgabenbeschreibung um „Icon-Rendering" erweitern.
+- §4 (ADR-Tabelle): neue Zeile für ADR-0020.
+
+**`docs/adr/README.md` (ADR-Index):**
+
+- Eintrag für ADR-0020.
+
+**`docs/adr/0016-ha-area-grouping.md`:**
+
+- Cross-Reference (1 Zeile): „Area-Icon-Rendering: siehe ADR-0020".
+
+**`CLAUDE.md` (optional, marginal):**
+
+- Module-Layer `render/`-Zeile um „Icon-Rendering" erweitern. Strenge Pflicht nur bei Tech-Stack-Änderung; hier additiv-kosmetisch.
+
+Alle Doku-Updates passieren in einem `docs(specs,adr,architecture)`-Commit (Plan-Schritt 17).
 
 ## 8. ADR-0020 — verpflichtend
 
@@ -723,7 +744,10 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 - [ ] `pnpm build` produziert Bundle ≤ 60 kB minified
 - [ ] `pnpm build:analyze` zeigt **kein** `@mdi/js` in `dist/custom-energy-flow-card.js`
 - [ ] Sandbox-Screenshot in WSL zeigt korrekte Icons (qualitativ)
-- [ ] ADR-0020 angelegt, im ADR-Index referenziert
+- [ ] ADR-0020 angelegt, in `docs/adr/README.md`-Index UND `docs/architecture.md §4` (ADR-Tabelle) referenziert
+- [ ] `docs/architecture.md §2` (Layer-Tabelle) zeigt „Icon-Rendering" in `render/`-Aufgabenbeschreibung
+- [ ] `docs/adr/0016-ha-area-grouping.md` enthält Cross-Reference auf ADR-0020
+- [ ] `@mdi/js`-DevDep-Commit hat Begründung im Body (conventions §13)
 - [ ] README-Screenshots (`docs/screenshots/*.png`) auf Stand mit MDI-Icons
 - [ ] `pnpm smoke` (`scripts/smoke-test.mjs`) grün — Card-Bundle lädt + rendert ohne Crash trotz unbekanntem `<ha-icon>` in happy-dom
 - [ ] `examples/preview-mocks.ts` enthält **mindestens ein** Szenario mit User-Icon (`consumer.icon: 'mdi:heat-pump'`) und ein Szenario mit Area-Icon (`hass.areas[*].icon: 'mdi:sofa'`)
@@ -738,7 +762,16 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
    - `document.querySelector('ha-icon') instanceof HTMLElement === true`
    - Falls FAIL: `unsafeSVG`-Workaround aus §10.1 testen. Spike-Ergebnis dokumentieren (Test-Datei beibehalten als Regression-Schutz).
 2. **ADR-0020 anlegen** + ADR-Index aktualisieren. Strategie-Entscheidung dokumentiert (conventions.md §12). Falls Spike (Schritt 1) den Workaround forderte: ADR-0020-Text entsprechend anpassen.
-3. **`@mdi/js` als DevDep installieren** (`pnpm add -D @mdi/js`) + ESLint `no-restricted-imports`-Regel für `@mdi/js` in `.eslintrc.cjs`.
+3. **`@mdi/js` als DevDep installieren** (`pnpm add -D @mdi/js`) + ESLint `no-restricted-imports`-Regel für `@mdi/js` in `.eslintrc.cjs`. **Commit-Body MUSS Begründung enthalten** (conventions.md §13: „Neue Dev-Dep: OK ohne ADR, aber kurz im Commit-Body begründen"). Beispiel:
+
+   ```
+   chore(deps): add @mdi/js as devDependency
+
+   Used by examples/lib/ha-icon-stub.ts to render real MDI icons in
+   sandbox and Vitest tests. Not bundled into production (ESLint
+   no-restricted-imports blocks src/ imports; see ADR-0020).
+   ```
+
 4. **`examples/lib/ha-icon-stub.ts` + `ha-icon-stub.test.ts`** — `iconNameToCamelCase`-Tests test-first (Node-Env), Stub-Klasse implementieren mit `customElements`-Guard.
 5. **`tests/setup/ha-icon.ts` anlegen** — Importiert und ruft `registerHaIconStub()` auf. Kurze Datei (3 Zeilen).
 6. **`vitest.config.ts` erweitern** — additive: `setupFiles` neu, `environmentMatchGlobs` von `editor.test.ts` auf `editor*.test.ts` (siehe §3.6).
@@ -752,7 +785,13 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 14. **`pnpm smoke` verifizieren** — Bundle lädt in happy-dom ohne Crash trotz unbekanntem `<ha-icon>`. Falls fail: ha-icon-Stub auch in `scripts/smoke-test.mjs` registrieren.
 15. **`pnpm check` + `pnpm build:analyze`** — Bundle ≤ 60 kB, `@mdi/js` nicht in `dist/`. ESLint-Restriction-Regel greift. **Zusätzliche Verifikation: `wc -l src/render/node-renderer.ts` < 246** (LOC-Regression-Check, siehe §11).
 16. **Sandbox + manuelle Verifikation** — `pnpm preview`, alle Default-Szenarien durchklicken; neue Icon-Demo-Szenarien aus Schritt 13 prüfen; visuelle Verifikation der bewussten Visual-Diffs aus §3.3 (Icons farbig).
-17. **Hauptspec aktualisieren** — §3.2 als Quelle bestätigen, §5.3 auf ha-icon umschreiben, §9 MDI-Punkt entfernen, §7 auf `mdi:alert-circle-outline` aktualisieren, §5.13 (Card-Mod-Hooks) um `::part(node-icon)` erweitern. Conventional-Commit `docs(specs): …`.
+17. **Hauptspec + architecture.md + ADR-0016 aktualisieren** — alle Doku-Cross-References konsistent machen (conventions.md §12 Doku-Pflicht):
+    - **Hauptspec `2026-05-10-…-design.md`:** §3.2 als Quelle bestätigen, §5.3 auf ha-icon umschreiben, §9 MDI-Punkt entfernen, §7 auf `mdi:alert-circle-outline` aktualisieren, §5.13 (Card-Mod-Hooks) um `::part(node-icon)` erweitern.
+    - **`docs/architecture.md` §4 (ADR-Tabelle):** neue Zeile für ADR-0020.
+    - **`docs/architecture.md` §2 (Layer-Tabelle):** `render/`-Aufgabenbeschreibung um „Icon-Rendering" erweitern (aktuell: „SVG-Rendering, CSS-Animation, `battery-ring`").
+    - **`docs/adr/0016-ha-area-grouping.md`:** 1-Zeilen-Cross-Reference ergänzen: „Area-Icon-Rendering: siehe ADR-0020".
+    - **`CLAUDE.md` Module-Layer (optional, marginal):** `render/`-Zeile um „Icon-Rendering" erweitern.
+    - Conventional-Commit `docs(specs,adr,architecture): …`.
 18. **README aktualisieren** — Changelog-Eintrag "MDI-Icons werden ab v1.x gerendert; Area-Icons werden im `by_area`-Mode automatisch verwendet". Editor-Feldreihenfolge erwähnen falls README das beschreibt. **Visuelle Änderung (Icons farbig statt monochrom) im Changelog ergänzen.**
 19. **README-Screenshots regenerieren** — `pnpm preview` als Quelle, neue Screenshots in `docs/screenshots/`. Insbesondere `by-area-grouping.png` zeigt jetzt Area-Icons statt Default-Emoji.
 
