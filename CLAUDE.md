@@ -75,11 +75,26 @@ Erfahrung: Specs scheitern selten an fehlender Architektur-Idee, fast immer an *
 
 Vorlage [`docs/templates/spec-template.md`](./docs/templates/spec-template.md) nutzen — Skeleton mit allen Pflicht-Sektionen (Verbots-Liste, Constraints, Layer-Berührung, Don't-Touch-Liste, Code-Reuse-Tabelle, Doku-Pflicht, Plan-Schritte).
 
-**Phase 3 — Self-Review vor User-Vorlage:**
+**Phase 3 — Self-Review (Hauptagent):**
 
 Checkliste [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) durcharbeiten — 8 Phasen (Discovery, Struktur, UX, Side-Effects, Conventions, ADRs, Code-Snippets, Plan). **Nicht „ich habe das überlegt"** — jeden Punkt namentlich abhaken oder begründen warum nicht zutreffend.
 
-**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Bei User-Feedback hochzählen (`v2 (post-review)`, `v3 (post-review-2)`, etc.) — eine gute v1 erreicht v2-Quality meist in einem Review-Pass statt fünf.
+**Phase 4 — Independent Sub-Agent-Review (verbindlich vor User-Vorlage):**
+
+Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher, weil der Hauptagent **alle Argumente** kennt, mit denen die Spec entstanden ist. „Sunk-Cost-Bias" verhindert echtes Mit-fremden-Augen-Lesen. Ein Sub-Agent ohne Vorab-Kontext findet Lücken, die der Hauptagent übersieht.
+
+Konkrete Form: via `Agent`-Tool einen `general-purpose`-Sub-Agent mit dem Prompt-Template aus [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) Phase I aufrufen. Der Sub-Agent:
+
+- Hat keinen Brainstorming-Kontext
+- Prüft die Spec ausschließlich gegen echte Repo-Files (`.eslintrc.cjs`, source files, ADRs, conventions)
+- Berichtet Findings strukturiert nach Checklisten-Phase
+- Bricht Sunk-Cost-Bias des Hauptagenten
+
+Hauptagent integriert dann jedes Finding oder begründet schriftlich, warum es ignoriert wird (Trust-but-Verify).
+
+**Erst danach User die Spec vorlegen.**
+
+**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Bei User-Feedback hochzählen (`v2 (post-review)`, `v3 (post-review-2)`, etc.) — eine gute v1 mit Sub-Agent-Pass erreicht erfahrungsgemäß v2-Quality direkt statt fünf Iterationen.
 
 ## Module-Layer (Kurzform)
 

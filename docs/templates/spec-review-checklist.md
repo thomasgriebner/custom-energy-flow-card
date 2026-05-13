@@ -114,10 +114,62 @@
 
 ---
 
-## Self-Review-Output (vor User-Vorlage)
+## Self-Review-Output (Hauptagent)
 
 Zwei Sätze als Zusammenfassung der Review-Pass-Ergebnisse, z. B.:
 
-> Spec-Review durchgeführt. Phase A vollständig (gelesen: …). Phase B–H abgehakt mit Ausnahme von [X], weil [Begründung]. Bereit für User-Vorlage.
+> Spec-Review durchgeführt. Phase A vollständig (gelesen: …). Phase B–H abgehakt mit Ausnahme von [X], weil [Begründung]. Bereit für Sub-Agent-Review.
 
-**Erst danach dem User zeigen.**
+---
+
+## Phase I — Independent Sub-Agent-Cross-Check (vor User-Vorlage)
+
+**Warum:** Self-Review wird oberflächlich, sobald der Hauptagent alle Brainstorming-Argumente kennt. Ein Sub-Agent mit frischen Augen findet Lücken, die der Hauptagent durch Sunk-Cost-Bias übersieht.
+
+**Wann:** Verbindlich nach Phase A–H, BEVOR die Spec dem User vorgelegt wird.
+
+**Wie:** `Agent`-Tool mit `subagent_type: general-purpose`. Prompt-Template unten 1:1 nutzen (Spec-Pfad einsetzen):
+
+```
+Du bist Spec-Reviewer ohne Vorab-Kontext. Lies die Spec unter
+`/home/griebner/repos/custom-energy-flow-card/docs/specs/[FILENAME].md`
+und prüfe sie unabhängig gegen das echte Repository.
+
+**Aufgabe:** Arbeite die Checkliste unter
+`/home/griebner/repos/custom-energy-flow-card/docs/templates/spec-review-checklist.md`
+Phase A–H durch.
+
+**Wichtig — Skepsis-Modus:**
+- Du hast KEINEN Brainstorming-Kontext. Du kennst die Argumente NICHT,
+  mit denen die Spec entstanden ist.
+- Vertraue der Spec NICHT, prüfe gegen echten Code:
+  - Jede Behauptung über `.eslintrc.cjs` → echte Datei lesen
+  - Jede Behauptung über Source-File-Inhalte → echte Datei lesen
+  - Jede Behauptung über Test-Konfig (`vitest.config.ts`) → echte Datei lesen
+  - Jede Behauptung über bestehende Helper → `grep` durchführen
+  - Jede Risk-Einschätzung "niedrig" → ist das verifiziert oder Annahme?
+- Du darfst NICHT die anderen Spec-Iterationen (v1, v2, …) konsultieren —
+  prüfe diese Spec stand-alone.
+
+**Format der Antwort (max 500 Worte):**
+
+## Phase A (Discovery)
+- [Finding 1 oder "✓ alle Items"]
+
+## Phase B (Spec-Struktur)
+- [Finding 1]
+- [Finding 2]
+
+(... pro Phase ...)
+
+## Top-3 Plan-Blocker
+Falls vorhanden — Lücken, die der Planer NICHT umsetzen kann ohne
+nachzufragen.
+
+## Empfehlung
+[ready for user / rework needed / blocker]
+```
+
+**Hauptagent integriert:** Jedes Finding entweder umsetzen oder schriftlich begründen warum nicht („Sub-Agent-Finding X abgewiesen weil …"). Trust-but-Verify gegen Sub-Agent-Output ist erlaubt — Sub-Agents können falsch liegen.
+
+**Erst nach Sub-Agent-Pass + Integration der Findings: User die Spec zeigen.**
