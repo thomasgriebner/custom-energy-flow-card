@@ -1404,19 +1404,16 @@ const itemSchema = [
 ];
 ```
 
-Neu:
+Neu (im finalen Code KEINE Kommentare — der Plan-Snippet-Kommentar oben in der Code-Block-Vorschau ist Spec-Doku für den Implementierer, nicht im Code, conventions §2):
 
 ```ts
 const itemSchema = [
-  // id-Feld absichtlich nicht im Schema — Spec 2026-05-13 §3.1: ID wird auto-generiert
-  // beim Hinzufügen, User-Bearbeitung würde Pairing brechen. id bleibt im data-Objekt
-  // für ha-form (value-changed merged), wird aber nicht angezeigt.
   { name: 'name', selector: { text: {} } },
   // ...
 ];
 ```
 
-(Den Kommentar nur belassen wenn nicht-trivial — sonst entfernen gemäß conventions §2. Hier ist die Intention WICHTIG zu verstehen → Kommentar bleibt knapp.)
+(`id`-Feld absichtlich nicht im Schema. Begründung dokumentiert in Spec §3.1 und im Commit-Body — Code selbst bleibt ohne WHAT-Kommentar.)
 
 - [ ] **Step 2: Battery-Schema (Zeilen 104 + 125) — `id`-Feld in beiden Mode-Schemas entfernen**
 
@@ -1578,7 +1575,6 @@ const card = document.getElementById('card') as HTMLElement & {
 
 ```bash
 pnpm build
-pnpm preview --help 2>&1 | head -3 || true
 node scripts/build-preview.mjs --no-serve
 ```
 
