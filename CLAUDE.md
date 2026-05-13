@@ -73,9 +73,16 @@ Erfahrung: Specs scheitern selten an fehlender Architektur-Idee, fast immer an *
 5. `grep` für jede zu ändernde Funktion/Klasse — Aufrufer identifizieren
 6. Sichtbare Ausgabe vor Spec-Schreiben: „Ich habe gelesen: [Liste]. Grep für `X` zeigt N Aufrufer."
 
-**Phase 2 — Spec-Schreiben:**
+**Phase 2 — Spec-Schreiben via `superpowers:brainstorming`-Skill:**
 
-Vorlage [`docs/templates/spec-template.md`](./docs/templates/spec-template.md) nutzen — Skeleton mit allen Pflicht-Sektionen (Verbots-Liste, Constraints, Layer-Berührung, Don't-Touch-Liste, Code-Reuse-Tabelle, Doku-Pflicht, Plan-Schritte).
+Skill aufrufen und ihm verbindlich mitgeben:
+
+- **Spec-Inputs:** User-Idee + Phase-1-Discovery-Ergebnis
+- **Struktur-Vorgabe:** [`docs/templates/spec-template.md`](./docs/templates/spec-template.md) als Pflicht-Skeleton (Verbots-Liste, Constraints, Layer-Berührung, Don't-Touch-Liste, Code-Reuse-Tabelle, Doku-Pflicht, Plan-Schritte)
+- **Goldstandard-Beispiele:** `docs/specs/2026-05-12-aspect-ratio-redesign.md` (kleine Subspec), `docs/specs/2026-05-11-consumer-grouping-and-layout.md` (mittlere)
+- **Output-Pfad:** `docs/specs/YYYY-MM-DD-<topic>.md` (NICHT `docs/superpowers/specs/…` — Repo-Konvention überschreibt Skill-Default)
+
+Das Skill bringt Brainstorming-/Frageführungs-Expertise mit, unser Template bringt Repo-spezifische Pflicht-Sektionen. Beides ergänzt sich.
 
 **Phase 3 — Self-Review (Hauptagent):**
 
@@ -119,9 +126,17 @@ Erfahrung aus v1.0-Plan-Iterationen (7 Pässe, 56+ Findings): Pläne scheitern a
 
 Sichtbare Ausgabe vor Plan-Schreiben: „Spec-§ → Plan-Task Mapping: §0.X → Task Y, §3.X → Task Z. Grep für `Z` zeigt N Aufrufer."
 
-**Phase 2 — Plan-Schreiben:**
+**Phase 2 — Plan-Schreiben via `superpowers:writing-plans`-Skill:**
 
-Vorlage [`docs/templates/plan-template.md`](./docs/templates/plan-template.md) nutzen — Skeleton mit allen Pflicht-Sektionen (Standing-Requirement-Block, Elements-NICHT-anfassen, File Structure inkl. Build-Pipeline-Files, Phase-Vorlagen mit Commit-Templates, Task-Skeletons mit TDD-First-Pattern, STOP-Conditions, Self-Review-Checkliste, Out-of-Scope, Notizen für Implementierer).
+Skill aufrufen und ihm verbindlich mitgeben:
+
+- **Spec-Pfad:** zugehörige Subspec aus `docs/specs/` (Single-Source aller Constraints)
+- **Struktur-Vorgabe:** [`docs/templates/plan-template.md`](./docs/templates/plan-template.md) als Pflicht-Skeleton (Standing-Requirement-Block, Elements-NICHT-anfassen, File Structure inkl. Build-Pipeline-Files, Phase-Vorlagen mit Commit-Templates, Task-Skeletons mit TDD-First-Pattern, STOP-Conditions, Self-Review-Checkliste)
+- **Discovery-Pflichten:** [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md) Phase A — Skill MUSS Source-Files lesen + Spec-§-→-Plan-Task-Mapping erstellen
+- **Goldstandard-Beispiele:** `docs/plans/2026-05-12-aspect-ratio-redesign.md` (1 Iteration nötig — Referenz für Task-Granularität)
+- **Output-Pfad:** `docs/plans/YYYY-MM-DD-<topic>.md`
+
+Das Skill bringt Plan-Schreib-Expertise mit (Task-Granularität, Phase-Struktur, Checkbox-Tasks), unser Template bringt Repo-spezifische Pflicht-Sektionen + Lessons aus früheren Iterationen. Beides ergänzt sich.
 
 **Phase 3 — Self-Review (Hauptagent):**
 
