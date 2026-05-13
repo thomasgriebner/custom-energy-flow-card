@@ -70,6 +70,24 @@ Bei Konflikt zwischen Verbot und Plan-Schritt: STOP und nachfragen.]
 
 - [Welche Konstante / Funktion ist Single-Source und darf nicht dupliziert werden]
 
+#### 0.2.1 Files-to-Verify — Parent-Dirs + Tool-Coverage (Pflicht-Tabelle)
+
+**Lehre aus Sub-Agent-Pässen:** „neue Datei `path/to/x.ts`" verifiziert nicht ob `path/to/` existiert. Tool-Coverage-Gaps werden implizit übergangen. Diese Tabelle erzwingt Klarheit:
+
+| Datei (NEW)         | Parent-Dir existiert?            | Welche Tools decken sie ab?                                 |
+| ------------------- | -------------------------------- | ----------------------------------------------------------- |
+| `src/[layer]/x.ts`  | ✓ existiert                      | `typecheck` + `lint` + `test` (falls Test-File: nur `test`) |
+| `tests/setup/x.ts`  | ❌ `mkdir -p tests/setup` nötig  | Test-Setup nur via Vitest (kein `typecheck`/`lint`)         |
+| `examples/lib/x.ts` | ❌ `mkdir -p examples/lib` nötig | Vitest (Tests) / esbuild via build-preview (Stub)           |
+
+**Faustregeln:**
+
+- Tests werden via Vitest+esbuild ausgeführt, **nicht** per `tsc --noEmit`. Type-Errors in Test-Files werden erst zur Laufzeit sichtbar.
+- ESLint läuft auf `src/**/*.ts` — `examples/`, `tests/`, `scripts/` sind nicht lint-gecheckt.
+- Smoke-Test rendert die Card (`card.hass = …` triggert Lit-Lifecycle) — nicht nur Custom-Element-Registrierung.
+
+Tool-Coverage-Gaps müssen entweder akzeptiert (in Spec dokumentiert) oder behoben werden (z. B. `tsconfig.preview.json` erweitern).
+
 ### 0.3 Konzept-Modell / Datenfluss
 
 [ASCII-Diagramm mit den 3–5 relevanten Pipeline-Schritten. Markieren welcher Schritt durch diese Spec berührt wird. Beispiel:]

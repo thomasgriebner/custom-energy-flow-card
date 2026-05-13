@@ -64,6 +64,30 @@
 - [ ] `RenderContext`-Typ in `render/context.ts` unverändert?
 - [ ] Engine pure (kein `hass`, kein DOM, kein State)?
 
+### Phase D.1 — Missing-Directory-Pattern (Lehre aus Sub-Agent-Pässen)
+
+Aus Sub-Agent-Pässen wiederholt aufgetreten: Spec sagt „neue Datei `path/to/x.ts`", verifiziert aber nicht ob `path/to/` existiert. Pflicht-Check:
+
+- [ ] Für jeden neuen Datei-Pfad in §0.2-Tabelle und §3: Parent-Verzeichnis existiert im Repo? (`ls path/to/`)
+- [ ] Falls Parent fehlt: `mkdir -p path/to` als expliziter Plan-Schritt vorgesehen?
+- [ ] Falls Parent fehlt: §0.2-Tabelle hat eine `(Verzeichnis)`-Zeile mit `NEW dir`?
+
+### Phase D.2 — Cross-Reference-Verifikation (Lehre aus Solar-pv1-Inkonsistenz)
+
+Aus Sub-Agent-Pässen: Spec behauptete „konsistent mit `nodeName`", war faktisch falsch. Pflicht-Check:
+
+- [ ] Für jede „konsistent mit X"-Behauptung: X aus echtem Code zitiert (Datei:Zeile)?
+- [ ] Spec-Wert und echter X-Wert seite-an-seite verglichen?
+- [ ] Falls Behauptung falsch: Spec-Wortlaut korrigiert ODER Code wird angepasst?
+
+### Phase D.3 — Tool-Chain-Coverage-Gap
+
+Aus Sub-Agent-Pass #3: `pnpm typecheck` deckt Test-Files nicht ab — Coverage-Gap muss erwartet sein.
+
+- [ ] Pro neuer Datei: welche Pipeline-Stufen (`typecheck` / `lint` / `test` / `smoke`) decken sie ab?
+- [ ] Coverage-Gaps explizit in Spec dokumentiert (nicht implizit übergehen)?
+- [ ] Wenn Test-File: wird Type-Sicherheit zur Laufzeit via Vitest+esbuild garantiert oder gar nicht?
+
 ## Phase E — Conventions-Compliance (`docs/conventions.md`)
 
 - [ ] **§1.2 Type-Safety:** Spec-Code hat kein `any` ohne Begründungs-Kommentar?
@@ -151,12 +175,35 @@ Phase A–H durch.
 - Du darfst NICHT die anderen Spec-Iterationen (v1, v2, …) konsultieren —
   prüfe diese Spec stand-alone.
 
+**Beweisführung-Pflicht (verbindlich — aus früheren Sub-Agent-Errors gelernt):**
+
+1. **Quote-Pflicht:** Für jede Behauptung über existierenden Code MUSST du
+   `Datei:Zeile`-Quote als Beweis mitliefern. Ohne konkrete Code-Zeile als
+   Beweis: kategorisiere das Finding als `[VERIFY-NEEDED]`, nicht als
+   `[AUTO-FIX]`. Beispiel: NICHT „Smoke-Test rendert nicht" sondern
+   „`smoke-test.mjs:75-79` setzt `card.hass = {...}` + `await Promise` —
+   das triggert Lit-Render. Spec-Behauptung X ist falsch."
+2. **Cross-Reference-Verifikation:** Für jede Spec-Aussage „konsistent mit X"
+   oder „analog zu Y": lies X/Y im echten Code, zitiere die echte Zeile,
+   vergleiche wortwörtlich mit dem Spec-Wert. Falls divergent: Finding.
+3. **Negative-Behauptungen-Beweis:** Für jede „rendert nicht" / „läuft nicht" /
+   „wird nicht ausgeführt" / „bricht nichts"-Aussage: zeige die Code-Stelle,
+   die das beweist. Negative-Behauptungen ohne Beweis sind fast immer falsch.
+4. **Missing-Directory-Check:** Für jeden neuen Datei-Pfad in der Spec
+   (`path/to/x.ts`): prüfe ob `path/to/` existiert (`ls path/to/`). Falls
+   nicht: `[AUTO-FIX]` Finding mit Vorschlag „mkdir-Schritt explizit".
+5. **Tool-Coverage-Awareness:** Bei neuen Files: erwähne welche Pipeline-
+   Stufen (`typecheck`/`lint`/`test`/`smoke`) sie abdecken. Hinweis: `tsc`
+   excludet typischerweise `**/*.test.ts`; ESLint läuft typischerweise nur
+   auf `src/**/*.ts`.
+
 **Format der Antwort (max 500 Worte):**
 
 Jedes Finding MUSS explizit kategorisiert werden:
 
-- **`[AUTO-FIX]`** — Klar, faktisch falsch oder Form-Lücke. Beispiele: Tippfehler, fehlende Doku-Cross-Ref, Spec-Behauptung widerspricht echtem Code, Inkonsistenz zwischen zwei Spec-Sektionen, fehlendes `mkdir` im Plan, ungenaues Snippet. Hauptagent darf das alleine fixen.
+- **`[AUTO-FIX]`** — Klar, faktisch falsch oder Form-Lücke **mit Beweis-Quote** (`Datei:Zeile`). Beispiele: Tippfehler, fehlende Doku-Cross-Ref, Spec-Behauptung widerspricht echtem Code (mit Quote), Inkonsistenz zwischen zwei Spec-Sektionen, fehlendes `mkdir` im Plan (verifiziert via `ls`), ungenaues Snippet. Hauptagent darf das alleine fixen.
 - **`[USER-DECISION]`** — Architektur-Wahl, UX-Trade-off, Scope-Frage, Strategie-Inkonsistenz mit ungewisser richtiger Antwort. Hauptagent darf das NICHT alleine entscheiden.
+- **`[VERIFY-NEEDED]`** — Vermutung ohne Quote, könnte falsch sein. Hauptagent muss vor Auto-Fix selbst gegen echten Code prüfen (Trust-but-Verify). Falls verifiziert → wird zu `[AUTO-FIX]`. Falls widerlegt → Sub-Agent-Fehler, Finding verworfen.
 
 Format:
 
