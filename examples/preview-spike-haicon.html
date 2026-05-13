@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spike — Lit svg + foreignObject + ha-icon namespace</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      #host {
+        margin-top: 16px;
+      }
+      #status {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 16px;
+      }
+      .pass {
+        color: #166534;
+      }
+      .fail {
+        color: #b91c1c;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Spike — Lit svg + foreignObject + ha-icon namespace</h1>
+    <p>
+      Phase 0 / Task 0.1 — verifies Spec §10.1 (icons-and-editor-ids):
+      <code>&lt;ha-icon&gt;</code> inside <code>&lt;foreignObject&gt;</code>
+      inside Lit's <code>svg</code>-template renders with HTML-namespace
+      (custom element <code>connectedCallback</code> fires).
+    </p>
+    <div id="host"></div>
+    <div id="status">running…</div>
+
+    <!--
+      Self-contained ESM bundle of Lit so this file can be opened with any
+      static HTTP server (e.g. `python3 -m http.server`) without an import
+      map, CDN, or build step. Re-generate via:
+      `node scripts/build-spike-haicon-bundle.mjs`
+    -->
+    <script type="module">
+      import { svg, render, html } from './preview-spike-haicon.bundle.mjs';
+
+      // Minimal ha-icon stub for the spike (no MDI paths needed — we only
+      // verify the namespace + custom-element-activation contract).
+      class HaIconStub extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `<span data-test="stub-active">ICON</span>`;
+          console.log('[spike] HaIconStub connectedCallback fired, host=', this);
+        }
+      }
+      customElements.define('ha-icon', HaIconStub);
+
+      // Minimal Lit template: <svg><g><circle><foreignObject><ha-icon>
+      const template = html`
+        <svg
+          viewBox="0 0 100 100"
+          style="width:200px;height:200px;border:1px solid #ccc"
+        >
+          ${svg`
+          <g transform="translate(50 50)" style="color: red;">
+            <circle r="30" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <foreignObject x="-12" y="-12" width="24" height="24">
+              <ha-icon icon="mdi:battery" style="display:block; color: inherit;"></ha-icon>
+            </foreignObject>
+          </g>
+        `}
+        </svg>
+      `;
+      render(template, document.getElementById('host'));
+
+      // Verification assertions. Exposed on window for Playwright/automation.
+      const results = [];
+      function check(label, cond) {
+        results.push({ label, pass: !!cond });
+        console.assert(cond, label);
+      }
+
+      setTimeout(() => {
+        const haIcon = document.querySelector('ha-icon');
+        check('ha-icon element should exist', haIcon);
+        check(
+          'ha-icon must be HTMLElement (HTML-namespaced)',
+          haIcon instanceof HTMLElement,
+        );
+        check(
+          'ha-icon must NOT be SVGElement (SVG-namespaced)',
+          !(haIcon instanceof SVGElement),
+        );
+        check(
+          'connectedCallback should have run (stub child present)',
+          haIcon && haIcon.querySelector('[data-test="stub-active"]'),
+        );
+        check(
+          'ha-icon namespaceURI should be HTML',
+          haIcon && haIcon.namespaceURI === 'http://www.w3.org/1999/xhtml',
+        );
+
+        const allPass = results.every((r) => r.pass);
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = results
+          .map((r) => `${r.pass ? 'PASS' : 'FAIL'}  ${r.label}`)
+          .join('\n');
+        statusEl.classList.add(allPass ? 'pass' : 'fail');
+
+        // Expose for automated verification.
+        window.__SPIKE_RESULTS__ = { allPass, results };
+        if (allPass) {
+          console.log('[spike] All assertions passed ✓');
+        } else {
+          console.error('[spike] One or more assertions FAILED');
+        }
+      }, 100);
+    </script>
+  </body>
+</html>
