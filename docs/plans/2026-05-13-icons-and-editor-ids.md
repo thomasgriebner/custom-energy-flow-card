@@ -426,25 +426,40 @@ pnpm add -D @mdi/js
 
 Erwartet: `@mdi/js` ist in `devDependencies` mit `^x.y.z`-Pinning (pnpm-Default — matched conventions §13 „Major-Pin, Minor/Patch frei").
 
-- [ ] **Step 3: `.eslintrc.cjs` erweitern — neue Regel additive zu `rules:`-Sektion**
+- [ ] **Step 3: `.eslintrc.cjs` erweitern — neue Regel + Overrides für Sandbox/Test-Code**
 
-Suche die `rules:`-Sektion (heute beginnend mit `'import/no-restricted-paths'`). Füge neuen Eintrag hinzu (additive, NICHT replace):
+Wichtig (Sub-Agent-Pass-1-Finding): `.lintstagedrc.json` lintet ALLE staged `*.ts`-Files via pre-commit-Hook (auch außerhalb `src/`). `.eslintrc.cjs:61 ignorePatterns` umfasst heute nur `['dist/', 'node_modules/', '*.cjs', '*.mjs']` — `examples/` NICHT. Die neue globale `no-restricted-imports`-Regel würde sonst beim Stub-`@mdi/js`-Import (in `examples/lib/ha-icon-stub.ts`) knallen.
+
+**Zwei Änderungen — beide additiv:**
+
+3.1) Neuer Regel-Eintrag in `rules:`-Sektion:
 
 ```js
-// in .eslintrc.cjs, rules-Sektion: NEUER Eintrag neben den bestehenden Regeln
-// (Position egal — Reihenfolge der Regel-Keys in JS-Object ist semantisch nicht relevant):
-
+// in .eslintrc.cjs, rules-Sektion: NEUER Eintrag neben den bestehenden Regeln:
 'no-restricted-imports': ['error', {
   patterns: [
     {
       group: ['@mdi/js', '@mdi/js/*'],
-      message: 'Nur in examples/lib/ erlaubt; @mdi/js würde sonst ins Prod-Bundle.'
+      message: 'Nur in examples/lib/ + tests/setup/ erlaubt; @mdi/js würde sonst ins Prod-Bundle.'
     },
   ],
 }],
 ```
 
-Bestehende Regel-Einträge (`import/no-restricted-paths`, `@typescript-eslint/no-explicit-any`, `@typescript-eslint/no-non-null-assertion`, `@typescript-eslint/explicit-function-return-type`, `no-console`, `import/order`) bleiben unverändert.
+3.2) Neuer `overrides`-Eintrag im `overrides`-Array (deaktiviert nur die `no-restricted-imports`-Regel für Sandbox/Test-Stub-Code):
+
+```js
+// in .eslintrc.cjs, overrides-Array: NEUER Eintrag neben den bestehenden overrides
+// (Test-Files-Override + scripts-Override existieren bereits):
+{
+  files: ['examples/lib/**/*.ts', 'tests/setup/**/*.ts'],
+  rules: {
+    'no-restricted-imports': 'off',
+  },
+},
+```
+
+Bestehende Regel-Einträge (`import/no-restricted-paths`, `@typescript-eslint/no-explicit-any`, `@typescript-eslint/no-non-null-assertion`, `@typescript-eslint/explicit-function-return-type`, `no-console`, `import/order`) und bestehende `overrides` (`*.test.ts`, `scripts/**`) bleiben unverändert.
 
 - [ ] **Step 4: ESLint laufen lassen — KEINE Regression**
 
@@ -625,7 +640,11 @@ pnpm lint
 pnpm typecheck
 ```
 
-Erwartet: grün. Hinweis: `pnpm lint` läuft auf `src/**/*.ts` (siehe `package.json` Script) — `examples/lib/` wird NICHT gelintet. `pnpm typecheck` nutzt `tsconfig.json`, das `**/*.test.ts` excludet — Test-Files werden via Vitest+esbuild zur Laufzeit type-checked.
+Erwartet: grün. Hinweise zur Tool-Coverage:
+
+- **`pnpm lint`** (Script: `eslint 'src/**/*.ts'`) lintet nur `src/` — `examples/lib/` wird NICHT abgedeckt
+- **Pre-commit-Hook** (`.lintstagedrc.json: "*.ts": ["eslint --fix"]`) lintet ALLE staged `*.ts`-Files, AUCH `examples/lib/`. Hier greift der `overrides`-Block aus Task 1.1 Step 3.2, der `no-restricted-imports` für `examples/lib/**` deaktiviert
+- **`pnpm typecheck`** (`tsc --noEmit`) nutzt `tsconfig.json`, das `**/*.test.ts` excludet — Test-Files werden via Vitest+esbuild zur Laufzeit type-checked, nicht via tsc
 
 - [ ] **Step 9: KEIN Commit jetzt (gemeinsam mit Task 1.3)**
 
@@ -2075,9 +2094,9 @@ Wähle das passende Szenario („Sonniger Tag · Akkus laden · Überschuss → 
 
 Wähle das „Icon-Demo · Area-Icons via by_area-Grouping"-Szenario aus Phase 5. Screenshot aufnehmen. Speichere als `docs/screenshots/by-area-grouping.png`.
 
-- [ ] **Step 4: Optional `bug1.png` / `bug2.png` aufräumen**
+- [ ] **Step 4: Optional `bug1.png` / `bug2.png` aufräumen (falls vorhanden)**
 
-`docs/screenshots/bug1.png` und `bug2.png` (Status: ungetrackt im Repo gemäß `git status` Pre-Plan) — falls nicht relevant für Doku: `git rm`.
+`docs/screenshots/bug1.png` und `bug2.png` waren zu Plan-Zeit ungetrackt im Working-Tree (`git status` Pre-Plan). Prüfen ob sie noch da sind und ob sie zur Doku gehören. Falls weder gehört noch in der README referenziert → `git rm` oder Working-Tree-Bereinigung. Falls schon weg: Step überspringen.
 
 - [ ] **Step 5: Commit Phase 8 (Final-Commit)**
 
