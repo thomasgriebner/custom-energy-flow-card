@@ -153,23 +153,39 @@ Phase A–H durch.
 
 **Format der Antwort (max 500 Worte):**
 
+Jedes Finding MUSS explizit kategorisiert werden:
+
+- **`[AUTO-FIX]`** — Klar, faktisch falsch oder Form-Lücke. Beispiele: Tippfehler, fehlende Doku-Cross-Ref, Spec-Behauptung widerspricht echtem Code, Inkonsistenz zwischen zwei Spec-Sektionen, fehlendes `mkdir` im Plan, ungenaues Snippet. Hauptagent darf das alleine fixen.
+- **`[USER-DECISION]`** — Architektur-Wahl, UX-Trade-off, Scope-Frage, Strategie-Inkonsistenz mit ungewisser richtiger Antwort. Hauptagent darf das NICHT alleine entscheiden.
+
+Format:
+
 ## Phase A (Discovery)
-- [Finding 1 oder "✓ alle Items"]
+- [AUTO-FIX] Finding 1 (mit konkretem Fix-Vorschlag)
+- [USER-DECISION] Finding 2 (mit Optionen A/B)
 
 ## Phase B (Spec-Struktur)
-- [Finding 1]
-- [Finding 2]
+- [AUTO-FIX / USER-DECISION] Finding X
 
-(... pro Phase ...)
+(... pro Phase A–H ...)
 
 ## Top-3 Plan-Blocker
-Falls vorhanden — Lücken, die der Planer NICHT umsetzen kann ohne
-nachzufragen.
+Falls vorhanden — Lücken, die der Planer NICHT umsetzen kann.
 
 ## Empfehlung
-[ready for user / rework needed / blocker]
+[ready for user / iterate (N auto-fixes offen) / blocker]
 ```
 
-**Hauptagent integriert:** Jedes Finding entweder umsetzen oder schriftlich begründen warum nicht („Sub-Agent-Finding X abgewiesen weil …"). Trust-but-Verify gegen Sub-Agent-Output ist erlaubt — Sub-Agents können falsch liegen.
+**Hauptagent-Verhalten (Iterations-Loop):**
 
-**Erst nach Sub-Agent-Pass + Integration der Findings: User die Spec zeigen.**
+1. Sub-Agent-Pass durchführen
+2. Findings als Tasks anlegen (`TaskCreate`), Kategorie als `metadata` mitführen
+3. Pro `AUTO-FIX`-Task: Trust-but-Verify gegen echten Code, dann Spec aktualisieren
+4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen
+5. Neue Spec-Version → erneuten Sub-Agent-Pass starten
+6. Mindestens 3 Iterationen, höchstens 5
+7. Stop wenn Sub-Agent „ready for user" meldet oder nur noch `USER-DECISION` offen
+
+**Erst nach Iterations-Loop: User die Spec mit gesammelten `USER-DECISION`-Fragen zeigen.**
+
+**Loop-Oszillations-Schutz:** Wenn Pass N+1 dasselbe Finding zurückbringt wie Pass N (gleicher Wortlaut oder gleicher File/Section), STOP und Fix prüfen. Sub-Agents können bei semantischen Verschiebungen verwirrt sein.

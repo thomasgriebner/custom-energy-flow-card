@@ -79,22 +79,27 @@ Vorlage [`docs/templates/spec-template.md`](./docs/templates/spec-template.md) n
 
 Checkliste [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) durcharbeiten — 8 Phasen (Discovery, Struktur, UX, Side-Effects, Conventions, ADRs, Code-Snippets, Plan). **Nicht „ich habe das überlegt"** — jeden Punkt namentlich abhaken oder begründen warum nicht zutreffend.
 
-**Phase 4 — Independent Sub-Agent-Review (verbindlich vor User-Vorlage):**
+**Phase 4 — Iterative Sub-Agent-Reviews mit Auto-Fix-Loop (verbindlich, mind. 3 Iterationen):**
 
-Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher, weil der Hauptagent **alle Argumente** kennt, mit denen die Spec entstanden ist. „Sunk-Cost-Bias" verhindert echtes Mit-fremden-Augen-Lesen. Ein Sub-Agent ohne Vorab-Kontext findet Lücken, die der Hauptagent übersieht.
+Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher („Sunk-Cost-Bias"). Ein einzelner Sub-Agent-Pass findet 70–80 % der Lücken, aber Fixes schaffen oft neue Lücken. Deshalb iterativ:
 
-Konkrete Form: via `Agent`-Tool einen `general-purpose`-Sub-Agent mit dem Prompt-Template aus [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) Phase I aufrufen. Der Sub-Agent:
+**Loop (mind. 3 Iterationen, max. 5):**
 
-- Hat keinen Brainstorming-Kontext
-- Prüft die Spec ausschließlich gegen echte Repo-Files (`.eslintrc.cjs`, source files, ADRs, conventions)
-- Berichtet Findings strukturiert nach Checklisten-Phase
-- Bricht Sunk-Cost-Bias des Hauptagenten
+1. **Sub-Agent-Pass N:** `Agent`-Tool mit `general-purpose` und Prompt-Template aus [`spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) Phase I. Sub-Agent kategorisiert Findings explizit als:
+   - **`AUTO-FIX`** — klar, faktisch falsch oder Form-Lücke, keine User-Entscheidung nötig (z. B. Tippfehler, fehlende Doku-Cross-Ref, Inkonsistenz zwischen Behauptung und echtem Code)
+   - **`USER-DECISION`** — Architektur-Wahl, UX-Trade-off, Scope-Frage — Hauptagent darf das NICHT alleine entscheiden
+2. **Hauptagent als Todo-Liste anlegen** (`TodoWrite`/`TaskCreate`): pro Finding eine Task, kategorisiert.
+3. **Auto-fix-Tasks abarbeiten** — Findings ins Spec einbauen, neue Version (`v(N+1)`). Trust-but-Verify: Sub-Agent kann falsch liegen; Hauptagent prüft jedes Finding kurz gegen echten Code, BEVOR er fixt.
+4. **Sub-Agent-Pass N+1** auf neue Spec-Version. Bis eines von dreien:
+   - **Stabil:** Sub-Agent meldet „ready for user", keine neuen Findings
+   - **Nur User-Decisions:** keine Auto-Fixes mehr offen, nur Entscheidungs-Fragen
+   - **Max-Iterationen erreicht** (5): mit gesammelten Findings dem User vorlegen, auch wenn weitere Auto-Fixes denkbar wären
 
-Hauptagent integriert dann jedes Finding oder begründet schriftlich, warum es ignoriert wird (Trust-but-Verify).
+**Bei User-Vorlage:** Nur die `USER-DECISION`-Findings präsentieren (gebündelt mit Optionen), nicht jeden Auto-Fix-Schritt. Sub-Agent-Iterationen sind interner Hauptagent-Workflow, nicht User-Belastung.
 
-**Erst danach User die Spec vorlegen.**
+**Schutz vor Loop-Oszillation:** Wenn Pass N+1 ein Finding zurückbringt, das Pass N als „fixed" gemeldet hatte, STOP und prüfen ob Fix korrekt war. Drei Iterationen Mindestmaß; bei drei stabilen Iterationen mit denselben Findings → User fragen.
 
-**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Bei User-Feedback hochzählen (`v2 (post-review)`, `v3 (post-review-2)`, etc.) — eine gute v1 mit Sub-Agent-Pass erreicht erfahrungsgemäß v2-Quality direkt statt fünf Iterationen.
+**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Pro Sub-Agent-Iteration hochzählen (`v2 (post-subagent-1)`, `v3 (post-subagent-2)`, …). Bei User-Feedback weitere Iteration. Eine gute v1 mit 3 Sub-Agent-Pässen erreicht erfahrungsgemäß User-Ready-Quality direkt statt fünf Self-Review-Iterationen.
 
 ## Module-Layer (Kurzform)
 
