@@ -6,6 +6,8 @@ import { createServer } from 'node:http';
 import { extname, join, normalize, resolve as resolvePath } from 'node:path';
 
 const previewSrc = `
+import { registerHaIconStub } from '../../examples/lib/ha-icon-stub';
+registerHaIconStub();
 import { scenarios, buildMockHass } from '../../examples/preview-mocks';
 
 const card = document.getElementById('card') as HTMLElement & {

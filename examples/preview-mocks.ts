@@ -384,6 +384,68 @@ export const scenarios: MockScenario[] = [
       livingroom: { area_id: 'livingroom', name: 'Wohnzimmer' },
     },
   },
+  {
+    name: 'Icon-Demo · Custom mdi:heat-pump auf Verbraucher',
+    emoji: '🎨',
+    config: {
+      ...baseConfig(),
+      consumers: [
+        { name: 'Wärmepumpe', power: 'sensor.heatpump', icon: 'mdi:heat-pump' },
+        { name: 'Wallbox', power: 'sensor.wallbox', icon: 'mdi:ev-station' },
+        { name: 'Herd', power: 'sensor.stove', icon: 'mdi:stove' },
+      ],
+    },
+    hassStates: {
+      'sensor.s_dach': { state: '2400', attributes: wAttrs },
+      'sensor.s_balkon': { state: '600', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '65', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '300', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '40', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '100', attributes: wAttrs },
+      'sensor.grid_power': { state: '-800', attributes: wAttrs },
+      'sensor.heatpump': { state: '600', attributes: wAttrs },
+      'sensor.wallbox': { state: '0', attributes: wAttrs },
+      'sensor.stove': { state: '200', attributes: wAttrs },
+    },
+  },
+  {
+    name: 'Icon-Demo · Area-Icons via by_area-Grouping',
+    emoji: '🏠',
+    config: {
+      ...baseConfig(),
+      consumers: [
+        { name: 'Wärmepumpe', power: 'sensor.heatpump' },
+        { name: 'Wallbox', power: 'sensor.wallbox' },
+        { name: 'Herd', power: 'sensor.stove' },
+      ],
+      display: {
+        ...baseConfig().display,
+        consumer_grouping: 'by_area',
+      },
+    },
+    hassStates: {
+      'sensor.s_dach': { state: '1800', attributes: wAttrs },
+      'sensor.s_balkon': { state: '400', attributes: wAttrs },
+      'sensor.b_dach_soc': { state: '55', attributes: pctAttrs },
+      'sensor.b_dach_power': { state: '0', attributes: wAttrs },
+      'sensor.b_balkon_soc': { state: '40', attributes: pctAttrs },
+      'sensor.b_balkon_power': { state: '0', attributes: wAttrs },
+      'sensor.grid_power': { state: '0', attributes: wAttrs },
+      'sensor.heatpump': { state: '500', attributes: wAttrs },
+      'sensor.wallbox': { state: '0', attributes: wAttrs },
+      'sensor.stove': { state: '200', attributes: wAttrs },
+    },
+    entities: {
+      'sensor.heatpump': { area_id: 'keller' },
+      'sensor.wallbox': { area_id: 'garage' },
+      'sensor.stove': { area_id: 'kueche' },
+    },
+    areas: {
+      keller: { area_id: 'keller', name: 'Keller', icon: 'mdi:home-floor-b' },
+      garage: { area_id: 'garage', name: 'Garage', icon: 'mdi:garage' },
+      kueche: { area_id: 'kueche', name: 'Küche', icon: 'mdi:stove' },
+    },
+  },
 ];
 
 export function buildMockHass(scenario: MockScenario): {
