@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v8 (post-subagent-2, 3 weitere auto-fixes + 1 sub-agent-reject)
+**Status:** v9 (post-subagent-3, stabil — 1 marginaler auto-fix, 1 user-decision offen)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -582,6 +582,8 @@ test: {
 **Hinweis zum Status der heutigen `environmentMatchGlobs`:** `src/editor.test.ts` existiert aktuell **nicht** im Repo (verifiziert: `find src -name 'editor.test.ts'` → leer). Der heutige Glob-Eintrag `'**/editor.test.ts'` matcht also nichts und ist toter Code. Die Erweiterung auf `'**/editor*.test.ts'` wird erst aktiv, sobald `editor-list-sections.test.ts` (Plan-Schritt 11) angelegt wird — dann matcht der neue Glob die neue Datei. Diese Klärung verhindert Verwirrung beim Planer: er ersetzt einen heute toten Glob durch einen, der nach Plan-Schritt 11 lebt.
 
 `setupFiles` läuft pro Test-Env. Der Stub-Guard `typeof customElements === 'undefined'` (im Code aus §3.5) macht den `registerHaIconStub`-Aufruf in Node-Env zu einem no-op. In Node-Env ist der Stub also inaktiv; Tests, die ha-icon-DOM-Verhalten brauchen, laufen explizit in happy-dom.
+
+**Typecheck-Coverage für Test-Files (Hinweis):** `pnpm typecheck` (`tsc --noEmit`) nutzt `tsconfig.json`, das `**/*.test.ts` explizit excludet und nur `src/**/*` includet. Test-Files in `src/` und `examples/lib/` werden also **nicht** per `tsc` typgeprüft. Vitest nutzt esbuild als TS-Loader und meldet Type-Errors erst zur Laufzeit. Das ist bestehendes Repo-Verhalten (nicht durch diese Spec geändert) — wird hier explizit erwähnt, damit der Planer nicht falsche Erwartung an `pnpm typecheck`-Output für die neuen Test-Files hat.
 
 ### 3.7 ESLint `no-restricted-imports` für `@mdi/js`
 
