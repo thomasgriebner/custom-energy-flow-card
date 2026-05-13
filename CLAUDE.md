@@ -39,6 +39,8 @@ Volle Versionsliste: Spec §2.1.
 | Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
 | **Spec-Vorlage (neue Subspec schreiben)** | [`docs/templates/spec-template.md`](./docs/templates/spec-template.md)                                                 |
 | **Spec-Review-Checkliste** (vor Vorlage)  | [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md)                                 |
+| **Plan-Vorlage (Implementation-Plan)**    | [`docs/templates/plan-template.md`](./docs/templates/plan-template.md)                                                 |
+| **Plan-Review-Checkliste** (vor Vorlage)  | [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md)                                 |
 | Subspec: Verbraucher-Gruppierung & Layout | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
 | Implementation-Pläne (Checkbox-Tasks)     | [`docs/plans/`](./docs/plans/) (per `superpowers:executing-plans` / `subagent-driven-development` abarbeiten)          |
 | Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
@@ -56,7 +58,7 @@ Volle Versionsliste: Spec §2.1.
 | ein **User-facing Verhalten** änderst                                                  | `README.md` + ggf. Spec                                                                                                                 |
 | einen **Bug** fixt                                                                     | Commit + Test, keine Doku-Pflicht                                                                                                       |
 | eine neue **Subspec** für ein Feature schreibst                                        | **Workflow zwingend** — siehe „Spec-Erstellung" unten; `docs/specs/YYYY-MM-DD-<topic>.md`                                               |
-| eine Spec in eine **Multi-Step-Implementation** zerlegst                               | `docs/plans/YYYY-MM-DD-<topic>.md` (Checkbox-Liste, mit `superpowers:writing-plans` erzeugen)                                           |
+| eine Spec in eine **Multi-Step-Implementation** zerlegst                               | **Workflow zwingend** — siehe „Plan-Erstellung" unten; `docs/plans/YYYY-MM-DD-<topic>.md` (Checkbox-Liste)                              |
 
 ## Spec-Erstellung — Workflow (verbindlich)
 
@@ -100,6 +102,40 @@ Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher („Sunk-Cost-B
 **Schutz vor Loop-Oszillation:** Wenn Pass N+1 ein Finding zurückbringt, das Pass N als „fixed" gemeldet hatte, STOP und prüfen ob Fix korrekt war. Drei Iterationen Mindestmaß; bei drei stabilen Iterationen mit denselben Findings → User fragen.
 
 **Versionierung:** Status-Header `v1 (proposed, ready for review)`. Pro Sub-Agent-Iteration hochzählen (`v2 (post-subagent-1)`, `v3 (post-subagent-2)`, …). Bei User-Feedback weitere Iteration. Eine gute v1 mit 3 Sub-Agent-Pässen erreicht erfahrungsgemäß User-Ready-Quality direkt statt fünf Self-Review-Iterationen.
+
+## Plan-Erstellung — Workflow (verbindlich, analog zu Spec-Workflow)
+
+Erfahrung aus v1.0-Plan-Iterationen (7 Pässe, 56+ Findings): Pläne scheitern an **mehr Punkten als Specs** — neben Repo-Drift kommen Spec-Plan-Drift, Layer-Boundary-Edits, Framework-Quirks (Lit-css-Tag, hasChanged-this-Binding, foreignObject-namespace), Build-Pipeline-Details und TDD-Order hinzu.
+
+**Phase 1 — Repo-Discovery + Spec-Reading (VOR jedem Plan-Wort):**
+
+1. **Spec vollständig lesen**, alle Sektionen erfassen → Mapping-Tabelle vorbereiten (welche Spec-§ → welcher Plan-Task)
+2. `.eslintrc.cjs`, `vitest.config.ts`, `tsconfig.json` + `tsconfig.preview.json`, `package.json` lesen
+3. `docs/conventions.md` (§11 Anti-Patterns, §12 Doku-Pflicht, §13 Dependencies) lesen
+4. `docs/architecture.md` (Layer-Tabelle + ADR-Index) lesen
+5. Goldstandard-Plan lesen: [`docs/plans/2026-05-12-aspect-ratio-redesign.md`](./docs/plans/2026-05-12-aspect-ratio-redesign.md) (1 Iteration nötig)
+6. Alle Source-Files lesen, die in Plan-Tasks angefasst werden
+7. `grep` für jede zu ändernde Funktion — Aufrufer identifizieren
+
+Sichtbare Ausgabe vor Plan-Schreiben: „Spec-§ → Plan-Task Mapping: §0.X → Task Y, §3.X → Task Z. Grep für `Z` zeigt N Aufrufer."
+
+**Phase 2 — Plan-Schreiben:**
+
+Vorlage [`docs/templates/plan-template.md`](./docs/templates/plan-template.md) nutzen — Skeleton mit allen Pflicht-Sektionen (Standing-Requirement-Block, Elements-NICHT-anfassen, File Structure inkl. Build-Pipeline-Files, Phase-Vorlagen mit Commit-Templates, Task-Skeletons mit TDD-First-Pattern, STOP-Conditions, Self-Review-Checkliste, Out-of-Scope, Notizen für Implementierer).
+
+**Phase 3 — Self-Review (Hauptagent):**
+
+Checkliste [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md) durcharbeiten — 12 Phasen (A–L), Schwerpunkte: **Spec-Plan-Coverage**, ADR-Compliance pro Task, Framework-Quirks (Lit), Build-Pipeline-Details, TDD-Order.
+
+**Phase 4 — Iterative Sub-Agent-Reviews mit Auto-Fix-Loop (verbindlich, mind. 3 Iterationen, max. 5):**
+
+Analog zum Spec-Workflow. Sub-Agent-Prompt-Template in der Plan-Checkliste Phase Z. Findings kategorisiert als `[AUTO-FIX]` / `[USER-DECISION]` / `[VERIFY-NEEDED]`. Hauptagent legt Tasks an (`TaskCreate`), arbeitet Auto-Fixes mit Trust-but-Verify ab, sammelt User-Decisions, startet erneuten Pass. Loop-Oszillations-Schutz: wenn Pass N+1 dasselbe Finding wie N bringt → STOP und Fix prüfen.
+
+**Bei User-Vorlage:** Nur die `USER-DECISION`-Findings präsentieren. Iterations-Steps sind interner Workflow.
+
+**Erwartete Iterations-Anzahl:** Klein 2-3, Mittel 3-4, Groß (v1.0-artig) 4-5. Bei > 5 Pässen → Plan ist vermutlich noch nicht spec-aligned, STOP und Spec re-reviewen.
+
+**Versionierung:** Status-Header analog Spec — `v1 (proposed, ready for review)`, dann pro Sub-Agent-Iteration hochzählen.
 
 ## Module-Layer (Kurzform)
 
