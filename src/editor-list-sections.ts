@@ -32,7 +32,6 @@ export function renderSolarSection(
   h: SolarSectionHandlers,
 ): TemplateResult {
   const itemSchema = [
-    { name: 'id', selector: { text: {} }, required: true },
     { name: 'name', selector: { text: {} } },
     {
       name: 'power',
@@ -51,7 +50,10 @@ export function renderSolarSection(
               .data=${item}
               .schema=${itemSchema}
               .hass=${hass}
-              @value-changed=${(e: CustomEvent) => h.onItemChange(i, e.detail.value as SolarConfig)}
+              @value-changed=${(e: CustomEvent) => {
+                const v = e.detail.value as Partial<SolarConfig>;
+                h.onItemChange(i, { ...item, ...v } as SolarConfig);
+              }}
             ></ha-form>
             <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>
               ${DE.editor.moveUp}
@@ -101,7 +103,6 @@ export function renderBatterySection(
             };
         const itemSchema = isSplit
           ? [
-              { name: 'id', selector: { text: {} }, required: true },
               { name: 'name', selector: { text: {} } },
               {
                 name: 'soc',
@@ -122,7 +123,6 @@ export function renderBatterySection(
               { name: 'icon', selector: { icon: {} } },
             ]
           : [
-              { name: 'id', selector: { text: {} }, required: true },
               { name: 'name', selector: { text: {} } },
               {
                 name: 'soc',
@@ -171,7 +171,7 @@ export function renderBatterySection(
                   ${solar.map(
                     (s) => html`
                       <option value=${s.id} ?selected=${item.charged_by === s.id}>
-                        ${s.name ?? s.id}
+                        ${s.name ?? `${DE.nodes.solar} ${s.id}`}
                       </option>
                     `,
                   )}
