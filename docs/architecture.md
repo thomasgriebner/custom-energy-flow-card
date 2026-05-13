@@ -61,7 +61,7 @@ Sieben Schichten mit klaren Aufgaben und **lint-erzwungenen** Import-Grenzen
 | **`i18n/`**     | Anwender-Strings                                                              | nur eigene Files                        | alles andere                   |
 | **`engine/`**   | Pure Energie-Bilanz-Berechnung                                                | `engine/types.ts`, `util/memo`          | Lit, HA, Renderer, Config, DOM |
 | **`config/`**   | Schema-Validation, `buildSystemState`, `derive-display-consumers`             | `util/*`, `engine/types`, `i18n/*`      | Lit, Renderer, Engine-Logik    |
-| **`render/`**   | SVG-Rendering, CSS-Animation, `battery-ring`                                  | `util/*`, `engine/types`, `i18n/*`, Lit | HA, Engine-Logik               |
+| **`render/`**   | SVG-Rendering, CSS-Animation, `battery-ring`, Icon-Rendering (`icon.ts`)      | `util/*`, `engine/types`, `i18n/*`, Lit | HA, Engine-Logik               |
 | **`ha/`**       | HA-Event-Helfer, HA-Type-Skelett                                              | Lit, externe HA-Typen                   | Engine, Renderer, Config-Logik |
 | **`card.ts`**   | LitElement-Orchestrator                                                       | alles                                   | –                              |
 | **`editor.ts`** | Lovelace-Editor-LitElement                                                    | `config/*`, `ha/*`, `util/*`, `i18n/*`  | Engine, Renderer               |
@@ -98,27 +98,28 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 
 ## 4. Zentrale Architektur-Entscheidungen
 
-| ADR                                                          | Entscheidung                                             | Kurz-Begründung                                                              |
-| ------------------------------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [0001](./adr/0001-greenfield-not-fork.md)                    | Greenfield neu bauen, nicht power-flow-card-plus forken  | Multi-Source-Fähigkeit braucht andere Architektur als Single-Source-Vorlage  |
-| [0002](./adr/0002-layered-modular-architecture.md)           | 7 Layer mit klaren Aufgaben                              | Testbar, wartbar, refactoring-sicher                                         |
-| [0003](./adr/0003-typescript-lit-rollup.md)                  | TypeScript + Lit 3 + Rollup                              | Konsistent mit HA-Card-Ökosystem, schlankes Bundle                           |
-| [0004](./adr/0004-pure-functions-engine.md)                  | Engine = pure functions, keine Klassen                   | Tabellen-getriebene Tests, kein verstecktes State                            |
-| [0005](./adr/0005-css-offset-path-animation.md)              | CSS `offset-path` statt SVG `<animateMotion>`            | CSS-Variable updateable, Performance                                         |
-| [0006](./adr/0006-strict-1-to-1-pv-battery-pairing.md)       | Akku ↔ PV strikt 1:1                                     | Spiegelt physische Realität der Hybrid-Wechselrichter                        |
-| [0007](./adr/0007-energy-balance-with-reconcile.md)          | Bilanz + Netz-Sensor-Reconcile                           | Kompensiert Sensor-Latenz, Netz-Sensor als ground truth                      |
-| [0008](./adr/0008-manual-list-editor.md)                     | Listen im Editor manuell mit Lit                         | `ha-form` unterstützt Listen-Editing nicht zuverlässig                       |
-| [0009](./adr/0009-eslint-enforced-layer-boundaries.md)       | ESLint `no-restricted-paths` als CI-Gate                 | Layer-Boundaries dokumentieren _und_ erzwingen                               |
-| [0010](./adr/0010-shared-util-module.md)                     | Single-Source-Util-Modul                                 | Format-/Sensor-/Color-Logik niemals doppelt                                  |
-| [0011](./adr/0011-shouldupdate-over-property-haschanged.md)  | `shouldUpdate` statt `@property hasChanged`              | Lit's hasChanged-Callback hat kein `this`-Binding                            |
-| [0012](./adr/0012-headless-smoke-test-pre-release-gate.md)   | Headless Smoke-Test als Pre-Release-Gate                 | Class-Load-Crashes vor Live-Install fangen, da kein HA-Test-Environment      |
-| [0013](./adr/0013-v0-9-0-first-release-strategy.md)          | v0.9.0 first, v1.0.0 nach Stabilisierung                 | Realistische Erwartungen + semver-konforme Bug-Fix-Releases                  |
-| [0014](./adr/0014-stub-config-validates-as-valid.md)         | HA-Stub-Config gilt als valide                           | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor    |
-| [0015](./adr/0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren | Reale Wechselrichter liefern oft getrennte Sensoren statt einem signierten   |
-| [0016](./adr/0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                 | Aggregiert 10–20 Smart-Plug-Sensoren auf lesbare 5–7 Knoten ohne YAML-Pflege |
-| [0017](./adr/0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                    | Skaliert bis N=8 Verbraucher ohne ViewBox-Überschreitung (16:9, Arc-Bogen)   |
-| [0018](./adr/0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API (`getGridOptions`) immer aktiv   | superseded — Slider-Bounds erwiesen sich als künstliche Einschränkung        |
-| [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
+| ADR                                                          | Entscheidung                                                  | Kurz-Begründung                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [0001](./adr/0001-greenfield-not-fork.md)                    | Greenfield neu bauen, nicht power-flow-card-plus forken       | Multi-Source-Fähigkeit braucht andere Architektur als Single-Source-Vorlage  |
+| [0002](./adr/0002-layered-modular-architecture.md)           | 7 Layer mit klaren Aufgaben                                   | Testbar, wartbar, refactoring-sicher                                         |
+| [0003](./adr/0003-typescript-lit-rollup.md)                  | TypeScript + Lit 3 + Rollup                                   | Konsistent mit HA-Card-Ökosystem, schlankes Bundle                           |
+| [0004](./adr/0004-pure-functions-engine.md)                  | Engine = pure functions, keine Klassen                        | Tabellen-getriebene Tests, kein verstecktes State                            |
+| [0005](./adr/0005-css-offset-path-animation.md)              | CSS `offset-path` statt SVG `<animateMotion>`                 | CSS-Variable updateable, Performance                                         |
+| [0006](./adr/0006-strict-1-to-1-pv-battery-pairing.md)       | Akku ↔ PV strikt 1:1                                          | Spiegelt physische Realität der Hybrid-Wechselrichter                        |
+| [0007](./adr/0007-energy-balance-with-reconcile.md)          | Bilanz + Netz-Sensor-Reconcile                                | Kompensiert Sensor-Latenz, Netz-Sensor als ground truth                      |
+| [0008](./adr/0008-manual-list-editor.md)                     | Listen im Editor manuell mit Lit                              | `ha-form` unterstützt Listen-Editing nicht zuverlässig                       |
+| [0009](./adr/0009-eslint-enforced-layer-boundaries.md)       | ESLint `no-restricted-paths` als CI-Gate                      | Layer-Boundaries dokumentieren _und_ erzwingen                               |
+| [0010](./adr/0010-shared-util-module.md)                     | Single-Source-Util-Modul                                      | Format-/Sensor-/Color-Logik niemals doppelt                                  |
+| [0011](./adr/0011-shouldupdate-over-property-haschanged.md)  | `shouldUpdate` statt `@property hasChanged`                   | Lit's hasChanged-Callback hat kein `this`-Binding                            |
+| [0012](./adr/0012-headless-smoke-test-pre-release-gate.md)   | Headless Smoke-Test als Pre-Release-Gate                      | Class-Load-Crashes vor Live-Install fangen, da kein HA-Test-Environment      |
+| [0013](./adr/0013-v0-9-0-first-release-strategy.md)          | v0.9.0 first, v1.0.0 nach Stabilisierung                      | Realistische Erwartungen + semver-konforme Bug-Fix-Releases                  |
+| [0014](./adr/0014-stub-config-validates-as-valid.md)         | HA-Stub-Config gilt als valide                                | Card-Picker funktioniert beim ersten Add, eine Validation für Card+Editor    |
+| [0015](./adr/0015-split-charge-discharge-battery-sensors.md) | Akku akzeptiert zwei getrennte charge/discharge Sensoren      | Reale Wechselrichter liefern oft getrennte Sensoren statt einem signierten   |
+| [0016](./adr/0016-ha-area-grouping.md)                       | HA-Area-basierte Verbraucher-Gruppierung                      | Aggregiert 10–20 Smart-Plug-Sensoren auf lesbare 5–7 Knoten ohne YAML-Pflege |
+| [0017](./adr/0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                         | Skaliert bis N=8 Verbraucher ohne ViewBox-Überschreitung (16:9, Arc-Bogen)   |
+| [0018](./adr/0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API (`getGridOptions`) immer aktiv        | superseded — Slider-Bounds erwiesen sich als künstliche Einschränkung        |
+| [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
+| [0020](./adr/0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | Dynamische User-/Area-Icons + null Wartungslast (Subspec 2026-05-13)         |
 
 ## 5. Konventionen kurz
 

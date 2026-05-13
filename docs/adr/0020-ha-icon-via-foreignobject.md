@@ -1,6 +1,6 @@
 # ADR-0020: `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts`
 
-- **Status:** draft (promote zu `accepted` nach Plan-Phase 3 — Renderer-Migration grün)
+- **Status:** accepted (Renderer-Migration grün nach Plan-Phase 3, Sandbox-Verifikation grün nach Plan-Phase 6)
 - **Datum:** 2026-05-13
 - **Entscheider:** @griebner
 

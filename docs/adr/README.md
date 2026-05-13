@@ -65,4 +65,4 @@ siehe [`0000-template.md`](./0000-template.md).
 | [0017](./0017-adaptive-svg-layout.md)                    | Quellen-Cluster + Consumer-Arc Layout                         | accepted                                                    |
 | [0018](./0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API immer aktiv                           | superseded by [0019](./0019-aspect-16-9-no-grid-options.md) |
 | [0019](./0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | accepted                                                    |
-| [0020](./0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | draft                                                       |
+| [0020](./0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | accepted                                                    |

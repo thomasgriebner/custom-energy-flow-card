@@ -61,3 +61,4 @@ Ein typischer Haushalt hat 10–20 Smart-Plug-Sensoren. 12 Einzelknoten in der C
 - Subspec [`docs/specs/2026-05-11-consumer-grouping-and-layout.md §4.2`](../specs/2026-05-11-consumer-grouping-and-layout.md)
 - [ADR-0004](./0004-pure-functions-engine.md) (Pure Engine)
 - [ADR-0010](./0010-shared-util-module.md) (Shared Util)
+- [ADR-0020](./0020-ha-icon-via-foreignobject.md) — Area-Icon-Rendering via ha-icon (implementiert v1.x)

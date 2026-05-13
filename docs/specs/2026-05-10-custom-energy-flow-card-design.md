@@ -1008,9 +1008,11 @@ Click).
 **Hover-Feedback:** `cursor: pointer` + `stroke-width` von 2.5 auf 3.5 bei
 `:hover` und `:focus-visible`. Subtil, keine Layout-Verschiebung.
 
-**Icon-Rendering:** für v1.0 **MDI-Icons als inline SVG-`<path>`**, ausgeliefert
-via `mdi-paths.ts`-Map mit den ~10 verwendeten Icon-Paths. Falls in einer
-Frühphase Boilerplate stört, ist Emoji-Fallback akzeptabel (siehe §9).
+**Icon-Rendering:** für v1.x **MDI-Icons via `<ha-icon>` in `<foreignObject>`**
+(HA-globales Custom Element, deckt User-konfigurierte und Area-Icons dynamisch
+ab). Implementation in `src/render/icon.ts` als Single-Source. Strategie-Wahl
+und Begründung siehe [ADR-0020](../adr/0020-ha-icon-via-foreignobject.md).
+Inline-`<path>`-Map (`mdi-paths.ts`) wurde verworfen — Begründung in ADR-0020.
 
 **Color-Blindness:** die 6 Akzentfarben sind so gewählt, dass auch bei
 Deuteranopia/Protanopia genug Kontrast bleibt. Validierung beim Renderer-Review:
@@ -1307,9 +1309,13 @@ card-mod nicht trivial mit `style:` durchstylen.
 | Card-Wrapper     | `card`                                                                      |
 | Knoten allgemein | `node`                                                                      |
 | Knoten-Typ       | `node-solar` / `node-battery` / `node-grid` / `node-home` / `node-consumer` |
+| Knoten-Icon      | `node-icon` (foreignObject mit `<ha-icon>`, siehe ADR-0020)                 |
 | Pfad allgemein   | `flow`                                                                      |
 | Pfad-Typ         | `flow-pv-to-home` etc.                                                      |
 | Anteils-Ring     | `home-ring`                                                                 |
+
+Card-Mod-User können Icon-Farbe via `::part(node-icon) { color: … }` oder
+Icon-spezifische CSS-Custom-Properties überschreiben.
 
 README dokumentiert diese als „Erweiterte Anpassung". Volle Theming-Integration
 (z. B. dynamische Farb-Themes) ist v2-Thema.
@@ -1747,8 +1753,6 @@ qualitative Akzeptanz über mindestens 3 Tage.
   → v1.x-Kandidat.
 - **Verbraucher- und PV-Anzahl > 5/4** könnten optisch überquellen.
   README-Empfehlung max. 5.
-- **MDI-Icon-Rendering.** Plan: inline `<path>`-Map in `mdi-paths.ts`. Falls in
-  der Implementation Pflegeaufwand zu hoch wird, Emoji-Fallback akzeptabel.
 - **Browser-Kompatibilität.** Mindestziele: Chrome 100+, Firefox 100+, Safari 15+,
   Edge 100+. CSS `offset-path` ist seit Safari 14, Chrome 64, Firefox 72 verfügbar.
 - **Locale für Tausendertrennung.** Default: `Intl.NumberFormat(navigator.language)`,
