@@ -2,6 +2,7 @@ import { html, svg, type TemplateResult } from 'lit';
 import { DE } from '../i18n/de';
 import { edgeColorRole } from './edge-color';
 import { computeAnimationParams, renderDots } from './flow-animation';
+import { diagnosticsIcon } from './icon';
 import { renderNode } from './node-renderer';
 import { colorFor } from './theme';
 import type { RenderContext } from './context';
@@ -60,11 +61,11 @@ function renderDiagnostics(
   return svg`
     <g
       transform="translate(${layout.width - 30} 30)"
-      part="diagnostics"
+      part="diagnostics diagnostics-icon"
       role="button"
       tabindex="0"
       aria-label="${label}"
-      style="cursor: help;"
+      style="cursor: help; color: ${fill};"
       @click=${() => {
         for (const w of result.warnings) {
           console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);
@@ -81,7 +82,7 @@ function renderDiagnostics(
     >
       <circle r="12" fill="${fill}" opacity="0.18"></circle>
       <circle r="12" fill="none" stroke="${fill}" stroke-width="1.5"></circle>
-      <text text-anchor="middle" y="4" font-size="13" font-weight="700" fill="${fill}">!</text>
+      ${diagnosticsIcon()}
       <title>${count} ${DE.diagnostics.title}:\n${summary}</title>
     </g>
   `;

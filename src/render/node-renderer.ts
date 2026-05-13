@@ -3,20 +3,13 @@ import { DE } from '../i18n/de';
 import { formatPowerW } from '../util/format-power';
 import { renderBatteryRing } from './battery-ring';
 import { renderHomeRing } from './home-ring';
+import { nodeIcon } from './icon';
 import { colorFor, HA_CSS_VARS } from './theme';
 import type { RenderContext } from './context';
 import type { LayoutNode } from './layout';
 import type { BatteryConfig, DisplayConsumer, SolarConfig } from '../config/types';
 import type { FlowResult, PerSourceFlow } from '../engine/types';
 import type { ColorRole } from '../util/resolve-color';
-
-const DEFAULT_ICONS: Record<LayoutNode['kind'], string> = {
-  pv: '☀',
-  battery: '🔋',
-  grid: '⚡',
-  home: '🏠',
-  consumer: '🔌',
-};
 
 export function nodeColorRole(kind: LayoutNode['kind']): ColorRole {
   switch (kind) {
@@ -59,7 +52,6 @@ export function renderNode(
   const labelOffset = labelYOffset(node);
   const strokeDash = unavailable ? '4 4' : '';
 
-  const iconY = node.kind === 'home' ? -10 : -4;
   const valueY = node.kind === 'home' ? 14 : 16;
 
   const isConsumer = node.kind === 'consumer';
@@ -70,6 +62,7 @@ export function renderNode(
       transform="translate(${node.x} ${node.y})"
       class="node node--${node.kind} ${unavailable ? 'node--unavailable' : ''}"
       part="node node-${node.kind}"
+      style="color: ${color};"
       role="button"
       tabindex="0"
       aria-label="${ariaLabel}"
@@ -90,9 +83,7 @@ export function renderNode(
         stroke-width="2.5"
         stroke-dasharray="${strokeDash}"
       ></circle>
-      <text class="node-icon" text-anchor="middle" y="${isConsumer ? 6 : iconY}" font-size="${node.kind === 'home' ? 28 : isConsumer ? 18 : 22}">
-        ${nodeIconChar(node, ctx)}
-      </text>
+      ${nodeIcon(node.kind, configEntryForNode(node, ctx)?.icon)}
       ${
         isConsumer
           ? svg`
@@ -233,14 +224,4 @@ export function nodeName(node: LayoutNode, ctx: RenderContext): string {
     case 'consumer':
       return `${DE.nodes.consumer} ${node.id}`;
   }
-}
-
-export function nodeIconChar(node: LayoutNode, ctx: RenderContext): string {
-  // For v1.0 we use Emoji defaults (Spec §9 acceptable fallback). User-configured
-  // mdi:* icon names are stored in config but not rendered as SVG paths in v1.0;
-  // this is an explicit deferral to v1.x — see Spec §9.
-  const entry = configEntryForNode(node, ctx);
-  // If user supplied a non-mdi icon (e.g. an emoji directly), pass through:
-  if (entry?.icon && !entry.icon.startsWith('mdi:')) return entry.icon;
-  return DEFAULT_ICONS[node.kind];
 }
