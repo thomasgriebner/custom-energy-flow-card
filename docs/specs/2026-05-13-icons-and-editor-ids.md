@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v5 (post-conventions-alignment, ready for plan)
+**Status:** v6 (post-checklist-run, ready for plan)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -66,6 +66,129 @@ Weitere Constraints:
 | Bundle ≤ 60 kB minified, `@mdi/js` nicht in Prod                           | Hauptspec §2.1      | `pnpm build:analyze`-Verifikation im Plan; ESLint-Restriction als Sicherheitsnetz                  |
 | `RenderContext`, `derive-display-consumers.ts`, Engine-Module unangetastet | ADR-0004 + ADR-0009 | Diese Module sind out-of-scope. Icon-Resolution geschieht im Renderer-Layer, nicht im Daten-Layer  |
 | `card.ts` Lifecycle-Hooks unangetastet                                     | Hauptspec §5.7      | Keine willUpdate/render/firstUpdated-Änderung nötig; Icon-Migration ist rein im render/-Layer      |
+
+### 0.2 Architektur-Kontext — Layer-Berührung
+
+**Diese Spec berührt AUSSCHLIESSLICH folgende Dateien:**
+
+| Layer / Bereich           | Datei                                        | Art der Änderung                 |
+| ------------------------- | -------------------------------------------- | -------------------------------- |
+| `render/`                 | `src/render/icon.ts`                         | NEW                              |
+| `render/` (Test)          | `src/render/icon.test.ts`                    | NEW                              |
+| `render/`                 | `src/render/node-renderer.ts`                | EDIT                             |
+| `render/`                 | `src/render/flow-renderer.ts`                | EDIT                             |
+| editor-zone (eigene Zone) | `src/editor-list-sections.ts`                | EDIT                             |
+| editor-zone (Test)        | `src/editor-list-sections.test.ts`           | NEW                              |
+| `examples/`               | `examples/lib/ha-icon-stub.ts`               | NEW                              |
+| `examples/` (Test)        | `examples/lib/ha-icon-stub.test.ts`          | NEW                              |
+| `examples/` (DOM-Test)    | `examples/lib/ha-icon-stub.dom.test.ts`      | NEW                              |
+| `examples/`               | `examples/preview-mocks.ts`                  | EDIT (Demo-Szenarien)            |
+| Test-Setup                | `tests/setup/ha-icon.ts`                     | NEW                              |
+| Build / Tooling           | `vitest.config.ts`                           | EDIT (additive)                  |
+| Build / Tooling           | `.eslintrc.cjs`                              | EDIT (additive)                  |
+| Build / Tooling           | `package.json`                               | EDIT (DevDep)                    |
+| Build / Tooling           | `scripts/build-preview.mjs`                  | EDIT (Stub-Import)               |
+| Doku — ADR neu            | `docs/adr/0020-ha-icon-via-foreignobject.md` | NEW                              |
+| Doku — ADR-Index          | `docs/adr/README.md`                         | EDIT                             |
+| Doku — ADR-Cross-Ref      | `docs/adr/0016-ha-area-grouping.md`          | EDIT                             |
+| Doku — Architecture       | `docs/architecture.md` §2 + §4               | EDIT                             |
+| Doku — Hauptspec          | `docs/specs/2026-05-10-…-design.md`          | EDIT (§3.2, §5.3, §7, §9, §5.13) |
+| Doku — README             | `README.md`                                  | EDIT (Changelog)                 |
+| Assets                    | `docs/screenshots/*.png`                     | REGEN                            |
+
+**NICHT zu berührende Bereiche** (Verstoß bricht CI via ESLint `no-restricted-paths` oder semantisch):
+
+- `src/engine/*` — pure Energiebilanz, kein Icon-Bezug (ADR-0004)
+- `src/config/schema.ts` — `SolarConfig.id` / `BatteryConfig.id` bleiben Pflichtfelder (Validierung unverändert)
+- `src/config/derive-display-consumers.ts` — `icon = areaEntry.icon` (Zeile 83) ist bereits korrekt; nicht anfassen
+- `src/config/types.ts` — `DisplayConsumer.icon` und `SolarConfig.icon` existieren bereits
+- `src/util/*` — keine neuen Util-Helper (icon-Logik ist render-spezifisch, gehört in `render/icon.ts`)
+- `src/i18n/de.ts` — keine neuen User-Strings
+- `src/ha/ha-globals.d.ts` — Type-Decl für `ha-icon` reicht so wie sie ist
+- `src/ha/ha-helpers.ts`, `src/ha/ha-types.ts` — keine Änderung
+- `src/card.ts` — Lifecycle (`willUpdate`, `render`, `firstUpdated`, `shouldUpdate`) unangetastet
+- `src/card-helpers.ts` — Card-Helpers unverändert
+- `src/card-styles.ts` — `.node-icon { fill }` Regel BLEIBT (Emoji-Pass-Through)
+- `src/render/context.ts` — `RenderContext`-Typ unverändert
+- `src/render/layout.ts` — Layout-Geometrie unverändert
+- `src/render/theme.ts`, `src/render/edge-color.ts` — Farb-Resolver unverändert
+- `src/render/battery-ring.ts`, `src/render/home-ring.ts`, `src/render/flow-animation.ts` — separate Module unangetastet
+- `src/editor.ts` — Outer Editor unverändert (nur `editor-list-sections.ts` ändert sich)
+- `src/index.ts`, `src/const.ts` — keine Änderung
+
+**Single-Source-Regeln (ADR-0010 — verbindlich):**
+
+- `DEFAULT_MDI_ICONS` und `NODE_ICON_BOX` ausschließlich in `src/render/icon.ts`. Niemals in `node-renderer.ts` oder `flow-renderer.ts` re-deklarieren oder kopieren.
+- `iconNameToCamelCase` ausschließlich in `examples/lib/ha-icon-stub.ts`. Tests dürfen importieren, NICHT re-implementieren.
+- `DIAGNOSTICS_ICON_NAME` (`'mdi:alert-circle-outline'`) ausschließlich in `icon.ts`. Niemals als String-Literal anderswo.
+- Konfigurations-Icon-Resolver (`entry?.icon`-Zugriff) ausschließlich über `configEntryForNode` in `node-renderer.ts`. Nicht in `icon.ts` ziehen (Layer-Boundary).
+
+### 0.3 Konzept-Modell / Datenfluss
+
+Wichtig damit der Planer versteht, **welcher Schritt** durch diese Spec berührt wird (nur der vorletzte! Icon-Rendering im render/-Layer):
+
+```
+HA hass.areas[areaId].icon ──┐
+                              ├──► derive-display-consumers (UNVERÄNDERT)
+config.consumers[i].icon  ───┘                           │
+                                                         ▼
+                                            DisplayConsumer.icon (string|undef)
+                                                         │
+config.solar[i].icon  ──────────►                       │
+config.battery[i].icon  ────────► configEntryForNode    │ (UNVERÄNDERT,
+                                  (private in           │  private in
+                                   node-renderer.ts)    │  node-renderer.ts)
+                                          │             │
+                                          ▼             ▼
+                                  entry?.icon (string | undefined)
+                                          │
+                                          ▼
+                              [HIER GEÄNDERT] nodeIcon(kind, configuredIcon)
+                                          │       (NEW in src/render/icon.ts)
+                                          ▼
+                              <foreignObject part="node-icon">
+                                <ha-icon icon="mdi:…" style="color:inherit">
+                                          │
+                              ┌───────────┴───────────┐
+                              ▼                       ▼
+                       Prod (HA-Runtime)        Sandbox / Vitest
+                       ha-icon registriert      HaIconStub via @mdi/js
+                              │                       │
+                              ▼                       ▼
+                       MDI-Asset SVG            inline <svg><path>
+```
+
+**Pflicht-Wissen für den Planer:**
+
+- **Engine kennt keine Icons.** `engine/`-Module produzieren nur Power-Werte (FlowResult), niemals Strings. Icon-Auflösung passiert ausschließlich im render-Layer.
+- **`derive-display-consumers.ts` ist alleinige Quelle für `DisplayConsumer.icon`.** Resolver-Logik (`icon = areaEntry.icon`) dort ist bereits korrekt — nicht doppeln, nicht ändern.
+- **`configEntryForNode` bleibt private in `node-renderer.ts`.** Die `RenderContext`-Auflösung gehört dorthin, nicht ins `icon.ts`-Modul. `icon.ts` bekommt einen bereits aufgelösten `string | undefined`.
+- **`icon.ts` ist alleinige Quelle für Icon-SVG-Templates.** Niemals `<ha-icon>`-Markup inline in `node-renderer.ts` oder `flow-renderer.ts` schreiben.
+- **Theme-Farbe via `currentColor`.** Das `<g>`-Element setzt `style="color: ${color};"`; `<ha-icon>` erbt via `color: inherit`. `icon.ts` kennt selbst kein Theme.
+- **Stub-Code in `examples/lib/` darf `@mdi/js` importieren, `src/` niemals.** ESLint `no-restricted-imports` blockt das ab Plan-Schritt 3.
+
+### 0.4 Don't-Touch-Liste (semantisch korrekt, robust gegen Icon-Migration)
+
+Konkrete Code-Stellen, die der Planer **nicht ändern darf**, auch wenn sie thematisch nahe wirken:
+
+| Element                                            | Wo                                                                      | Warum nicht anfassen                                                                |
+| -------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `configEntryForNode`                               | `node-renderer.ts:211-219` (private)                                    | Private Resolver gegen `RenderContext` — gehört nicht in `icon.ts` (Layer-Bezug)    |
+| Battery-Section `value-changed`-Handler            | `editor-list-sections.ts:148-160`                                       | Merge-Pattern bereits vorhanden; nur Solar-Handler braucht Anpassung                |
+| Pairing `<select>`, `<label>`, error-Span          | `editor-list-sections.ts:162-181`                                       | Nur die `<option>`-Map ändert sich; Wrapper bleibt                                  |
+| `nodeName`                                         | `node-renderer.ts:221-236`                                              | Eigene Logik (Knoten-Name aus config.name), nicht Icon-relevant                     |
+| `nodeValueText`, `labelYOffset`                    | `node-renderer.ts:176-209, 158-170`                                     | Eigene Logik (Power-Wert, Text-Position), nicht Icon-relevant                       |
+| `card-styles.ts:69-73` — `.node-icon { fill }`     | `card-styles.ts:69-73`                                                  | CSS bleibt für Emoji-Pass-Through nötig (siehe §3.3)                                |
+| `ha-globals.d.ts:16` — `ha-icon`-Type-Decl         | `ha-globals.d.ts:16`                                                    | `{ icon: string }` reicht für Attribut-Setting                                      |
+| `RenderContext`-Typ                                | `render/context.ts`                                                     | Kein neues Feld nötig — `DisplayConsumer.icon` fließt schon mit                     |
+| `derive-display-consumers.ts:83` — Icon-Resolver   | `derive-display-consumers.ts:83`                                        | Logik (`icon = areaEntry.icon`) bereits korrekt                                     |
+| `<g>`-Attribute (außer style)                      | `node-renderer.ts:68-83`                                                | `class`, `part`, `role`, `tabindex`, `aria-label`, `@click`, `@keydown` bleiben     |
+| Diagnostics `<circle>`-Badge (2 Stück)             | `flow-renderer.ts:82-83`                                                | Badge-Hintergrund bleibt; nur `<text>!</text>` (Zeile 84) wird ersetzt              |
+| `examples/preview.html`                            | `examples/preview.html`                                                 | Lädt nur fertige `.js`-Files; Stub-Registrierung in Build-Pipeline                  |
+| `scripts/smoke-test.mjs` (initial)                 | `scripts/smoke-test.mjs`                                                | Soll grün bleiben ohne Änderung; NUR falls fail (Plan-Schritt 14) Stub registrieren |
+| `vitest.config.ts:coverage.include`                | `vitest.config.ts`                                                      | NICHT auf `render/**` erweitern (§6.6, Non-Goal)                                    |
+| `TAB_ORDER`, ARIA-Labels, `prefers-reduced-motion` | `flow-renderer.ts:13`, `node-renderer.ts:75`, `flow-animation.ts:84-90` | Semantik/Accessibility, robust gegen Icon-Change                                    |
+| Bestehende Tests außer Editor-Tests                | div. `*.test.ts`                                                        | Engine, layout, battery-ring etc. bleiben unverändert grün                          |
 
 ## 1. Kontext und Motivation
 
@@ -475,6 +598,41 @@ Bestehende `rules`-Einträge (`import/no-restricted-paths`, `@typescript-eslint/
 | `examples/lib/ha-icon-stub.ts` | außerhalb `src/` | `@mdi/js` (devDep)           | ✓ (kein Layer-Lint)              |
 
 Keine neue Layer-Whitelist-Erweiterung in `.eslintrc.cjs` nötig.
+
+### 3.9 Code-Reuse-Tabelle (verbindlich für den Planer)
+
+Bestehende Helper / Konstanten / Types, die der Planer **wiederverwenden MUSS** statt neu zu schreiben (CLAUDE.md Regel 2 + ADR-0010):
+
+| Helper / Konstante / Type                  | Wann verwenden                                                                | Datei                                       |
+| ------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------- |
+| `configEntryForNode(node, ctx)`            | Resolver für `entry?.icon` im Renderer — bleibt private in `node-renderer.ts` | `src/render/node-renderer.ts:211` (private) |
+| `colorFor(role, ctx.theme)`                | `${color}` für `<g style="color: ${color}">` in `node-renderer.ts`            | `src/render/theme.ts:7`                     |
+| `nodeColorRole(kind)`                      | Mapping `kind` → `ColorRole` (bereits in node-renderer.ts:21)                 | `src/render/node-renderer.ts:21`            |
+| `DE.nodes.solar`                           | Pairing-Dropdown-Fallback "Solar 1", "Solar 2"                                | `src/i18n/de.ts:8`                          |
+| `DE.editor.*` Strings                      | Editor-Labels — bestehende nutzen, KEINE neuen Strings                        | `src/i18n/de.ts`                            |
+| `validateConfig(config)`                   | Editor-Validation nach jedem `value-changed` (bereits in editor.ts)           | `src/config/schema.ts:27`                   |
+| `fireConfigChanged(el, config)`            | Editor-Event nach validierter Änderung                                        | `src/ha/ha-helpers.ts`                      |
+| `svg` template tag                         | Alle SVG-Templates in `icon.ts`                                               | `lit` (named import)                        |
+| `SVGTemplateResult` type                   | Return-Type von `nodeIcon`/`diagnosticsIcon`                                  | `lit` (type-only import)                    |
+| `LayoutNode['kind']`                       | Discriminator für `NODE_ICON_BOX`-Lookup in `icon.ts`                         | `src/render/layout.ts` (type-only import)   |
+| Existing `icon`-Feld im Editor-Schema      | `{ name: 'icon', selector: { icon: {} } }` — bleibt vorhanden                 | `editor-list-sections.ts:42, 122, 139, 211` |
+| `DisplayConsumer.icon` Feld                | Bereits gesetzt von `derive-display-consumers.ts:83` — direkt verwenden       | `src/config/types.ts:84`                    |
+| `SolarConfig.icon`, `BatteryConfig.icon`   | Optional-Felder bereits in Types — direkt verwenden                           | `src/config/types.ts:19, 27`                |
+| `customElements.get(...)` / `.define(...)` | Im Stub-Code: Re-Registration-Guard (siehe `ha-icon-stub.ts`)                 | Browser-API (kein Helper)                   |
+| `vi.spyOn(console, 'warn')`                | In Stub-DOM-Tests, um `console.warn`-Output zu unterdrücken                   | `vitest` (named import)                     |
+
+**Anti-Patterns, die der Planer aktiv vermeiden muss:**
+
+1. ❌ Inline-`<ha-icon>`-Markup direkt in `node-renderer.ts` oder `flow-renderer.ts` — gehört ausschließlich in `icon.ts`.
+2. ❌ `DEFAULT_MDI_ICONS` oder `NODE_ICON_BOX` in den Renderer-Files duplizieren (z. B. als const oben in node-renderer.ts).
+3. ❌ `iconNameToCamelCase` in `src/` re-implementieren — gehört ausschließlich in `examples/lib/ha-icon-stub.ts`.
+4. ❌ Eigene Farb-Resolver oder `ThemeContext` in `icon.ts` einführen — `currentColor` via Parent-`<g style>` reicht.
+5. ❌ Hardcoded `mdi:`-Strings im Renderer (z. B. `<ha-icon icon="mdi:home">`) — alle Defaults aus `DEFAULT_MDI_ICONS[kind]`.
+6. ❌ `RenderContext` erweitern für Icon-Info — `DisplayConsumer.icon` fließt schon mit, kein neues Feld.
+7. ❌ Neue Properties / Methoden in `ha-globals.d.ts:16` für `ha-icon` — die `{ icon: string }`-Decl reicht; mehr Properties brauchen wir nicht.
+8. ❌ Eigene Custom-Element-Stubs für `ha-form` oder `ha-entity-picker` im Sandbox-Stub — Scope dieser Spec ist nur `ha-icon`.
+9. ❌ `mdi-paths.ts` (oder ähnliche statische Path-Map) im `src/`-Bundle — verworfen via ADR-0020.
+10. ❌ Inline-emoji-Defaults (☀ 🔋 ⚡ 🏠 🔌) als Fallback im Code — Defaults sind `mdi:*`, Emoji-Pfad nur für User-konfigurierte Nicht-`mdi:`-Strings.
 
 ## 4. Datenfluss
 
