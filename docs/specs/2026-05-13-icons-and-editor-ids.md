@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v7 (post-subagent-1, 4 auto-fixes integriert)
+**Status:** v8 (post-subagent-2, 3 weitere auto-fixes + 1 sub-agent-reject)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -83,6 +83,7 @@ Weitere Constraints:
 | `examples/` (Test)        | `examples/lib/ha-icon-stub.test.ts`          | NEW                              |
 | `examples/` (DOM-Test)    | `examples/lib/ha-icon-stub.dom.test.ts`      | NEW                              |
 | `examples/`               | `examples/preview-mocks.ts`                  | EDIT (Demo-Szenarien)            |
+| Test-Setup (NEW dir)      | `tests/setup/` (Top-Level-Verzeichnis)       | NEW                              |
 | Test-Setup                | `tests/setup/ha-icon.ts`                     | NEW                              |
 | Build / Tooling           | `vitest.config.ts`                           | EDIT (additive)                  |
 | Build / Tooling           | `.eslintrc.cjs`                              | EDIT (additive)                  |
@@ -478,7 +479,7 @@ export function iconNameToCamelCase(name: string): string {
 
 function pathFor(name: string): string | undefined {
   const key = iconNameToCamelCase(name);
-  return (mdiAll as Record<string, string>)[key];
+  return (mdiAll as Record<string, string | undefined>)[key];
 }
 
 class HaIconStub extends HTMLElement {
@@ -577,6 +578,8 @@ test: {
 ```
 
 `ha-icon-stub.dom.test.ts` nutzt file-level `// @vitest-environment happy-dom`-Comment statt eines Glob-Eintrags.
+
+**Hinweis zum Status der heutigen `environmentMatchGlobs`:** `src/editor.test.ts` existiert aktuell **nicht** im Repo (verifiziert: `find src -name 'editor.test.ts'` → leer). Der heutige Glob-Eintrag `'**/editor.test.ts'` matcht also nichts und ist toter Code. Die Erweiterung auf `'**/editor*.test.ts'` wird erst aktiv, sobald `editor-list-sections.test.ts` (Plan-Schritt 11) angelegt wird — dann matcht der neue Glob die neue Datei. Diese Klärung verhindert Verwirrung beim Planer: er ersetzt einen heute toten Glob durch einen, der nach Plan-Schritt 11 lebt.
 
 `setupFiles` läuft pro Test-Env. Der Stub-Guard `typeof customElements === 'undefined'` (im Code aus §3.5) macht den `registerHaIconStub`-Aufruf in Node-Env zu einem no-op. In Node-Env ist der Stub also inaktiv; Tests, die ha-icon-DOM-Verhalten brauchen, laufen explizit in happy-dom.
 
@@ -939,7 +942,7 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
    ```
 
 4. **`examples/lib/`-Verzeichnis anlegen** (existiert heute nicht — verifiziert: `examples/` enthält nur 4 Flat-Files), dann **`examples/lib/ha-icon-stub.ts` + `ha-icon-stub.test.ts`** anlegen — `iconNameToCamelCase`-Tests test-first (Node-Env), Stub-Klasse implementieren mit `customElements`-Guard. Plus `examples/lib/ha-icon-stub.dom.test.ts` mit file-level `// @vitest-environment happy-dom` für die DOM-Tests (§6.3).
-5. **`tests/setup/ha-icon.ts` anlegen** — Importiert und ruft `registerHaIconStub()` auf. Kurze Datei (3 Zeilen).
+5. **`tests/setup/`-Verzeichnis anlegen** (existiert heute nicht — verifiziert: `tests/` als top-level fehlt im Repo), dann **`tests/setup/ha-icon.ts`** anlegen. Importiert und ruft `registerHaIconStub()` auf. Kurze Datei (3 Zeilen). `mkdir -p tests/setup` ist Teil dieses Schritts.
 6. **`vitest.config.ts` erweitern** — additive: `setupFiles` neu, `environmentMatchGlobs` von `editor.test.ts` auf `editor*.test.ts` (siehe §3.6).
 7. **`src/render/icon.ts` neu anlegen + `src/render/icon.test.ts`** — TDD für `nodeIcon` und `diagnosticsIcon` über Lit-`SVGTemplateResult`-Strukturprüfung. **Verbindlich:** Theme-agnostisch, nur Icon-Geometrie, kein `RenderContext`-Bezug (siehe §3.2 Architektur-Prinzipien). Im finalen Code KEINE WHAT-Kommentare (siehe §3.2-Hinweis).
 8. **`node-renderer.ts` migrieren** — `nodeIconChar`/`DEFAULT_ICONS` löschen, `<g>` bekommt `style="color: ${color};"`, neuer `nodeIcon`-Aufruf, lokale `iconY`-Variable löschen. **Wichtig:** Visuelle Diff dokumentieren (Icons werden farbig, siehe §3.3 "bewusste visuelle Änderung"). `configEntryForNode` bleibt private — nicht versuchen, sie nach `icon.ts` zu ziehen.
