@@ -37,6 +37,8 @@ Volle Versionsliste: Spec §2.1.
 | Architektur-Überblick (lebendig)          | [`docs/architecture.md`](./docs/architecture.md)                                                                       |
 | Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
 | Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
+| **Spec-Vorlage (neue Subspec schreiben)** | [`docs/templates/spec-template.md`](./docs/templates/spec-template.md)                                                 |
+| **Spec-Review-Checkliste** (vor Vorlage)  | [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md)                                 |
 | Subspec: Verbraucher-Gruppierung & Layout | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
 | Implementation-Pläne (Checkbox-Tasks)     | [`docs/plans/`](./docs/plans/) (per `superpowers:executing-plans` / `subagent-driven-development` abarbeiten)          |
 | Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
@@ -53,8 +55,31 @@ Volle Versionsliste: Spec §2.1.
 | den **Tech-Stack** änderst                                                             | dieses `CLAUDE.md` + ADR + Spec §2.1                                                                                                    |
 | ein **User-facing Verhalten** änderst                                                  | `README.md` + ggf. Spec                                                                                                                 |
 | einen **Bug** fixt                                                                     | Commit + Test, keine Doku-Pflicht                                                                                                       |
-| eine neue **Subspec** für ein Feature schreibst                                        | `docs/specs/YYYY-MM-DD-<topic>.md`                                                                                                      |
+| eine neue **Subspec** für ein Feature schreibst                                        | **Workflow zwingend** — siehe „Spec-Erstellung" unten; `docs/specs/YYYY-MM-DD-<topic>.md`                                               |
 | eine Spec in eine **Multi-Step-Implementation** zerlegst                               | `docs/plans/YYYY-MM-DD-<topic>.md` (Checkbox-Liste, mit `superpowers:writing-plans` erzeugen)                                           |
+
+## Spec-Erstellung — Workflow (verbindlich)
+
+Erfahrung: Specs scheitern selten an fehlender Architektur-Idee, fast immer an **zu wenig Repo-Discovery vor Schreiben** (~55 % aller Review-Findings). Deshalb dieser Workflow:
+
+**Phase 1 — Repo-Discovery (VOR jedem Spec-Wort):**
+
+1. `.eslintrc.cjs` + `vitest.config.ts` + `tsconfig.json` + `package.json` lesen
+2. `docs/conventions.md` (§11 Anti-Patterns, §12 Doku-Pflicht), `docs/architecture.md` (Layer-Tabelle + ADR-Index) lesen
+3. Goldstandard-Beispiel im Repo lesen: [`docs/specs/2026-05-12-aspect-ratio-redesign.md`](./docs/specs/2026-05-12-aspect-ratio-redesign.md) (kleinere Subspec) oder [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md) (mittlere Subspec)
+4. Alle Source-Files lesen, die in der Spec genannt werden
+5. `grep` für jede zu ändernde Funktion/Klasse — Aufrufer identifizieren
+6. Sichtbare Ausgabe vor Spec-Schreiben: „Ich habe gelesen: [Liste]. Grep für `X` zeigt N Aufrufer."
+
+**Phase 2 — Spec-Schreiben:**
+
+Vorlage [`docs/templates/spec-template.md`](./docs/templates/spec-template.md) nutzen — Skeleton mit allen Pflicht-Sektionen (Verbots-Liste, Constraints, Layer-Berührung, Don't-Touch-Liste, Code-Reuse-Tabelle, Doku-Pflicht, Plan-Schritte).
+
+**Phase 3 — Self-Review vor User-Vorlage:**
+
+Checkliste [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) durcharbeiten — 8 Phasen (Discovery, Struktur, UX, Side-Effects, Conventions, ADRs, Code-Snippets, Plan). **Nicht „ich habe das überlegt"** — jeden Punkt namentlich abhaken oder begründen warum nicht zutreffend.
+
+**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Bei User-Feedback hochzählen (`v2 (post-review)`, `v3 (post-review-2)`, etc.) — eine gute v1 erreicht v2-Quality meist in einem Review-Pass statt fünf.
 
 ## Module-Layer (Kurzform)
 
