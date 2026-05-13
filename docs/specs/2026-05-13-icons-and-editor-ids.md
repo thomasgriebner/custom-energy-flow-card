@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v6 (post-checklist-run, ready for plan)
+**Status:** v7 (post-subagent-1, 4 auto-fixes integriert)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -499,6 +499,10 @@ class HaIconStub extends HTMLElement {
       ? `<svg viewBox="0 0 24 24" style="width:100%;height:100%"><path d="${path}" fill="currentColor"/></svg>`
       : `<svg viewBox="0 0 24 24" style="width:100%;height:100%"><rect x="2" y="2" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1"/></svg>`;
     if (!path && name) console.warn(`[ha-icon-stub] unknown icon: ${name}`);
+    // Prefix bewusst NICHT `[custom-energy-flow-card]` (conventions §7):
+    // Stub liegt außerhalb src/, ist Sandbox/Test-Komponente. Eigener Prefix
+    // signalisiert beim Debug, dass die Warnung vom Stub kommt (nicht von
+    // der Card selbst). Erleichtert Triage bei Screenshot-Issues.
   }
 }
 
@@ -513,12 +517,16 @@ export function registerHaIconStub(): void {
 **Sandbox-Wire-up:** `scripts/build-preview.mjs` baut `dist/preview/_preview-entry.ts` aus einem inline-Template-String namens `previewSrc` (ab Zeile 8 der Datei). Konkrete Änderung: die ersten zwei Zeilen des Template-Inhalts (nach dem öffnenden Backtick) werden:
 
 ```ts
-// scripts/build-preview.mjs, innerhalb des `const previewSrc = \`…\`` Template-Strings:
+// scripts/build-preview.mjs — innerhalb des `const previewSrc = \`…\`` Template-Strings
+// (heute beginnt der Inhalt direkt mit `import { scenarios, … }`).
+// Die folgenden zwei Zeilen NEU als ALLERERSTE Zeilen einfügen, vor allen
+// bestehenden Imports:
+
 import { registerHaIconStub } from '../../examples/lib/ha-icon-stub';
 registerHaIconStub();
-// ↑ NEU — vor der heutigen ersten Zeile:
+
+// Die bestehende erste Zeile bleibt danach unverändert:
 import { scenarios, buildMockHass } from '../../examples/preview-mocks';
-// (heutige Zeile bleibt unverändert)
 ```
 
 Damit ist `ha-icon` definiert, bevor das Card-Module via `examples/preview.html` Script-Tag den ersten Lit-Render auslöst.
@@ -919,7 +927,7 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 1. **Spike (~30 min) — Lit-Namespace-Verifikation (§10.1):** minimales Beispiel `<g><circle><foreignObject><ha-icon icon="mdi:battery"></ha-icon></foreignObject></g>` in der heutigen Sandbox einbauen. Verifizieren:
    - `document.querySelector('ha-icon') instanceof HTMLElement === true`
    - Falls FAIL: `unsafeSVG`-Workaround aus §10.1 testen. Spike-Ergebnis dokumentieren (Test-Datei beibehalten als Regression-Schutz).
-2. **ADR-0020 anlegen** + ADR-Index aktualisieren. Strategie-Entscheidung dokumentiert (conventions.md §12). Falls Spike (Schritt 1) den Workaround forderte: ADR-0020-Text entsprechend anpassen.
+2. **ADR-0020 als `Status: draft` anlegen** + ADR-Index aktualisieren. Strategie-Entscheidung wird dokumentiert (conventions.md §12), aber **endgültiger Inhalt hängt vom Spike-Ergebnis (Schritt 1) ab**. Bei naivem Lit-`svg`-Pfad: Inhalt wie §8-Stub. Bei `unsafeSVG`-Workaround nötig: ADR-Text um Workaround-Begründung erweitern. **Status auf `accepted` erst NACH Plan-Schritt 9 (`flow-renderer.ts`-Migration grün)**, wenn alle Renderer-Tests beweisen, dass die gewählte Strategie funktioniert. Bis dahin ist ADR-0020 ein Living-Document.
 3. **`@mdi/js` als DevDep installieren** (`pnpm add -D @mdi/js`) + ESLint `no-restricted-imports`-Regel für `@mdi/js` in `.eslintrc.cjs`. **Commit-Body MUSS Begründung enthalten** (conventions.md §13: „Neue Dev-Dep: OK ohne ADR, aber kurz im Commit-Body begründen"). Beispiel:
 
    ```
@@ -930,7 +938,7 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
    no-restricted-imports blocks src/ imports; see ADR-0020).
    ```
 
-4. **`examples/lib/ha-icon-stub.ts` + `ha-icon-stub.test.ts`** — `iconNameToCamelCase`-Tests test-first (Node-Env), Stub-Klasse implementieren mit `customElements`-Guard.
+4. **`examples/lib/`-Verzeichnis anlegen** (existiert heute nicht — verifiziert: `examples/` enthält nur 4 Flat-Files), dann **`examples/lib/ha-icon-stub.ts` + `ha-icon-stub.test.ts`** anlegen — `iconNameToCamelCase`-Tests test-first (Node-Env), Stub-Klasse implementieren mit `customElements`-Guard. Plus `examples/lib/ha-icon-stub.dom.test.ts` mit file-level `// @vitest-environment happy-dom` für die DOM-Tests (§6.3).
 5. **`tests/setup/ha-icon.ts` anlegen** — Importiert und ruft `registerHaIconStub()` auf. Kurze Datei (3 Zeilen).
 6. **`vitest.config.ts` erweitern** — additive: `setupFiles` neu, `environmentMatchGlobs` von `editor.test.ts` auf `editor*.test.ts` (siehe §3.6).
 7. **`src/render/icon.ts` neu anlegen + `src/render/icon.test.ts`** — TDD für `nodeIcon` und `diagnosticsIcon` über Lit-`SVGTemplateResult`-Strukturprüfung. **Verbindlich:** Theme-agnostisch, nur Icon-Geometrie, kein `RenderContext`-Bezug (siehe §3.2 Architektur-Prinzipien). Im finalen Code KEINE WHAT-Kommentare (siehe §3.2-Hinweis).
