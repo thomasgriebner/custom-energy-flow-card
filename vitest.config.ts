@@ -4,8 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./tests/setup/ha-icon.ts'],
     environmentMatchGlobs: [
-      ['**/editor.test.ts', 'happy-dom'],
+      ['**/editor*.test.ts', 'happy-dom'],
       ['**/card.test.ts', 'happy-dom'],
     ],
     coverage: {

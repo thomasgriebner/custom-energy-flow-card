@@ -19,6 +19,7 @@
     "smoke": "pnpm build && node scripts/smoke-test.mjs"
   },
   "devDependencies": {
+    "@mdi/js": "^7.4.47",
     "@rollup/plugin-node-resolve": "^15.2.0",
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/node": "^20.11.0",

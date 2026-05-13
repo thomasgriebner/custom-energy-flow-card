@@ -42,6 +42,14 @@ module.exports = {
       'newlines-between': 'never',
       alphabetize: { order: 'asc' },
     }],
+    'no-restricted-imports': ['error', {
+      patterns: [
+        {
+          group: ['@mdi/js', '@mdi/js/*'],
+          message: 'Nur in examples/lib/ + tests/setup/ erlaubt; @mdi/js würde sonst ins Prod-Bundle.'
+        },
+      ],
+    }],
   },
   overrides: [
     {
@@ -55,6 +63,12 @@ module.exports = {
       files: ['scripts/**', '*.config.ts', '*.config.mjs'],
       rules: {
         'no-console': 'off',
+      },
+    },
+    {
+      files: ['examples/lib/**/*.ts', 'tests/setup/**/*.ts'],
+      rules: {
+        'no-restricted-imports': 'off',
       },
     },
   ],
