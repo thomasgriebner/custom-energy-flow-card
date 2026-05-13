@@ -62,7 +62,7 @@ export function renderNode(
       transform="translate(${node.x} ${node.y})"
       class="node node--${node.kind} ${unavailable ? 'node--unavailable' : ''}"
       part="node node-${node.kind}"
-      style="color: ${color};"
+      style="color:${color}"
       role="button"
       tabindex="0"
       aria-label="${ariaLabel}"

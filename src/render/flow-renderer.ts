@@ -65,7 +65,7 @@ function renderDiagnostics(
       role="button"
       tabindex="0"
       aria-label="${label}"
-      style="cursor: help; color: ${fill};"
+      style="cursor:help;color:${fill}"
       @click=${() => {
         for (const w of result.warnings) {
           console.warn(`[custom-energy-flow-card] ${w.code}: ${w.detail}`, w);

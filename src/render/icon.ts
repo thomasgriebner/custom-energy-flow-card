@@ -51,29 +51,10 @@ export function diagnosticsIcon(): SVGTemplateResult {
 }
 
 function renderEmojiText(text: string, box: IconBox): SVGTemplateResult {
-  return svg`<text
-    class="node-icon"
-    text-anchor="middle"
-    y="${box.emojiY}"
-    font-size="${box.emojiFontSize}"
-  >${text}</text>`;
+  return svg`<text class="node-icon" text-anchor="middle" y="${box.emojiY}" font-size="${box.emojiFontSize}">${text}</text>`;
 }
 
 function renderIconForeignObject(name: string, box: IconBox): SVGTemplateResult {
   const half = box.size / 2;
-  return svg`
-    <foreignObject
-      x="${-half}"
-      y="${box.centerY - half}"
-      width="${box.size}"
-      height="${box.size}"
-      class="node-icon-fo"
-      part="node-icon"
-    >
-      <ha-icon
-        icon="${name}"
-        style="display:block; width:100%; height:100%; --mdc-icon-size: ${box.size}px; color: inherit;"
-      ></ha-icon>
-    </foreignObject>
-  `;
+  return svg`<foreignObject x="${-half}" y="${box.centerY - half}" width="${box.size}" height="${box.size}" part="node-icon"><ha-icon icon="${name}" style="display:block;width:100%;height:100%;--mdc-icon-size:${box.size}px;color:inherit"></ha-icon></foreignObject>`;
 }
