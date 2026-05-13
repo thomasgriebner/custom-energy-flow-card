@@ -1,6 +1,6 @@
 # Subspec — MDI-Icon-Rendering & Editor-ID-Cleanup
 
-**Status:** v9 (post-subagent-3, stabil — 1 marginaler auto-fix, 1 user-decision offen)
+**Status:** v10 (user-decision-resolved, ready for plan)
 **Datum:** 2026-05-13
 **Autor:** Brainstorming-Session mit @griebner
 **Verlinkte Hauptspec:** [`2026-05-10-custom-energy-flow-card-design.md`](./2026-05-10-custom-energy-flow-card-design.md)
@@ -11,7 +11,7 @@
 
 Zwei kleine UI-Korrekturen aus derselben Editor-Review:
 
-1. **Editor-ID-Cleanup** — Das `id`-Textfeld verschwindet aus Solar- und Battery-Sektion des Editors. IDs werden ausschließlich beim Hinzufügen via `_nextUniqueId` auto-generiert. Pairing-Dropdown bei Akkus zeigt `${name ?? \`${DE.nodes.solar} ${idx + 1}\`}` (also "Solar 1") als Fallback statt der internen ID. Keine Breaking Change: YAML-Persistenz, Typen, Validierung bleiben identisch.
+1. **Editor-ID-Cleanup** — Das `id`-Textfeld verschwindet aus Solar- und Battery-Sektion des Editors. IDs werden ausschließlich beim Hinzufügen via `_nextUniqueId` auto-generiert. Pairing-Dropdown bei Akkus zeigt `${name ?? \`${DE.nodes.solar} ${s.id}\`}`(also "Solar pv1") als Fallback — **konsistent mit`nodeName`-Output in der Card\*\*. Keine Breaking Change: YAML-Persistenz, Typen, Validierung bleiben identisch.
 
 2. **MDI-Icon-Rendering** — User- und Area-konfigurierte `mdi:*`-Icons werden tatsächlich gerendert (heute werden sie verworfen). Implementation via `<ha-icon>` (HA-globales Custom Element) in einem SVG-`<foreignObject>`-Wrapper. Default-Icons aus Hauptspec §3.2 werden zur Quelle der Wahrheit. Emoji-Pass-Through bleibt erhalten. Diagnostics-`"!"`-Marker wird mit demselben Code-Pfad auf `mdi:alert-circle-outline` umgestellt.
 
@@ -210,7 +210,7 @@ Sekundäre Motivation: In WSL/Linux ohne Color-Emoji-Font werden die heutigen Em
 ### 2.1 Goals
 
 - ID-Textfeld aus Solar- und Battery-Sektion des Editors entfernen.
-- Pairing-Dropdown zeigt `${name ?? \`${DE.nodes.solar} ${idx + 1}\`}`(also "Solar 1") als Fallback. Konsistent mit`nodeName`in`node-renderer.ts:221-236`, das ebenfalls `DE.nodes.solar` als Default-Präfix verwendet.
+- Pairing-Dropdown zeigt `${name ?? \`${DE.nodes.solar} ${s.id}\`}` (also "Solar pv1") als Fallback. **Wirklich konsistent mit `nodeName` in `node-renderer.ts:226`** — beide Stellen geben `${DE.nodes.solar} ${id}` zurück. User sieht im Editor-Dropdown identischen Text wie auf der Card.
 - Solar/Battery/Consumer-Icons aus dem Editor (`mdi:*`-Strings) werden tatsächlich gerendert.
 - Area-Icons (aus `hass.areas[*].icon`) werden im `consumer_grouping: 'by_area'`-Mode tatsächlich gerendert.
 - Diagnostics-Marker (Warnings) wird auf `mdi:alert-circle-outline` umgestellt.
@@ -282,7 +282,7 @@ Das ist eine Verbesserung (Name first), für User mit Muskelgedächtnis aber mer
 // nur dieser Block — Rest des Pairing-Markups unverändert:
 ${solar.map((s, idx) => html`
   <option value=${s.id} ?selected=${item.charged_by === s.id}>
-    ${s.name ?? `${DE.nodes.solar} ${idx + 1}`}
+    ${s.name ?? `${DE.nodes.solar} ${s.id}`}
   </option>
 `)}
 ```
@@ -616,23 +616,23 @@ Keine neue Layer-Whitelist-Erweiterung in `.eslintrc.cjs` nötig.
 
 Bestehende Helper / Konstanten / Types, die der Planer **wiederverwenden MUSS** statt neu zu schreiben (CLAUDE.md Regel 2 + ADR-0010):
 
-| Helper / Konstante / Type                  | Wann verwenden                                                                | Datei                                       |
-| ------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------- |
-| `configEntryForNode(node, ctx)`            | Resolver für `entry?.icon` im Renderer — bleibt private in `node-renderer.ts` | `src/render/node-renderer.ts:211` (private) |
-| `colorFor(role, ctx.theme)`                | `${color}` für `<g style="color: ${color}">` in `node-renderer.ts`            | `src/render/theme.ts:7`                     |
-| `nodeColorRole(kind)`                      | Mapping `kind` → `ColorRole` (bereits in node-renderer.ts:21)                 | `src/render/node-renderer.ts:21`            |
-| `DE.nodes.solar`                           | Pairing-Dropdown-Fallback "Solar 1", "Solar 2"                                | `src/i18n/de.ts:8`                          |
-| `DE.editor.*` Strings                      | Editor-Labels — bestehende nutzen, KEINE neuen Strings                        | `src/i18n/de.ts`                            |
-| `validateConfig(config)`                   | Editor-Validation nach jedem `value-changed` (bereits in editor.ts)           | `src/config/schema.ts:27`                   |
-| `fireConfigChanged(el, config)`            | Editor-Event nach validierter Änderung                                        | `src/ha/ha-helpers.ts`                      |
-| `svg` template tag                         | Alle SVG-Templates in `icon.ts`                                               | `lit` (named import)                        |
-| `SVGTemplateResult` type                   | Return-Type von `nodeIcon`/`diagnosticsIcon`                                  | `lit` (type-only import)                    |
-| `LayoutNode['kind']`                       | Discriminator für `NODE_ICON_BOX`-Lookup in `icon.ts`                         | `src/render/layout.ts` (type-only import)   |
-| Existing `icon`-Feld im Editor-Schema      | `{ name: 'icon', selector: { icon: {} } }` — bleibt vorhanden                 | `editor-list-sections.ts:42, 122, 139, 211` |
-| `DisplayConsumer.icon` Feld                | Bereits gesetzt von `derive-display-consumers.ts:83` — direkt verwenden       | `src/config/types.ts:84`                    |
-| `SolarConfig.icon`, `BatteryConfig.icon`   | Optional-Felder bereits in Types — direkt verwenden                           | `src/config/types.ts:19, 27`                |
-| `customElements.get(...)` / `.define(...)` | Im Stub-Code: Re-Registration-Guard (siehe `ha-icon-stub.ts`)                 | Browser-API (kein Helper)                   |
-| `vi.spyOn(console, 'warn')`                | In Stub-DOM-Tests, um `console.warn`-Output zu unterdrücken                   | `vitest` (named import)                     |
+| Helper / Konstante / Type                  | Wann verwenden                                                                 | Datei                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------ | ------------------------------------------- |
+| `configEntryForNode(node, ctx)`            | Resolver für `entry?.icon` im Renderer — bleibt private in `node-renderer.ts`  | `src/render/node-renderer.ts:211` (private) |
+| `colorFor(role, ctx.theme)`                | `${color}` für `<g style="color: ${color}">` in `node-renderer.ts`             | `src/render/theme.ts:7`                     |
+| `nodeColorRole(kind)`                      | Mapping `kind` → `ColorRole` (bereits in node-renderer.ts:21)                  | `src/render/node-renderer.ts:21`            |
+| `DE.nodes.solar`                           | Pairing-Dropdown-Fallback "Solar pv1", "Solar pv2" (konsistent mit `nodeName`) | `src/i18n/de.ts:8`                          |
+| `DE.editor.*` Strings                      | Editor-Labels — bestehende nutzen, KEINE neuen Strings                         | `src/i18n/de.ts`                            |
+| `validateConfig(config)`                   | Editor-Validation nach jedem `value-changed` (bereits in editor.ts)            | `src/config/schema.ts:27`                   |
+| `fireConfigChanged(el, config)`            | Editor-Event nach validierter Änderung                                         | `src/ha/ha-helpers.ts`                      |
+| `svg` template tag                         | Alle SVG-Templates in `icon.ts`                                                | `lit` (named import)                        |
+| `SVGTemplateResult` type                   | Return-Type von `nodeIcon`/`diagnosticsIcon`                                   | `lit` (type-only import)                    |
+| `LayoutNode['kind']`                       | Discriminator für `NODE_ICON_BOX`-Lookup in `icon.ts`                          | `src/render/layout.ts` (type-only import)   |
+| Existing `icon`-Feld im Editor-Schema      | `{ name: 'icon', selector: { icon: {} } }` — bleibt vorhanden                  | `editor-list-sections.ts:42, 122, 139, 211` |
+| `DisplayConsumer.icon` Feld                | Bereits gesetzt von `derive-display-consumers.ts:83` — direkt verwenden        | `src/config/types.ts:84`                    |
+| `SolarConfig.icon`, `BatteryConfig.icon`   | Optional-Felder bereits in Types — direkt verwenden                            | `src/config/types.ts:19, 27`                |
+| `customElements.get(...)` / `.define(...)` | Im Stub-Code: Re-Registration-Guard (siehe `ha-icon-stub.ts`)                  | Browser-API (kein Helper)                   |
+| `vi.spyOn(console, 'warn')`                | In Stub-DOM-Tests, um `console.warn`-Output zu unterdrücken                    | `vitest` (named import)                     |
 
 **Anti-Patterns, die der Planer aktiv vermeiden muss:**
 
@@ -781,7 +781,7 @@ it('renders placeholder rectangle for unknown icon and warns', () => {
 - Schema-Array für Solar enthält kein `{ name: 'id' }`
 - Schema-Array für Battery enthält kein `{ name: 'id' }`
 - Bei `value-changed` mit Teil-Daten (ohne `id`) bleibt `id` im resultierenden Item erhalten (Merge-Pattern)
-- Pairing-Dropdown ohne Solar-`name` rendert `"Solar 1"`, `"Solar 2"`, nicht `"pv1"`, `"pv2"`
+- Pairing-Dropdown ohne Solar-`name` rendert `"Solar pv1"`, `"Solar pv2"` (mit `DE.nodes.solar`-Präfix), nicht das nackte `"pv1"`, `"pv2"`
 
 ### 6.5 Sandbox — visuelle Akzeptanz
 
@@ -906,7 +906,7 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 ## 11. Erfolgs-Kriterien
 
 - [ ] ID-Feld erscheint nicht mehr im Editor für Solar und Battery
-- [ ] Pairing-Dropdown zeigt `"Solar 1"`, `"Solar 2"` statt `"pv1"`, `"pv2"` für unbenannte Solar-Einträge
+- [ ] Pairing-Dropdown zeigt `"Solar pv1"`, `"Solar pv2"` (konsistent mit Card-Rendering via `nodeName`) statt nacktem `"pv1"`, `"pv2"` für unbenannte Solar-Einträge
 - [ ] User-konfiguriertes `mdi:heat-pump` auf einem Consumer erscheint als gerendertes Icon (sowohl in Prod als auch Sandbox)
 - [ ] Area-Icons (z. B. Wohnzimmer: `mdi:sofa`) erscheinen im `by_area`-Grouping-Mode
 - [ ] Diagnostics-Marker rendert `mdi:alert-circle-outline` statt `"!"`
@@ -949,7 +949,7 @@ Spike (Plan-Schritt 1) MUSS Option 1 mit verifizieren, falls die naive Lit-`svg`
 7. **`src/render/icon.ts` neu anlegen + `src/render/icon.test.ts`** — TDD für `nodeIcon` und `diagnosticsIcon` über Lit-`SVGTemplateResult`-Strukturprüfung. **Verbindlich:** Theme-agnostisch, nur Icon-Geometrie, kein `RenderContext`-Bezug (siehe §3.2 Architektur-Prinzipien). Im finalen Code KEINE WHAT-Kommentare (siehe §3.2-Hinweis).
 8. **`node-renderer.ts` migrieren** — `nodeIconChar`/`DEFAULT_ICONS` löschen, `<g>` bekommt `style="color: ${color};"`, neuer `nodeIcon`-Aufruf, lokale `iconY`-Variable löschen. **Wichtig:** Visuelle Diff dokumentieren (Icons werden farbig, siehe §3.3 "bewusste visuelle Änderung"). `configEntryForNode` bleibt private — nicht versuchen, sie nach `icon.ts` zu ziehen.
 9. **`flow-renderer.ts` migrieren** — **identisches Pattern wie Schritt 8, zweimal angewendet**: Diagnostics auf `diagnosticsIcon()`, `<g>` bekommt `style="cursor: help; color: ${fill};"` + `part="diagnostics diagnostics-icon"`. Beide Renderer nutzen jetzt dieselbe `icon.ts`-API; Single-Source-of-Truth ist hergestellt.
-10. **`editor-list-sections.ts` bereinigen** — `id`-Feld aus Solar- und Battery-Schemata entfernen (icon-Feld bleibt unverändert vorhanden, siehe §3.1), Solar-Handler auf Merge-Pattern (analog Battery), Pairing-Dropdown-Fallback auf `${DE.nodes.solar} ${idx + 1}`. Battery-Handler wird NICHT angefasst.
+10. **`editor-list-sections.ts` bereinigen** — `id`-Feld aus Solar- und Battery-Schemata entfernen (icon-Feld bleibt unverändert vorhanden, siehe §3.1), Solar-Handler auf Merge-Pattern (analog Battery), Pairing-Dropdown-Fallback auf `${DE.nodes.solar} ${s.id}` (konsistent mit `nodeName`-Output). Battery-Handler wird NICHT angefasst.
 11. **Editor-Tests (`editor-list-sections.test.ts`, happy-dom-Env)** — Schema-ohne-`id` + Merge-Verhalten + Pairing-Fallback. Feldreihenfolge `name, power, icon` verifizieren.
 12. **`scripts/build-preview.mjs`** — Preview-Entry-Template um `registerHaIconStub()`-Import erweitern (erste Zeilen vor `import { scenarios, … }`, siehe §3.5 Sandbox-Wire-up).
 13. **`examples/preview-mocks.ts` erweitern** — mindestens zwei neue Szenarien (oder bestehende anreichern): (a) Custom-Icon im `none`-Mode mit `consumer.icon: 'mdi:heat-pump'`, (b) Area-Icon-Demo mit `hass.areas['wohnzimmer'].icon: 'mdi:sofa'` und entity-Mapping. Damit Sandbox visuell zeigt, dass beide Icon-Quellen funktionieren. Aktiv testbar nach Schritten 7-9 (Renderer-Migration abgeschlossen).
