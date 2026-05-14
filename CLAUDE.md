@@ -152,6 +152,45 @@ Analog zum Spec-Workflow. Sub-Agent-Prompt-Template in der Plan-Checkliste Phase
 
 **Versionierung:** Status-Header analog Spec — `v1 (proposed, ready for review)`, dann pro Sub-Agent-Iteration hochzählen.
 
+## Implementation — Workflow (verbindlich)
+
+Erfahrung aus Subagent-Driven-Implementation: Wenn Tasks **inkrementell** als Todos angelegt werden (jeweils erst die aktuelle Phase), verliert der User Sicht auf die Restarbeit — wieviele Phasen noch kommen, ob alles auf der Liste ist. Skill `superpowers:subagent-driven-development` sagt explizit: „**Read plan, extract all tasks with full text, note context, create TodoWrite**" — alle upfront.
+
+**Phase 1 — Todo-Liste aus Plan upfront aufbauen:**
+
+Bevor der erste Implementations-Subagent gestartet wird:
+
+1. Plan einmal komplett lesen, alle Tasks/Phasen identifizieren
+2. **Alle Tasks** als TaskCreate-Batch anlegen (in einem Message-Block mit mehreren parallelen TaskCreate-Calls) — typischerweise 1 Task pro Plan-Phase, oder 1 Task pro Plan-Task wenn fein granular
+3. Sichtbares Format z. B. `[IMPL] Phase N — Kurzbeschreibung` als Subject
+4. User sieht: „N Tasks warten, X done, Y in_progress" — voller Überblick über Restarbeit
+
+**Phase 2 — Abarbeitung:**
+
+Tasks werden nach Plan-Reihenfolge abgearbeitet. Pro Task:
+
+- Eine TaskUpdate auf `in_progress`
+- Subagent dispatchen (mit Plan-Task-Text + Kontext)
+- Two-Stage-Review (Spec-Compliance + Code-Quality) oder Inline-Review bei klar überschaubaren Tasks
+- TaskUpdate auf `completed`
+
+**Phase 3 — Liste anpassen wenn nötig:**
+
+Wenn beim Abarbeiten **neue Tasks auftauchen** (z. B. Bundle-Budget-Verletzung in Phase 6 brauchte Whitespace-Trim-Commit, was im Plan nicht stand): **mit TaskCreate ergänzen**, nicht heimlich nebenbei machen.
+
+Wenn ein Task **nicht mehr nötig** ist (z. B. eine Verifikation, die durch einen anderen Schritt schon abgedeckt wurde): mit `TaskUpdate status: deleted` entfernen, nicht stillschweigend ignorieren.
+
+**Phase 4 — Abschluss:**
+
+Nach letztem Task: `superpowers:finishing-a-development-branch` für strukturierte Release-Optionen (Merge / Tag / PR / HACS-Bump). NICHT autonom mergen ohne User-Consent.
+
+**Anti-Patterns (verboten):**
+
+- ❌ Inkrementell Todos anlegen („nächste Phase erst nach Abschluss der aktuellen"). Versteckt Restarbeit.
+- ❌ Tasks im Hinterkopf führen statt als TaskCreate. Verliert Sichtbarkeit.
+- ❌ Neue notwendige Arbeit ohne TaskCreate machen („mal eben fixen"). Versteckt Scope-Drift.
+- ❌ Implementation auf `main` ohne User-Consent (siehe `superpowers:using-git-worktrees`).
+
 ## Module-Layer (Kurzform)
 
 ```
