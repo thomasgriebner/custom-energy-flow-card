@@ -235,11 +235,11 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 
 ## Changelog
 
-### v1.x — MDI-Icon-Rendering + Editor-ID-Cleanup
+### v0.12.0 — 2026-05-14 — MDI-Icon-Rendering + Editor-ID-Cleanup
 
 #### Neu
 
-- **MDI-Icons werden ab v1.x gerendert.** Konfigurierte `icon: mdi:*`-Werte
+- **MDI-Icons werden ab v0.12.0 gerendert.** Konfigurierte `icon: mdi:*`-Werte
   in Solar/Battery/Verbraucher zeigen jetzt das gewählte Icon (vorher nur
   Default-Emojis). Area-Icons aus HA werden im `consumer_grouping: 'by_area'`-
   Mode automatisch verwendet.
