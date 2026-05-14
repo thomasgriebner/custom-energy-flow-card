@@ -235,6 +235,34 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 
 ## Changelog
 
+### v1.x — MDI-Icon-Rendering + Editor-ID-Cleanup
+
+#### Neu
+
+- **MDI-Icons werden ab v1.x gerendert.** Konfigurierte `icon: mdi:*`-Werte
+  in Solar/Battery/Verbraucher zeigen jetzt das gewählte Icon (vorher nur
+  Default-Emojis). Area-Icons aus HA werden im `consumer_grouping: 'by_area'`-
+  Mode automatisch verwendet.
+- **Diagnose-Icon** (gelber Badge top-right bei Engine-Warnings) zeigt jetzt
+  `mdi:alert-circle-outline` statt `!`.
+
+#### Geändert
+
+- **Editor-Feldreihenfolge:** `id` ist nicht mehr editierbar (wird auto-
+  generiert). Solar- und Battery-Einträge zeigen jetzt zuerst `Name`, dann
+  Sensor-Felder, dann `Icon`. Für User mit Muskelgedächtnis merklich, aber
+  besser (Name first).
+- **Pairing-Dropdown** (welche PV lädt diesen Akku?) zeigt `Solar pv1` statt
+  `pv1` bei unbenannten PV-Anlagen — konsistent mit der Card-Anzeige.
+- **Visuelle Diff:** Knoten-Icons werden jetzt in der Knoten-Farbe gerendert
+  (Solar-Gelb, Battery-Grün usw.) statt monochrom. Optionaler card-mod-Hook
+  via `::part(node-icon)`.
+
+#### Intern
+
+- Neuer [ADR-0020](docs/adr/0020-ha-icon-via-foreignobject.md) dokumentiert
+  die Strategie-Wahl (ha-icon via foreignObject statt inline mdi-paths).
+
 ### v0.10.0 (unreleased)
 
 **Breaking visual change.** Existierende Configs funktionieren unverändert,
