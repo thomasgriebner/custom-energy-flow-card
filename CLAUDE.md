@@ -31,21 +31,25 @@ Volle Versionsliste: Spec §2.1.
 
 ## Dokumentations-Karte
 
-| Was suchst du?                            | Wo es liegt                                                                                                            |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Was bauen wir & warum (Vollspec)          | [`docs/specs/2026-05-10-custom-energy-flow-card-design.md`](./docs/specs/2026-05-10-custom-energy-flow-card-design.md) |
-| Architektur-Überblick (lebendig)          | [`docs/architecture.md`](./docs/architecture.md)                                                                       |
-| Architektur-Entscheidungen mit Begründung | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
-| Code-/Workflow-Konventionen               | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
-| **Spec-Vorlage (neue Subspec schreiben)** | [`docs/templates/spec-template.md`](./docs/templates/spec-template.md)                                                 |
-| **Spec-Review-Checkliste** (vor Vorlage)  | [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md)                                 |
-| **Plan-Vorlage (Implementation-Plan)**    | [`docs/templates/plan-template.md`](./docs/templates/plan-template.md)                                                 |
-| **Plan-Review-Checkliste** (vor Vorlage)  | [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md)                                 |
-| Subspec: Verbraucher-Gruppierung & Layout | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
-| Implementation-Pläne (Checkbox-Tasks)     | [`docs/plans/`](./docs/plans/) (per `superpowers:executing-plans` / `subagent-driven-development` abarbeiten)          |
-| Beispiel-Configs (User)                   | `examples/2-pv-2-batt.yaml`                                                                                            |
-| Sandbox (Renderer-Verifikation)           | `examples/preview.html`                                                                                                |
-| User-facing Doku                          | `README.md` (im Repo-Root, wird mit v1.0 angelegt)                                                                     |
+| Was suchst du?                                   | Wo es liegt                                                                                                            |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Was bauen wir & warum (Vollspec)                 | [`docs/specs/2026-05-10-custom-energy-flow-card-design.md`](./docs/specs/2026-05-10-custom-energy-flow-card-design.md) |
+| Architektur-Überblick (lebendig)                 | [`docs/architecture.md`](./docs/architecture.md)                                                                       |
+| Architektur-Entscheidungen mit Begründung        | [`docs/adr/`](./docs/adr/) (Index in `README.md`)                                                                      |
+| Code-/Workflow-Konventionen                      | [`docs/conventions.md`](./docs/conventions.md)                                                                         |
+| **Spec-Vorlage (neue Subspec schreiben)**        | [`docs/templates/spec-template.md`](./docs/templates/spec-template.md)                                                 |
+| **Spec-Review-Checkliste** (vor Vorlage)         | [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md)                                 |
+| **Plan-Vorlage (Implementation-Plan)**           | [`docs/templates/plan-template.md`](./docs/templates/plan-template.md)                                                 |
+| **Plan-Review-Checkliste** (vor Vorlage)         | [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md)                                 |
+| **Code-Review-Checkliste** (post-Implementation) | [`docs/templates/code-review-checklist.md`](./docs/templates/code-review-checklist.md)                                 |
+| **KPI-Skript (Wartbarkeits-Snapshots)**          | [`scripts/kpi.mjs`](./scripts/kpi.mjs)                                                                                 |
+| **KPI-Historie**                                 | [`metrics/kpi-history.json`](./metrics/kpi-history.json)                                                               |
+| **Lessons-Learned-Hot-Pot**                      | [`docs/lessons-learned.md`](./docs/lessons-learned.md)                                                                 |
+| Subspec: Verbraucher-Gruppierung & Layout        | [`docs/specs/2026-05-11-consumer-grouping-and-layout.md`](./docs/specs/2026-05-11-consumer-grouping-and-layout.md)     |
+| Implementation-Pläne (Checkbox-Tasks)            | [`docs/plans/`](./docs/plans/) (per `superpowers:executing-plans` / `subagent-driven-development` abarbeiten)          |
+| Beispiel-Configs (User)                          | `examples/2-pv-2-batt.yaml`                                                                                            |
+| Sandbox (Renderer-Verifikation)                  | `examples/preview.html`                                                                                                |
+| User-facing Doku                                 | `README.md` (im Repo-Root, wird mit v1.0 angelegt)                                                                     |
 
 ## Wo dokumentiere ich was?
 
@@ -57,6 +61,8 @@ Volle Versionsliste: Spec §2.1.
 | den **Tech-Stack** änderst                                                             | dieses `CLAUDE.md` + ADR + Spec §2.1                                                                                                    |
 | ein **User-facing Verhalten** änderst                                                  | `README.md` + ggf. Spec                                                                                                                 |
 | einen **Bug** fixt                                                                     | Commit + Test, keine Doku-Pflicht                                                                                                       |
+| eine **Erkenntnis aus Code-Review** dokumentierst                                      | `docs/lessons-learned.md` (append, NICHT Edit von Spec/Plan — siehe „Code-Review — Workflow" unten)                                     |
+| einen **Lessons-Eintrag in Convention/ADR promotest**                                  | User-curiert: `conventions.md` / neuer ADR / `plan-template.md`; Lessons-Eintrag bekommt `PROMOTED`-Tag                                 |
 | eine neue **Subspec** für ein Feature schreibst                                        | **Workflow zwingend** — siehe „Spec-Erstellung" unten; `docs/specs/YYYY-MM-DD-<topic>.md`                                               |
 | eine Spec in eine **Multi-Step-Implementation** zerlegst                               | **Workflow zwingend** — siehe „Plan-Erstellung" unten; `docs/plans/YYYY-MM-DD-<topic>.md` (Checkbox-Liste)                              |
 
@@ -202,6 +208,17 @@ Analog zum Spec-Workflow, aber Plan-spezifische Fokus-Vektoren (vollständige Pr
 
 Erfahrung aus Subagent-Driven-Implementation: Wenn Tasks **inkrementell** als Todos angelegt werden (jeweils erst die aktuelle Phase), verliert der User Sicht auf die Restarbeit — wieviele Phasen noch kommen, ob alles auf der Liste ist. Skill `superpowers:subagent-driven-development` sagt explizit: „**Read plan, extract all tasks with full text, note context, create TodoWrite**" — alle upfront.
 
+**Phase 0 — Pre-Plan-Snapshot (verbindlich, vor erstem TaskCreate):**
+
+Vor dem TaskCreate-Batch zur Plan-Abarbeitung erfasst der Hauptagent einen KPI-Snapshot und ein Playwright-Capture als Baseline für den späteren Code-Review (siehe „Code-Review — Workflow (verbindlich)" Phase 1 für Detail-Pattern):
+
+1. `pnpm check && pnpm build && pnpm test:coverage` (Voraussetzungen für Coverage- und Bundle-Werte)
+2. `pnpm kpi:snapshot --label pre-<plan-id> --phase pre` (appendet an `metrics/kpi-history.json`)
+3. Playwright-Capture-Stufe-1 mit Trap-Pattern (Artefakt explizit nach `metrics/playwright/<plan-id>-pre.json`)
+4. Sichtbarer Output: „Pre-Snapshot pre-<plan-id> erfasst. KPI-Baseline: <files>, <loc>, …"
+
+Erst dann Phase 1. **Ausnahme:** Bei Implementation des Code-Review-Workflows selbst (chicken-and-egg — `pnpm kpi:snapshot` existiert noch nicht) ist diese Phase OPTIONAL und im Plan dokumentiert.
+
 **Phase 1 — Todo-Liste aus Plan upfront aufbauen:**
 
 Bevor der erste Implementations-Subagent gestartet wird:
@@ -226,9 +243,19 @@ Wenn beim Abarbeiten **neue Tasks auftauchen** (z. B. Bundle-Budget-Verletzung i
 
 Wenn ein Task **nicht mehr nötig** ist (z. B. eine Verifikation, die durch einen anderen Schritt schon abgedeckt wurde): mit `TaskUpdate status: deleted` entfernen, nicht stillschweigend ignorieren.
 
-**Phase 4 — Abschluss:**
+**Phase 5 — Post-Plan-Snapshot + Code-Review-Trigger (verbindlich, vor finishing-a-development-branch):**
 
-Nach letztem Task: `superpowers:finishing-a-development-branch` für strukturierte Release-Optionen (Merge / Tag / PR / HACS-Bump). NICHT autonom mergen ohne User-Consent.
+Nach letztem TaskUpdate auf `completed` und `pnpm check` + `pnpm smoke` grün:
+
+1. `pnpm build && pnpm test:coverage`
+2. `pnpm kpi:snapshot --label post-<plan-id> --phase post`
+3. Playwright-Capture-Stufe-1 (post) — Artefakt nach `metrics/playwright/<plan-id>-post.json`
+4. Code-Review-Workflow starten (siehe „Code-Review — Workflow (verbindlich)")
+5. Erst nach Code-Review-Stop-Kriterium: Phase 6.
+
+**Phase 6 — Abschluss:**
+
+Nach erfolgreichem Code-Review: `superpowers:finishing-a-development-branch` für strukturierte Release-Optionen (Merge / Tag / PR / HACS-Bump). NICHT autonom mergen ohne User-Consent.
 
 **Anti-Patterns (verboten):**
 
@@ -236,6 +263,87 @@ Nach letztem Task: `superpowers:finishing-a-development-branch` für strukturier
 - ❌ Tasks im Hinterkopf führen statt als TaskCreate. Verliert Sichtbarkeit.
 - ❌ Neue notwendige Arbeit ohne TaskCreate machen („mal eben fixen"). Versteckt Scope-Drift.
 - ❌ Implementation auf `main` ohne User-Consent (siehe `superpowers:using-git-worktrees`).
+- ❌ Phase 0 (Pre-Snapshot) überspringen — Code-Review-Pass 3 hat dann keine Delta-Baseline.
+- ❌ Phase 5 (Post-Snapshot + Code-Review) überspringen und direkt zu `finishing-a-development-branch` — Quality-Gate-Bypass.
+
+## Code-Review — Workflow (verbindlich)
+
+Erfahrung: Spec/Plan-Review (Workflows oben) fängt Architektur-Probleme **vor** Implementation. Smoke-Test (ADR-0012) fängt Class-Load-Crashes **vor** Release. Zwischen Implementation und Release fehlte aber ein systematischer Pass für Code-Qualitäts-Drift, Wartbarkeits-KPI-Trends und funktionale UI-Verifikation. Dieser Workflow schließt die Lücke (ADR-0021).
+
+**Phase 1 — Pre-Snapshot (vor Implementation, identisch zu „Implementation — Workflow" Phase 0):**
+
+1. Voraussetzungen herstellen: `pnpm check && pnpm build && pnpm test:coverage`
+2. `pnpm kpi:snapshot --label pre-<plan-id> --phase pre` (appendet an `metrics/kpi-history.json`)
+3. Playwright-Capture-Stufe-1 mit Trap-Pattern:
+
+   ```bash
+   PREVIEW_PID=$(pnpm preview > /tmp/preview.log 2>&1 & echo $!)
+   trap "kill $PREVIEW_PID 2>/dev/null" EXIT INT TERM
+   # MCP-Tools: browser_navigate → browser_wait_for "ha-card" →
+   # browser_console_messages → browser_snapshot → browser_evaluate
+   # Hauptagent schreibt Artefakt explizit nach metrics/playwright/<plan-id>-pre.json
+   # (NICHT auf MCP-Default-Pfad .playwright-mcp/ verlassen — der ist gitignored)
+   kill $PREVIEW_PID
+   ```
+
+**Phase 2 — Implementation:** unverändert, siehe „Implementation — Workflow (verbindlich)" Phasen 1–3.
+
+**Phase 3 — Post-Snapshot (nach letztem Implementation-Task):** analog Phase 1, mit `--label post-<plan-id> --phase post` und Artefakt-Pfad `metrics/playwright/<plan-id>-post.json`.
+
+**Phase 4 — Self-Review + 6-Pass-Iteration:**
+
+- Self-Review-Phasen A–H aus [`docs/templates/code-review-checklist.md`](./docs/templates/code-review-checklist.md) durcharbeiten (Hauptagent, namentlich abhaken).
+- Danach 6 Sub-Agent-Pässe **sequentiell** mit rotierenden Fokus-Vektoren (vollständige Prompt-Templates in der Checkliste Phase Z):
+
+  | Pass | Fokus                              | Was prüft die Brille                                                                                          |
+  | ---- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+  | 1    | Spec/Plan ↔ Code-Coverage          | Spec §3 + Plan-Tasks 1:1 im Code? Drift?                                                                      |
+  | 2    | Architektur + ADRs + Conventions   | Layer-Boundaries (Doppel-Check), Anti-Patterns conv §11, ADR-Compliance, Imports-Reihenfolge, Comments-Policy |
+  | 3    | Wartbarkeits-KPIs (skript-basiert) | `pnpm kpi:report` Delta pre→post; Threshold-Verstöße; Type-Safety-Drift                                       |
+  | 4    | Test-Tiefe + TDD-Compliance        | Edge-Cases, TDD-Order via `git log --reverse`, `it.each`, Coverage-Lücken                                     |
+  | 5    | UX + Funktional via Playwright     | Hauptagent: MCP-Capture (Stufe-1); Sub-Agent: Artefakt-Analyse + Spec §9                                      |
+  | 6    | Release-Readiness + Restrisiko     | Bundle ≤ 60 kB, `pnpm smoke`, `pnpm check`, Doku-Updates komplett, HACS-Bump (USER-DECISION), Rollback-Pfad   |
+
+- **Pflicht-Pässe je Plan-Komplexität:**
+  - Klein (≤ 5 Tasks): Pässe 1 + 6 (2 Pässe)
+  - Mittel (5–15 Tasks): Pässe 1 + 2 + 3 + 6 (4 Pässe)
+  - Groß (15+ Tasks): alle 6 Pässe
+  - Multi-Iteration: bis 3 Iterationen × 6 = 18 Sub-Agent-Runs
+
+- **Ablauf: SEQUENTIELL, nicht parallel.** Analog zu Spec/Plan-Workflow — Sub-Agent N+1 muss die durch Pass N gefixten Findings sehen. Parallel-Dispatch erzeugt doppelte Findings, weil kein Pass den Fix des anderen sieht.
+
+- **Loop pro Pass:**
+  1. Sub-Agent dispatchen mit Fokus-Vektor-Prompt aus `code-review-checklist.md` Phase Z.
+  2. Findings als Tasks anlegen (`TaskCreate`): Kategorie + Pass-Nummer als Metadata. Kategorien: `AUTO-FIX` / `FIX-PLAN` / `USER-DECISION` / `VERIFY-NEEDED` / `LESSON-LEARNED`.
+  3. **Trust-but-Verify** pro `AUTO-FIX`: Hauptagent prüft jedes Finding gegen echten Code, BEVOR er fixt. Sub-Agent kann falsch liegen (False-Positive).
+  4. `AUTO-FIX` inline umsetzen. `FIX-PLAN` sammeln für mini-Sub-Plan nach Pass 6. `USER-DECISION` für User-Vorlage sammeln. `VERIFY-NEEDED` prüfen (z. B. Coverage-Daten fehlen). `LESSON-LEARNED` an `docs/lessons-learned.md` appenden.
+  5. **ERST DANN** nächsten Pass starten.
+
+- **Spec/Plan-Dokumente bleiben unangetastet** — retroaktive Edits an `docs/specs/` oder `docs/plans/` wären Revisionismus. Lessons fließen ausschließlich in `docs/lessons-learned.md` (User-curiert, Promotion zu Convention/ADR erfolgt separat mit `PROMOTED`-Tag).
+
+- Nach allen Pässen einer Iteration: gibt es `FIX-PLAN`-Findings? → mini-Sub-Plan via `superpowers:writing-plans` + `subagent-driven-development` umsetzen, danach **neuen** Post-Snapshot ziehen (überschreibt vorigen), dann Iteration N+1.
+
+- **Stop-Kriterien:**
+  - Zwei aufeinanderfolgende Iterationen ohne neue `AUTO-FIX`/`FIX-PLAN`-Findings
+  - Nur noch `USER-DECISION` offen
+  - Max 3 Iterationen erreicht
+
+**Phase 5 — ADR-Check + User-Vorlage:**
+
+- Hauptagent scannt Findings + neue `LESSON-LEARNED`-Einträge: wiederkehrende Architektur-Entscheidung erkennbar? Falls ja: ADR-Stub vorbereiten und als `USER-DECISION` präsentieren.
+- User-Vorlage bündelt: `USER-DECISION`-Findings (mit Optionen) + KPI-Delta-Tabelle aus `pnpm kpi:report` + Playwright-Artefakt-Pfade + Titel der neuen Lessons + ADR-Vorschläge.
+- User entscheidet pro `USER-DECISION` → Hauptagent setzt Entscheidungen um, ggf. weitere `AUTO-FIX`, KPI-Snapshot ggf. erneut überschreiben.
+
+**Phase 6 — `finishing-a-development-branch`** (existierender Skill): strukturierte Release-Optionen (Merge / Tag / PR / HACS-Bump). NICHT autonom mergen.
+
+**Anti-Patterns (verboten):**
+
+- ❌ Parallel-Dispatch der Sub-Agent-Pässe (analog Spec/Plan: sequentiell-Pflicht — doppelte Findings statt Konvergenz).
+- ❌ `FIX-PLAN`-Findings inline fixen ohne mini-Sub-Plan-Disziplin („mal eben refactoren") — versteckt Scope-Drift, gleicher Fehler wie in Implementation-Workflow.
+- ❌ Edits an `docs/specs/` oder `docs/plans/` als „Lesson-Update" — Spec/Plan sind historische Artefakte, Lessons gehören in `docs/lessons-learned.md`.
+- ❌ Pass 5 ohne Hauptagent-MCP-Capture — Sub-Agent hat keinen MCP-Browser-Zugriff. Ohne Pre-/Post-Artefakte ist Pass 5 nicht durchführbar (dann explizit als „skipped" markieren, nicht stillschweigend überspringen).
+- ❌ Playwright-Output auf `.playwright-mcp/`-Default-Pfad verlassen — Verzeichnis ist gitignored, Artefakte verschwinden. Pfad immer explizit nach `metrics/playwright/<plan-id>-<phase>.json` setzen.
+- ❌ KPI-Skript laufen lassen ohne vorheriges `pnpm test:coverage` — `coverage-summary.json` fehlt dann, Snapshot bekommt `coverage_pct: null` und Pass 4 hat keine echte Datengrundlage.
 
 ## Module-Layer (Kurzform)
 

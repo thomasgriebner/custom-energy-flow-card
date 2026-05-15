@@ -53,6 +53,12 @@
 > - Conventional-Commit-Format (conventions §8)
 > - Keine WHAT-Kommentare; Strings aus `i18n/de.ts` (conventions §2, §11.5)
 > - **TDD-First** für `engine/`/`config/`/`util/`: Test rot, dann Code, dann grün
+>
+> **KPI-Snapshot-Pflicht (siehe `CLAUDE.md` „Code-Review — Workflow"):**
+>
+> - Vor erstem Task: `pnpm kpi:snapshot --label pre-<plan-id> --phase pre`
+> - Nach letztem Task: `pnpm kpi:snapshot --label post-<plan-id> --phase post`
+> - Code-Review-Workflow läuft danach VOR `finishing-a-development-branch`
 
 **Elements NICHT anfassen** (aus Spec §0.4 Don't-Touch-Liste — 1:1 hier reproduzieren oder explizit referenzieren):
 
@@ -62,10 +68,14 @@
 
 **Phases:**
 
+- Phase 0. **KPI-Pre-Snapshot + Playwright-Capture** (verbindlich, vor erstem Task)
 - Phase 0. [Vorab-Gates: Spike, ADR-Anlage] ([N] tasks)
 - Phase 1. [Foundation] ([N] tasks)
 - Phase 2. [...] ([N] tasks)
 - Phase 3. [Doku + Verifikation] ([N] tasks)
+- Phase N+1. **KPI-Post-Snapshot + Code-Review-Workflow** (verbindlich, nach letztem Task)
+
+(Phase-Numbering ist Beispiel — der konkrete Plan setzt eigene Nummern. Pre/Post-Snapshot-Schritte sind Pflicht für jeden Plan, der Code ändert; bei reinen Doku-Plänen optional.)
 
 ---
 
