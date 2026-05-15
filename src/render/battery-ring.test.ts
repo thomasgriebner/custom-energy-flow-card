@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { renderBatteryRing } from './battery-ring';
 
-// Lit's SVGTemplateResult exposes strings + values arrays.
 function serialize(template: ReturnType<typeof renderBatteryRing>): string {
   const t = template as unknown as { strings: readonly string[]; values: readonly unknown[] };
   const parts: string[] = [];
   t.strings.forEach((s, i) => {
     parts.push(s);
-    if (i < t.values.length) parts.push(String(t.values[i]));
+    if (i < t.values.length) {
+      const v = t.values[i];
+      if (v && typeof v === 'object' && 'strings' in v && 'values' in v) {
+        parts.push(serialize(v as ReturnType<typeof renderBatteryRing>));
+      } else {
+        parts.push(String(v));
+      }
+    }
   });
   return parts.join('');
 }
