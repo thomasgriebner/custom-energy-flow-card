@@ -1,7 +1,7 @@
 import { svg, type SVGTemplateResult } from 'lit';
 import { DE } from '../i18n/de';
 import { formatPowerW } from '../util/format-power';
-import { renderBatteryRing } from './battery-ring';
+import { formatSocPct, renderBatteryRing } from './battery-ring';
 import { renderHomeRing } from './home-ring';
 import { nodeIcon } from './icon';
 import { colorFor, HA_CSS_VARS } from './theme';
@@ -44,7 +44,7 @@ export function renderNode(
   const ariaLabel = unavailable
     ? `${name}: ${DE.states.sensorUnavailable}`
     : showRing
-      ? `${name}: ${value}, ${Math.round(socPct as number)}%`
+      ? `${name}: ${value}, ${formatSocPct(socPct as number)}`
       : `${name}: ${value}`;
 
   const ring =
