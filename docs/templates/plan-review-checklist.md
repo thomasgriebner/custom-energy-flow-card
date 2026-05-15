@@ -21,6 +21,7 @@
 - [ ] Goldstandard-Plan-Beispiel gelesen: `docs/plans/2026-05-12-aspect-ratio-redesign.md` (1 Iteration)
 - [ ] Alle Source-Files gelesen, die in Plan-Tasks angefasst werden — Zeilennummern verifiziert
 - [ ] `grep` für jede zu ändernde Funktion — Aufrufer identifiziert
+- [ ] **Alle Plan-referenzierten Test-Files via `find src/ -name '*.test.ts'` verifizieren** (Lesson 2026-05-15: Plan kann auf `*.test.ts` verweisen, die nicht existieren — z. B. `home-ring.test.ts`. Sanity-Check via `pnpm test <pfad>` schlägt dann fehl, Implementation muss umroutet werden)
 
 **Ausgabe vor User-Vorlage:** „Spec-§ → Plan-Task Mapping vollständig: §0.X → Task Y, §3.X → Task Z, …"
 
@@ -211,7 +212,13 @@ Lies den Plan unter `[PLAN-PFAD]` und die zugehörige Spec (im Plan-Header verli
 3. Identifiziere Plan-Tasks ohne Spec-Anker (Scope-Drift).
 4. Verifiziere konkrete Werte: wenn Spec sagt „Wert von X auf Y", steht im Plan-Task
    exakt Y? Oder hat der Planer einen anderen Wert geschrieben?
-5. Verifiziere Test-Vorgaben: wenn Spec §6 einen Test fordert (neuer Test-Case),
+5. **Plan-Step-Erwartungen mathematisch validieren** (Lesson 2026-05-15): Wenn ein
+   Plan-Step `Test FAIL erwartet` sagt und ein Test-Snippet hardcoded SOLL-Werte als
+   Input verwendet, ist der Test **immer PASS** (mathematisch konsistente Werte
+   gegen Threshold), nicht FAIL. Inputs gegen Assertions durchrechnen. Bei
+   ähnlich strikten Margin-Checks („FAIL weil Wert N=34 vs 32") prüfen ob die
+   reale Marginalität die Bedingung überhaupt auslöst.
+6. Verifiziere Test-Vorgaben: wenn Spec §6 einen Test fordert (neuer Test-Case),
    ist der im Plan als konkreter Plan-Task enthalten?
 
 **Verbindliche Lese-Quellen:**

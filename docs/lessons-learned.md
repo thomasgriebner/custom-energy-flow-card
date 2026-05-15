@@ -32,7 +32,7 @@
 **Fix im Code:** Tests sind inhaltlich korrekt (Geometrie-Anchor + Regression-Schutz). Implementation 1:1 nach Plan-Step-4. Plan-Step-5-Erwartung ist Plan-interne Doku-Inkonsistenz.
 **Lehre für nächstes Mal:** Plan-Review Pass 1 (faktisch) sollte Plan-Step-4-Code-Snippets mathematisch gegen Plan-Step-5-Erwartungen validieren. Bei "Test FAIL erwartet"-Pattern: prüfen ob hardcoded-Soll-Werte den FAIL überhaupt erreichen können oder ob die Test-Doku falsch ist.
 **Promotion-Kandidat:** `plan-review-checklist.md` Phase Z Pass 1 (faktische Korrektheit): Bullet "Plan-Step-5-Erwartungen mathematisch gegen Plan-Step-4-Code validieren — bei `Test FAIL erwartet`-Pattern: Input-Werte gegen Assertion durchrechnen"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/plan-review-checklist.md` Pass-1-Prompt Punkt 5 (2026-05-15)
 
 #### LESSON: Plan-Referenz auf nicht-existente Test-File (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -41,7 +41,7 @@
 **Fix im Code:** Kein Code-Fix; Verifikation via git-diff statt Test-Run.
 **Lehre für nächstes Mal:** Plan-Review sollte Datei-Referenzen via `ls`/`find` belegen. Bei "Sanity-Check via Test"-Pattern: Test-File-Existenz vorher verifizieren.
 **Promotion-Kandidat:** `plan-review-checklist.md` Phase A (Repo-Discovery): Bullet "Alle Plan-referenzierte Test-Files via `find src/ -name '*.test.ts'` verifizieren bevor Plan angenommen wird"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/plan-review-checklist.md` Phase A letzter Bullet (2026-05-15)
 
 #### LESSON: Plan-Bundle-Schwelle vs CI-Gate-Wert (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -50,7 +50,7 @@
 **Fix im Code:** Kein Fix; Klärung war ausreichend.
 **Lehre für nächstes Mal:** Plan-Templates sollten Bundle-Werte mit expliziter Einheit (KiB vs kB) und Verweis auf den CI-Gate-Pfad (`scripts/kpi.mjs:29`) zitieren statt "60 KB" ambivalent.
 **Promotion-Kandidat:** `plan-template.md` Phase Verifikations-Pipeline: Bundle-Budget-Bullet auf `BUNDLE_BUDGET_BYTES (scripts/kpi.mjs:29)` referenzieren statt freier "60 kB"-Formulierung
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/plan-template.md` Task N.6 Final-Verifikation (2026-05-15)
 
 #### LESSON: KPI-Skript `kpi:report` listet aktuelle Verstöße als "NEU" (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -68,7 +68,7 @@
 **Fix im Code:** Im konkreten Fall durch Zufall korrekt. Pattern für künftige Plans: Phase 0 explizit dokumentieren `pnpm build && pnpm preview & ... playwright capture pre.json` als verbindliche Sequenz, NICHT optional.
 **Lehre für nächstes Mal:** Phase-0-Playwright-Capture sollte das Bundle-Hash im `_meta`-Block mitloggen, damit Build-Drift sichtbar wird (wenn capture nach Phase-3-Build statt vor: error). Oder Pre-Snapshot pflicht machen statt optional (graceful-fallback nur bei MCP-Nichtverfügbarkeit).
 **Promotion-Kandidat:** `CLAUDE.md` Implementation-Workflow Phase 0 (Pre-Snapshot): Bullet "Bundle-Hash + Build-Timestamp in playwright/$plan-id-pre.json `_meta` mitloggen"
-**Status:** offen
+**Status:** PROMOTED zu `CLAUDE.md` Implementation-Workflow Phase 0 Punkt 3 (2026-05-15)
 
 #### LESSON: Engine-Recompute verhindert hardcoded Stress-Tests (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -77,7 +77,7 @@
 **Fix im Code:** Kein Code-Fix; Verifikation war indirekt-mathematisch ausreichend.
 **Lehre für nächstes Mal:** Stress-Tests für UI-Overflow-Verhalten sollten Engine-Bypass-Hooks haben (z. B. direkten SVG-DOM-Edit der `text.node-value`-Texts) oder Snapshot-basierte Pixel-Tests. Plan-Tasks für "5-stellig im Browser verifizieren" via DevTools-Override sind brittle bei recomputed-engines.
 **Promotion-Kandidat:** `spec-template.md` UX-Stress-Tests-Bullet: "Bei UI-Overflow-Stress-Tests: Engine-Bypass-Hook vorsehen oder Snapshot-Pixel-Test statt Live-Engine-Mutation"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/spec-template.md` §9.1 Blockquote-Hinweis (2026-05-15)
 
 #### LESSON: Hotfix Grid-Font 14→13 nach Plan §4.2-Fallback — Spec-Drift legitim, weil Plan §4.2 STOP-Aktion explizit vorgesehen (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -86,7 +86,7 @@
 **Fix im Code:** `src/render/node-renderer.ts:98` Font-Size-Bedingung erweitert: `node.kind === 'home' ? 15 : node.kind === 'grid' ? 13 : 14`. `icon.test.ts:66` it.each-Eintrag für Grid auf fontSize=13. README-Changelog ergänzt um Grid-Font-Erwähnung. KEIN Spec-Update (Spec ist historisches Artefakt).
 **Lehre für nächstes Mal:** Plan §STOP-Aktionen, die explizit Code-Werte ändern, sind legitime "Plan-internal-Fix"-Pfade — der entstehende Spec-Code-Drift sollte als Lesson dokumentiert werden, nicht in Spec retroaktiv gepatcht. Optional für künftige Plan-Templates: STOP-Aktions-Sektion explizit als "Spec-Drift-Erlaubnis" markieren mit Verweis auf Lessons-Update.
 **Promotion-Kandidat:** `plan-template.md` STOP-Conditions-Sektion: Hinweis "STOP-Aktion, die einen Spec-Wert ändert, ist ein 'Plan-internal-Fix' → führt zu Spec-Drift → MUSS als Lessons-Learned dokumentiert werden (NICHT Spec retroaktiv patchen)"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/plan-template.md` Self-Review-Checkliste STOP-Conditions-Bullet (2026-05-15)
 
 #### LESSON: Pass 6 sollte zwischen Spec-induced vs pre-existing Test-Flake trennen (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 
@@ -95,4 +95,4 @@
 **Fix im Code:** Pass 6 sollte `git blame` auf failing test ziehen — wenn Test-Commit vor Plan-Start: LESSON statt Block. Code-Fix (Threshold-Lockerung): User-Entscheidung, nicht autonom.
 **Lehre für nächstes Mal:** Pass-6-Workflow-Erweiterung: bei `pnpm check`-FAIL `git blame` auf failing Test-File-Zeile. Wenn Blame-Commit nicht im Plan-Diff: als pre-existing markieren, LESSON-LEARNED appenden, USER-DECISION für Fix-Hotfix.
 **Promotion-Kandidat:** `code-review-checklist.md` Phase Z Pass 6: Bullet "Bei `pnpm check`-FAIL: `git blame` auf failing test → Pre-existing? → LESSON statt Block"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/code-review-checklist.md` Pass-6-Prompt Punkt 2 (2026-05-15)

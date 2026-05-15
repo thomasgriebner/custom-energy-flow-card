@@ -610,6 +610,11 @@ Welche Risiken bleiben, die der User vor Merge/Release kennen sollte?
      oder vertraut Self-Review-Phase E)
    - `pnpm build:analyze` zeigt keine verbotenen Deps (alles außer Lit ist Bug)
    - `pnpm smoke` grün (ADR-0012 Pre-Release-Smoke-Test)
+   - **Bei `pnpm check`-FAIL** (Lesson 2026-05-15): `git blame` auf die failing
+     Test-File-Zeile. Wenn Blame-Commit NICHT im Plan-Diff (`git log main..HEAD`)
+     enthalten ist → **pre-existing flake**, kein Spec-Regression. Als
+     `[LESSON-LEARNED]` plus `[USER-DECISION]` für separaten Hotfix-Commit melden,
+     NICHT als Block für die Release-Entscheidung werten.
 
 3. **Doku-Updates komplett pro Spec §7:**
    - CLAUDE.md aktualisiert wo nötig (Spec §7 spezifiziert konkrete Sektionen)?

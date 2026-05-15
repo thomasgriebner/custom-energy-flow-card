@@ -244,7 +244,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 ### Task N.6: Final-Verifikation
 
 - [ ] `pnpm check` grün
-- [ ] `pnpm build` produziert Bundle ≤ [N] kB
+- [ ] `pnpm build` produziert Bundle ≤ `BUNDLE_BUDGET_BYTES` aus `scripts/kpi.mjs:29` (aktuell `60 * 1024 = 61440` B = 60 KiB; **NICHT** dezimal 60.000) — Lesson 2026-05-15: „60 kB" in Plan-Texten kann zu Misinterpretation 60.000 vs 61.440 führen. Immer auf `scripts/kpi.mjs`-Konstante verweisen.
 - [ ] `pnpm build:analyze` zeigt keine verbotenen Dependencies in `dist/`
 - [ ] `pnpm smoke` grün
 - [ ] LOC-Regression-Check: `wc -l src/[file]` < [vorher]
@@ -276,7 +276,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 - [ ] **Anti-Patterns** (Spec §3.X) aktiv vermieden: konkrete Beispiele in Tasks markiert ("nicht hardcoded …")
 - [ ] **Standing-Reminder pro Phase:** Conventions/ADRs nochmal erwähnt (verhindert Drift bei langem Plan)
 - [ ] **TDD-Order:** Tests vor Code wo TDD-Pflicht (engine/config/util)
-- [ ] **STOP-Conditions:** jeder kritische Task hat eine STOP-Bedingung („wenn Test grün bleibt obwohl rot erwartet")
+- [ ] **STOP-Conditions:** jeder kritische Task hat eine STOP-Bedingung („wenn Test grün bleibt obwohl rot erwartet"). Lesson 2026-05-15: STOP-Aktionen, die einen Spec-Wert verändern (z. B. „Bei Grid-Überlauf Font reduzieren auf 13 statt 14"), sind ein legitimer **Plan-internal-Fix-Pfad**. Der entstehende Spec-Code-Drift MUSS als Lessons-Learned-Eintrag dokumentiert werden (Spec/Plan-Dokumente werden NICHT retroaktiv gepatcht).
 - [ ] **Framework-Quirks** abgedeckt (siehe Plan-Review-Checkliste Phase J): Lit-css-Tag, shouldUpdate vs hasChanged, foreignObject-Namespace, customElements-Guard, noUncheckedIndexedAccess
 - [ ] **Build-Pipeline** explizit: tsconfig/.eslintrc/vitest.config-Edits konkret, mit Zeile + Diff
 - [ ] **Doku-Pflicht (conventions §12):** ADR + ADR-Index + architecture.md §4 (Pflicht bei neuem ADR); README bei User-facing Verhalten

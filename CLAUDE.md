@@ -214,7 +214,7 @@ Vor dem TaskCreate-Batch zur Plan-Abarbeitung erfasst der Hauptagent einen KPI-S
 
 1. `pnpm check && pnpm build && pnpm test:coverage` (Voraussetzungen für Coverage- und Bundle-Werte)
 2. `pnpm kpi:snapshot --label pre-<plan-id> --phase pre` (appendet an `metrics/kpi-history.json`)
-3. Playwright-Capture-Stufe-1 mit Trap-Pattern (Artefakt explizit nach `metrics/playwright/<plan-id>-pre.json`)
+3. Playwright-Capture-Stufe-1 mit Trap-Pattern (Artefakt explizit nach `metrics/playwright/<plan-id>-pre.json`). **Bundle-Hash + Build-Timestamp** des aktuell geladenen `dist/custom-energy-flow-card.js` im `_meta.card_bundle_built`-Feld mitloggen (Lesson 2026-05-15: Playwright lädt das `dist/`-Bundle — wenn `dist/` veraltet ist, capturt der Pre-Snapshot eine ältere Render-Version als der aktuelle Source-Stand; mit Bundle-Hash wird Drift sichtbar)
 4. Sichtbarer Output: „Pre-Snapshot pre-<plan-id> erfasst. KPI-Baseline: <files>, <loc>, …"
 
 Erst dann Phase 1. **Ausnahme:** Bei Implementation des Code-Review-Workflows selbst (chicken-and-egg — `pnpm kpi:snapshot` existiert noch nicht) ist diese Phase OPTIONAL und im Plan dokumentiert.

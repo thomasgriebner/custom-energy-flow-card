@@ -237,6 +237,8 @@ Anlegen vor Code-Änderungen (Plan-Schritt 1 oder 2).
 
 [**Pflicht-Sektion.** Konkrete UX-Implikationen: Field-Reihenfolge ändert sich? Visuelle Änderung (Farbe, Größe)? Mode-spezifisches Verhalten? Editor-Banner nötig? A11y-Auswirkungen?]
 
+> **Bei UI-Overflow-/Geometrie-Stress-Tests** (Lesson 2026-05-15): Wenn ein Plan-Task einen Edge-Case via Live-Sensor-Override im Browser testen soll (z. B. „5-stellig-Werte"), prüfe ob die Engine den Wert recomputed (Energy-Bilanz aus PV+Batt+Consumer). Bei recomputed-Engines schlägt DevTools-Override fehl — der Test ist brittle. **Stattdessen:** Engine-Bypass-Hook (direkter SVG-DOM-Edit der `text.node-value`), Snapshot-basierter Pixel-Test, oder mathematische Geometrie-Validierung. Plan-Tasks sollten den Test-Pfad explizit benennen.
+
 ### 9.2 Out-of-Scope
 
 - **[Feature]:** [Begründung] → v1.x-Kandidat / separates Issue
