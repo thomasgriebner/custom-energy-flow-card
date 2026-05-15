@@ -244,6 +244,8 @@ Visuelles Polish-Release. Behebt vier Render-Issues aus dem Live-Betrieb:
 - **Consumer-Icon vergrößert** (18 → 24 px)
 - **Battery-Ring** sitzt jetzt außerhalb des Batterie-Kreises
 - **Default-Icon für Batterie:** `mdi:battery` → `mdi:home-battery`
+- **Grid-Wert-Font** auf 13 px (statt 14 wie bei PV/Batt) — gibt der kleinsten Kreis-Geometrie (r=40)
+  zusätzlichen Headroom für 5-stellige Werte mit Vorzeichen (`−12.345 W`).
 
 Keine Config-Migration nötig. Bestehende User-Configs mit eigenem `icon:`-Property
 bleiben unverändert.

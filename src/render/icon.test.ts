@@ -63,7 +63,7 @@ describe('nodeIcon', () => {
   it.each([
     ['pv', 24, -12, 20, 14],
     ['battery', 24, -12, 20, 14],
-    ['grid', 24, -12, 20, 14],
+    ['grid', 24, -12, 20, 13],
     ['home', 32, -16, 20, 15],
   ] as const)(
     'spacing icon-bottom ↔ value-top ≥ 8 px (%s)',

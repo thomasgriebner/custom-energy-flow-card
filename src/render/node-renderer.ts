@@ -95,7 +95,7 @@ export function renderNode(
             </text>
           `
           : svg`
-            <text class="node-value" text-anchor="middle" y="${valueY}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 14}">
+            <text class="node-value" text-anchor="middle" y="${valueY}" font-weight="700" font-size="${node.kind === 'home' ? 15 : node.kind === 'grid' ? 13 : 14}">
               ${value}
             </text>
             <text class="node-name" text-anchor="middle" y="${labelOffset}" font-size="11" font-weight="600">
