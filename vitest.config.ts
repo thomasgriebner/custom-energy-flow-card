@@ -11,6 +11,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json-summary'],
       include: ['src/engine/**', 'src/config/**', 'src/util/**'],
       exclude: ['**/*.test.ts'],
       thresholds: {
