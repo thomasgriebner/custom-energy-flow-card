@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "plan_id": "2026-05-15-icon-positionierung",
+    "phase": "pre",
+    "captured_at": "2026-05-15T14:08:00Z",
+    "captured_by": "main-agent via Playwright MCP",
+    "scenario": "Sonniger Tag · Akkus laden · Überschuss → Netz",
+    "viewport": "1280x720",
+    "preview_url": "http://127.0.0.1:5180/preview/preview.html",
+    "card_bundle_built": "2026-05-15T13:39:00Z (pre-Phase-3-edits, before commits db670ef + c435ddd)",
+    "note": "Pre-snapshot indirekt erfasst, weil dist/custom-energy-flow-card.js noch vom Phase-0 pnpm build stammt. Konfirmiert die ALTEN Werte als Baseline für Post-Vergleich."
+  },
+  "console_errors": [
+    {
+      "text": "Failed to load resource: 404 Not Found",
+      "url": "http://127.0.0.1:5180/favicon.ico",
+      "harmless": true
+    }
+  ],
+  "svg": {
+    "viewBox": "0 0 960 540",
+    "circles_by_kind": {
+      "pv": {
+        "r": "34",
+        "label_examples": ["Solar Dach: 2,600 W", "Solar Balkon: 600 W"],
+        "count": 2
+      },
+      "grid": { "r": "32", "label": "Netz: −1,200 W" },
+      "battery": {
+        "r": "34",
+        "label_examples": ["Dach-Speicher: +600 W, 75%", "Balkon-Speicher: +200 W, 42%"],
+        "count": 2
+      },
+      "consumer": { "r": "24", "label_examples": ["Wärmepumpe", "Herd", "Wallbox"], "count": 3 },
+      "home": { "r": "50", "label": "Hausverbrauch: 1,200 W" },
+      "battery_ring": { "r": "42", "count": 4, "note": "2 batteries × (background + filled)" },
+      "home_ring": { "r": "60", "count": 2 }
+    },
+    "foreignObjects_by_kind": {
+      "pv": { "width": "24", "height": "24", "x": "-12", "y": "-16", "icon": "mdi:solar-power" },
+      "grid": {
+        "width": "24",
+        "height": "24",
+        "x": "-12",
+        "y": "-16",
+        "icon": "mdi:transmission-tower"
+      },
+      "battery": { "width": "24", "height": "24", "x": "-12", "y": "-16", "icon": "mdi:battery" },
+      "consumer": { "width": "18", "height": "18", "x": "-9", "y": "-3", "icon": "mdi:power-plug" },
+      "home": { "width": "32", "height": "32", "x": "-16", "y": "-26", "icon": "mdi:home" }
+    },
+    "node_values_by_kind": {
+      "pv": { "y": "16", "fontSize": "13" },
+      "grid": { "y": "16", "fontSize": "13" },
+      "battery": { "y": "16", "fontSize": "13" },
+      "consumer": {
+        "y": "12",
+        "fontSize": "11",
+        "note": "Consumer-Text outside circle, unchanged in this spec"
+      },
+      "home": { "y": "14", "fontSize": "15" }
+    }
+  }
+}

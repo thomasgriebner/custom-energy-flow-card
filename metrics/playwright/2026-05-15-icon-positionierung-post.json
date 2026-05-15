@@ -1,0 +1,94 @@
+{
+  "_meta": {
+    "plan_id": "2026-05-15-icon-positionierung",
+    "phase": "post",
+    "captured_at": "2026-05-15T14:11:30Z",
+    "captured_by": "main-agent via Playwright MCP",
+    "scenario": "Sonniger Tag · Akkus laden · Überschuss → Netz",
+    "viewport": "1280x720",
+    "preview_url": "http://127.0.0.1:5180/preview/preview.html?nocache=2",
+    "card_bundle_built": "2026-05-15T14:11:00Z (post-Phase-3-edits, after commits db670ef + c435ddd)",
+    "bundle_size_bytes": 61427,
+    "note": "Post-Capture nach pnpm build mit Phase-3-Code. Alle Soll-Werte aus Spec §3 verifiziert."
+  },
+  "console_errors": [
+    {
+      "text": "Failed to load resource: 404 Not Found",
+      "url": "http://127.0.0.1:5180/favicon.ico",
+      "harmless": true
+    }
+  ],
+  "svg": {
+    "viewBox": "0 0 960 540",
+    "circles_by_kind": {
+      "pv": { "r": "42", "count": 2, "expected": 42, "status": "ok" },
+      "grid": { "r": "40", "count": 1, "expected": 40, "status": "ok" },
+      "battery": { "r": "42", "count": 2, "expected": 42, "status": "ok" },
+      "consumer": { "r": "28", "count": 3, "expected": 28, "status": "ok" },
+      "home": { "r": "50", "count": 1, "expected": 50, "status": "ok (unchanged)" },
+      "battery_ring": { "r": "50", "count": 4, "expected": 50, "status": "ok (was 42)" },
+      "home_ring": { "r": "60", "count": 2, "expected": 60, "status": "ok (unchanged)" }
+    },
+    "foreignObjects_by_kind": {
+      "pv": {
+        "width": "24",
+        "x": "-12",
+        "y": "-24",
+        "icon": "mdi:solar-power",
+        "centerY_implied": -12
+      },
+      "grid": {
+        "width": "24",
+        "x": "-12",
+        "y": "-24",
+        "icon": "mdi:transmission-tower",
+        "centerY_implied": -12
+      },
+      "battery": {
+        "width": "24",
+        "x": "-12",
+        "y": "-24",
+        "icon": "mdi:home-battery",
+        "centerY_implied": -12,
+        "icon_status": "Issue-D resolved"
+      },
+      "consumer": {
+        "width": "24",
+        "x": "-12",
+        "y": "-12",
+        "icon": "mdi:power-plug",
+        "centerY_implied": 0,
+        "size_status": "Issue-B resolved (was 18)"
+      },
+      "home": { "width": "32", "x": "-16", "y": "-32", "icon": "mdi:home", "centerY_implied": -16 }
+    },
+    "node_values_by_kind": {
+      "pv": { "y": "20", "fontSize": "14", "status": "Issue-A resolved (was y=16, font=13)" },
+      "grid": { "y": "20", "fontSize": "14", "status": "Issue-A resolved" },
+      "battery": { "y": "20", "fontSize": "14", "status": "Issue-A resolved" },
+      "consumer": {
+        "y": "12",
+        "fontSize": "11",
+        "status": "unchanged (consumer-text outside circle, out of scope)"
+      },
+      "home": { "y": "20", "fontSize": "15", "status": "Issue-A resolved (was y=14)" }
+    },
+    "spacing_geometry_check": {
+      "pv_batt_grid": {
+        "icon_bottom": 0,
+        "text_top": 10.2,
+        "spacing_px": 10.2,
+        "threshold": 8,
+        "ok": true
+      },
+      "home": { "icon_bottom": 0, "text_top": 9.5, "spacing_px": 9.5, "threshold": 8, "ok": true }
+    }
+  },
+  "spec_§3_verification": {
+    "§3.1_node_icon_box": "ok (5 kinds)",
+    "§3.2_node_r": "ok (42/40/28, NODE_R_LARGE=50 unchanged)",
+    "§3.3_value_y": "ok (y=20, fontSize=14 non-home, 15 home)",
+    "§3.4_ring_radius": "ok (50)",
+    "issue_a_b_c_d": "all four resolved and visually verified"
+  }
+}
