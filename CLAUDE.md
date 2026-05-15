@@ -88,27 +88,50 @@ Das Skill bringt Brainstorming-/Frageführungs-Expertise mit, unser Template bri
 
 Checkliste [`docs/templates/spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) durcharbeiten — 8 Phasen (Discovery, Struktur, UX, Side-Effects, Conventions, ADRs, Code-Snippets, Plan). **Nicht „ich habe das überlegt"** — jeden Punkt namentlich abhaken oder begründen warum nicht zutreffend.
 
-**Phase 4 — Iterative Sub-Agent-Reviews mit Auto-Fix-Loop (verbindlich, mind. 3 Iterationen):**
+**Phase 4 — Iterative Sub-Agent-Reviews mit rotierenden Fokus-Vektoren (verbindlich, 3–5 Iterationen):**
 
-Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher („Sunk-Cost-Bias"). Ein einzelner Sub-Agent-Pass findet 70–80 % der Lücken, aber Fixes schaffen oft neue Lücken. Deshalb iterativ:
+Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher („Sunk-Cost-Bias"). **Ein identischer Skepsis-Prompt über mehrere Pässe leidet am gleichen Brillen-Bias** — Sub-Agent 2 mit derselben Brille findet dasselbe wie Sub-Agent 1. Lehre aus 2026-05-15-Spec: Pass 1 fand 8 Findings, Pass 2 fand 1, Pass 3 fand 0. Mit anderer Brille hätte Pass 3 noch was gefunden.
 
-**Loop (mind. 3 Iterationen, max. 5):**
+**Lösung:** **Rotierende Fokus-Vektoren** — jeder Pass legt eine andere Brille an. 5 Vektoren (vollständige Prompt-Templates in [`spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) Phase I):
 
-1. **Sub-Agent-Pass N:** `Agent`-Tool mit `general-purpose` und Prompt-Template aus [`spec-review-checklist.md`](./docs/templates/spec-review-checklist.md) Phase I. Sub-Agent kategorisiert Findings explizit als:
-   - **`AUTO-FIX`** — klar, faktisch falsch oder Form-Lücke, keine User-Entscheidung nötig (z. B. Tippfehler, fehlende Doku-Cross-Ref, Inkonsistenz zwischen Behauptung und echtem Code)
-   - **`USER-DECISION`** — Architektur-Wahl, UX-Trade-off, Scope-Frage — Hauptagent darf das NICHT alleine entscheiden
-2. **Hauptagent als Todo-Liste anlegen** (`TodoWrite`/`TaskCreate`): pro Finding eine Task, kategorisiert.
-3. **Auto-fix-Tasks abarbeiten** — Findings ins Spec einbauen, neue Version (`v(N+1)`). Trust-but-Verify: Sub-Agent kann falsch liegen; Hauptagent prüft jedes Finding kurz gegen echten Code, BEVOR er fixt.
-4. **Sub-Agent-Pass N+1** auf neue Spec-Version. Bis eines von dreien:
-   - **Stabil:** Sub-Agent meldet „ready for user", keine neuen Findings
-   - **Nur User-Decisions:** keine Auto-Fixes mehr offen, nur Entscheidungs-Fragen
-   - **Max-Iterationen erreicht** (5): mit gesammelten Findings dem User vorlegen, auch wenn weitere Auto-Fixes denkbar wären
+| Pass | Fokus                         | Brille                                                                          |
+| ---- | ----------------------------- | ------------------------------------------------------------------------------- |
+| 1    | Faktische Korrektheit         | Skepsis-Modus, Datei:Zeile-Quotes, Werte/Rechnungen verifizieren                |
+| 2    | Auswirkungs-Suche             | Übersehene Side-Effects (Test-Drift, abgeleitete Werte, CSS, HA-Globals, Smoke) |
+| 3    | Planer-Klarheit + Architektur | Layer-Klarheit, Helper-Reuse, Code-Duplikation, Datentrennung, TDD-Order        |
+| 4    | Conventions + ADR-Abgleich    | conventions §1–§15, alle relevanten ADRs, ggf. neuer ADR nötig                  |
+| 5    | Restrisiko + Konsolidierung   | Sektion-Querkonsistenz, vage Aussagen, Planer-Sackgassen, Iterations-Drift      |
 
-**Bei User-Vorlage:** Nur die `USER-DECISION`-Findings präsentieren (gebündelt mit Optionen), nicht jeden Auto-Fix-Schritt. Sub-Agent-Iterationen sind interner Hauptagent-Workflow, nicht User-Belastung.
+**Pass-Anzahl je nach Spec-Größe:**
 
-**Schutz vor Loop-Oszillation:** Wenn Pass N+1 ein Finding zurückbringt, das Pass N als „fixed" gemeldet hatte, STOP und prüfen ob Fix korrekt war. Drei Iterationen Mindestmaß; bei drei stabilen Iterationen mit denselben Findings → User fragen.
+- Mini-Spec (< 200 Zeilen, 1–2 Files): Pässe 1 + 5 (2 Pässe)
+- Klein (200–500 Zeilen, 2–4 Files): Pässe 1 + 3 + 5 (3 Pässe)
+- Mittel (500–900 Zeilen, 4–8 Files): Pässe 1 + 2 + 4 + 5 (4 Pässe)
+- Groß (> 900 Zeilen, > 8 Files): Alle 5 Pässe
 
-**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Pro Sub-Agent-Iteration hochzählen (`v2 (post-subagent-1)`, `v3 (post-subagent-2)`, …). Bei User-Feedback weitere Iteration. Eine gute v1 mit 3 Sub-Agent-Pässen erreicht erfahrungsgemäß User-Ready-Quality direkt statt fünf Self-Review-Iterationen.
+**Loop pro Pass:**
+
+1. **Sub-Agent-Pass mit passendem Fokus-Vektor-Prompt** (1:1 aus `spec-review-checklist.md` Phase I).
+2. **Findings als Tasks anlegen** (`TaskCreate`): pro Finding eine Task, Kategorie + Pass-Nummer als `metadata`.
+3. **Trust-but-Verify** pro `AUTO-FIX`-Task: Sub-Agent kann falsch liegen (siehe 2026-05-15-Spec Pass-1 F6 = False-Positive). Hauptagent prüft jedes Finding gegen echten Code, BEVOR er fixt.
+4. **Spec aktualisieren**, Status hochzählen (`vN+1 (post-subagent-K-FOKUSNAME)`).
+5. **Nächsten Pass starten** oder Stop entscheiden.
+
+**Stop-Kriterien:**
+
+- Sub-Agent meldet „ready for user"
+- Zwei aufeinanderfolgende Pässe ohne neue Findings
+- Nur noch `USER-DECISION` offen
+- Max 5 Pässe erreicht
+
+**Loop-Oszillations-Schutz (verschärft):**
+
+- Pass N+1 WORTWÖRTLICH wiederholtes Finding aus Pass N → STOP und Fix prüfen.
+- Pass N+1 mit Finding aus anderer Brille zum gleichen Code-Punkt: **KEINE Oszillation**, sondern Bestätigung („zwei Linsen sehen dasselbe Problem"). Fix war richtig — ggf. Spec-Doku braucht Cross-Reference.
+
+**Bei User-Vorlage:** Nur die `USER-DECISION`-Findings präsentieren (gebündelt mit Optionen). Auto-Fix-Schritte und Iterations-Internas sind kein User-Anliegen.
+
+**Versionierung:** Status-Header `v1 (proposed, ready for review)`. Pro Sub-Agent-Iteration hochzählen mit Fokus-Name (`v2 (post-subagent-1-faktisch)`, `v3 (post-subagent-2-auswirkung)`, …).
 
 ## Plan-Erstellung — Workflow (verbindlich, analog zu Spec-Workflow)
 
@@ -142,15 +165,34 @@ Das Skill bringt Plan-Schreib-Expertise mit (Task-Granularität, Phase-Struktur,
 
 Checkliste [`docs/templates/plan-review-checklist.md`](./docs/templates/plan-review-checklist.md) durcharbeiten — 12 Phasen (A–L), Schwerpunkte: **Spec-Plan-Coverage**, ADR-Compliance pro Task, Framework-Quirks (Lit), Build-Pipeline-Details, TDD-Order.
 
-**Phase 4 — Iterative Sub-Agent-Reviews mit Auto-Fix-Loop (verbindlich, mind. 3 Iterationen, max. 5):**
+**Phase 4 — Iterative Sub-Agent-Reviews mit rotierenden Fokus-Vektoren (verbindlich, 3–5 Iterationen):**
 
-Analog zum Spec-Workflow. Sub-Agent-Prompt-Template in der Plan-Checkliste Phase Z. Findings kategorisiert als `[AUTO-FIX]` / `[USER-DECISION]` / `[VERIFY-NEEDED]`. Hauptagent legt Tasks an (`TaskCreate`), arbeitet Auto-Fixes mit Trust-but-Verify ab, sammelt User-Decisions, startet erneuten Pass. Loop-Oszillations-Schutz: wenn Pass N+1 dasselbe Finding wie N bringt → STOP und Fix prüfen.
+Analog zum Spec-Workflow, aber Plan-spezifische Fokus-Vektoren (vollständige Prompt-Templates in [`plan-review-checklist.md`](./docs/templates/plan-review-checklist.md) Phase Z):
 
-**Bei User-Vorlage:** Nur die `USER-DECISION`-Findings präsentieren. Iterations-Steps sind interner Workflow.
+| Pass | Fokus                                              | Brille                                                                                                                                                     |
+| ---- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Spec-Plan-Coverage                                 | Mapping Spec § → Plan-Task; Gaps; Detail-Inkonsistenzen                                                                                                    |
+| 2    | Plan-Interne Konsistenz + Architektur (+ADRs/Conv) | Widersprüche, Architektur, Datentrennung, Code-Reuse, Tests, conventions §1–§11. **Auch wenn Spec schon gecheckt — Plan kann eigene Verstöße einbringen.** |
+| 3    | UX + Design-Bruch (+UX-ADRs/Conv §15)              | Spec §9 UX-Coverage in Tasks, Sprache, A11y, Theming, Mode-Verhalten, Backwards-Compat                                                                     |
+| 4    | Task-Granularität + Agent-Freiraum                 | Atomarität, Detail-Klarheit, Agent-Freiraum markiert, STOP-Conditions, Verifikations-Schritte                                                              |
+| 5    | Pro-Task-Konfidenz + Restrisiko                    | Pro-Task-Bewertung (high/medium/low), größtes App-Risiko, Minimierungs-Strategien, Rollback-Pfad                                                           |
 
-**Erwartete Iterations-Anzahl:** Klein 2-3, Mittel 3-4, Groß (v1.0-artig) 4-5. Bei > 5 Pässen → Plan ist vermutlich noch nicht spec-aligned, STOP und Spec re-reviewen.
+**Pass-Anzahl je nach Plan-Komplexität:**
 
-**Versionierung:** Status-Header analog Spec — `v1 (proposed, ready for review)`, dann pro Sub-Agent-Iteration hochzählen.
+- Klein (3–5 Tasks): Pässe 1 + 5 (2 Pässe)
+- Mittel (15–25 Tasks): Pässe 1 + 2 + 5 (3 Pässe)
+- Groß (25+ Tasks): Pässe 1 + 2 + 4 + 5 (4 Pässe)
+- v1.0-artig (mehrtägig): Alle 5 Pässe
+
+**Loop pro Pass:** identisch zur Spec-Phase 4 — Sub-Agent dispatchen, Findings als Tasks anlegen, Trust-but-Verify, Plan aktualisieren, Stop-Kriterien prüfen.
+
+**Loop-Oszillations-Schutz:** WORTWÖRTLICH wiederholtes Finding → STOP; gleicher Code-Punkt aus anderer Brille → Bestätigung, keine Oszillation.
+
+**Bei User-Vorlage:** Nur `USER-DECISION`-Findings + finale Pro-Task-Konfidenz-Bewertung aus Pass 5 präsentieren.
+
+**Bei > 5 Pässen** → Plan ist vermutlich noch nicht spec-aligned, STOP und Spec re-reviewen statt weiter zu iterieren.
+
+**Versionierung:** Status-Header analog Spec — `v1 (proposed, ready for review)`, pro Iteration hochzählen mit Fokus-Name.
 
 ## Implementation — Workflow (verbindlich)
 

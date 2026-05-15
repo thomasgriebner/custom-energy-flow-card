@@ -148,91 +148,231 @@ Zwei Sätze als Zusammenfassung der Review-Pass-Ergebnisse, z. B.:
 
 ## Phase I — Independent Sub-Agent-Cross-Check (vor User-Vorlage)
 
-**Warum:** Self-Review wird oberflächlich, sobald der Hauptagent alle Brainstorming-Argumente kennt. Ein Sub-Agent mit frischen Augen findet Lücken, die der Hauptagent durch Sunk-Cost-Bias übersieht.
+**Warum:** Self-Review wird oberflächlich, sobald der Hauptagent alle Brainstorming-Argumente kennt. Ein Sub-Agent mit frischen Augen findet Lücken, die der Hauptagent durch Sunk-Cost-Bias übersieht. **Aber:** identischer Skepsis-Prompt über mehrere Pässe → Sub-Agents leiden am gleichen Brillen-Bias wie der Hauptagent. Lehre aus 2026-05-15-Spec: Pass 1 fand 8 Findings, Pass 2 fand 1, Pass 3 fand 0 — mit derselben Brille. Ein anderer Fokus hätte vermutlich noch Lücken aufgedeckt.
+
+**Lösung:** **Rotierende Fokus-Vektoren** statt identischer Skepsis-Prompt. Jeder Pass legt eine andere Brille an. Loop-Oszillations-Schutz bleibt aktiv, aber ähnliche Findings aus verschiedenen Brillen sind keine Oszillation — sie sind Bestätigung („zwei Linsen sehen dasselbe Problem" → echtes Problem).
 
 **Wann:** Verbindlich nach Phase A–H, BEVOR die Spec dem User vorgelegt wird.
 
-**Wie:** `Agent`-Tool mit `subagent_type: general-purpose`. Prompt-Template unten 1:1 nutzen (Spec-Pfad einsetzen):
+**Wie:** `Agent`-Tool mit `subagent_type: general-purpose`. Pro Pass den passenden Fokus-Vektor-Prompt unten 1:1 nutzen.
+
+**Erwartete Pass-Anzahl:** 3–5 (kleine Spec: 3, mittlere: 4, große: 5). Stop wenn zwei aufeinanderfolgende Pässe keine neuen Findings bringen oder nur noch `USER-DECISION` offen ist.
+
+### Pass-Reihenfolge (Fokus-Rotation)
+
+| Pass | Fokus-Vektor                      | Was prüft dieser Pass                                                                                                                       |
+| ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | **Faktische Korrektheit**         | Stimmen Datei:Zeile-Referenzen? Stimmen Werte/Rechnungen? Skepsis-Modus mit Beweisführungs-Pflicht.                                         |
+| 2    | **Auswirkungs-Suche**             | Was wurde übersehen? Andere Files/Sensoren/Edge-Cases mit Abhängigkeit zu den geänderten Werten? Side-Effects in Tests/Sandbox/Smoke?       |
+| 3    | **Planer-Klarheit + Architektur** | Weiß der Planer welche Layer er anfasst? Welche Helper er wiederverwendet? Welche Code-Duplikation er vermeidet? Wie er Tests strukturiert? |
+| 4    | **Conventions + ADR-Abgleich**    | Stimmt's mit `conventions.md` §1–§15? Mit allen relevanten ADRs? Neue ADRs nötig?                                                           |
+| 5    | **Restrisiko + Konsolidierung**   | Was bleibt unklar? Was könnte den Planer in eine Sackgasse führen? Wo gibt es nach all den Fixes noch Inkonsistenzen zwischen Sektionen?    |
+
+**Pflicht-Pässe je nach Spec-Größe:**
+
+- Mini-Spec (< 200 Zeilen, 1–2 Files berührt): Pass 1 + Pass 5 (2 Pässe reichen).
+- Kleine Spec (200–500 Zeilen, 2–4 Files): Pass 1 + Pass 3 + Pass 5 (3 Pässe).
+- Mittlere Spec (500–900 Zeilen, 4–8 Files): Pass 1 + Pass 2 + Pass 4 + Pass 5 (4 Pässe).
+- Große Spec (> 900 Zeilen, > 8 Files): Alle 5 Pässe.
+
+### Gemeinsame Beweisführungs-Pflicht (für ALLE Pässe)
+
+1. **Quote-Pflicht:** Für jede Behauptung über existierenden Code MUSST du `Datei:Zeile`-Quote als Beweis mitliefern. Ohne konkrete Code-Zeile: `[VERIFY-NEEDED]` statt `[AUTO-FIX]`.
+2. **Cross-Reference-Verifikation:** Für „konsistent mit X" / „analog zu Y": echten Code zitieren, wortwörtlich vergleichen.
+3. **Negative-Behauptungen-Beweis:** Für „rendert nicht" / „bricht nichts": Code-Stelle zeigen, die das beweist.
+4. **Missing-Directory-Check:** Für jeden neuen Datei-Pfad: prüfe ob Parent-Dir existiert.
+5. **Tool-Coverage-Awareness:** Bei neuen Files: welche Pipeline-Stufen (`typecheck`/`lint`/`test`/`smoke`) decken sie ab?
+
+### Gemeinsame Finding-Kategorien (für ALLE Pässe)
+
+- **`[AUTO-FIX]`** — Klar falsch oder Form-Lücke **mit Beweis-Quote**. Hauptagent darf alleine fixen.
+- **`[USER-DECISION]`** — Architektur-Wahl, UX-Trade-off, Scope-Frage. Hauptagent darf NICHT alleine entscheiden.
+- **`[VERIFY-NEEDED]`** — Vermutung ohne Quote. Hauptagent prüft vor Auto-Fix gegen echten Code.
+
+### Pass-1-Prompt — Faktische Korrektheit (Skepsis-Modus)
 
 ```
-Du bist Spec-Reviewer ohne Vorab-Kontext. Lies die Spec unter
-`/home/griebner/repos/custom-energy-flow-card/docs/specs/[FILENAME].md`
-und prüfe sie unabhängig gegen das echte Repository.
+Du bist Spec-Reviewer ohne Vorab-Kontext. Pass 1 von N: **faktische Korrektheit**.
+Lies die Spec unter `[SPEC-PFAD]` und prüfe sie unabhängig gegen das echte Repository.
 
-**Aufgabe:** Arbeite die Checkliste unter
-`/home/griebner/repos/custom-energy-flow-card/docs/templates/spec-review-checklist.md`
-Phase A–H durch.
+**Fokus dieses Passes:** Stimmen alle Datei:Zeile-Referenzen? Stimmen die Werte und Rechnungen?
+Skepsis-Modus — vertraue der Spec NICHT, prüfe jede Behauptung gegen echten Code:
+- Jede Behauptung über `.eslintrc.cjs`, `vitest.config.ts`, `tsconfig.json`, `package.json` → echte Datei lesen
+- Jede Behauptung über Source-File-Inhalte → echte Datei lesen
+- Jede Behauptung über bestehende Helper → `grep` durchführen
+- Jede Risk-Einschätzung „niedrig" → verifiziert oder Annahme?
 
-**Wichtig — Skepsis-Modus:**
-- Du hast KEINEN Brainstorming-Kontext. Du kennst die Argumente NICHT,
-  mit denen die Spec entstanden ist.
-- Vertraue der Spec NICHT, prüfe gegen echten Code:
-  - Jede Behauptung über `.eslintrc.cjs` → echte Datei lesen
-  - Jede Behauptung über Source-File-Inhalte → echte Datei lesen
-  - Jede Behauptung über Test-Konfig (`vitest.config.ts`) → echte Datei lesen
-  - Jede Behauptung über bestehende Helper → `grep` durchführen
-  - Jede Risk-Einschätzung "niedrig" → ist das verifiziert oder Annahme?
-- Du darfst NICHT die anderen Spec-Iterationen (v1, v2, …) konsultieren —
-  prüfe diese Spec stand-alone.
+**Beweisführung:** [siehe gemeinsame Regeln in spec-review-checklist.md]
+**Finding-Kategorien:** [siehe gemeinsame Regeln]
 
-**Beweisführung-Pflicht (verbindlich — aus früheren Sub-Agent-Errors gelernt):**
-
-1. **Quote-Pflicht:** Für jede Behauptung über existierenden Code MUSST du
-   `Datei:Zeile`-Quote als Beweis mitliefern. Ohne konkrete Code-Zeile als
-   Beweis: kategorisiere das Finding als `[VERIFY-NEEDED]`, nicht als
-   `[AUTO-FIX]`. Beispiel: NICHT „Smoke-Test rendert nicht" sondern
-   „`smoke-test.mjs:75-79` setzt `card.hass = {...}` + `await Promise` —
-   das triggert Lit-Render. Spec-Behauptung X ist falsch."
-2. **Cross-Reference-Verifikation:** Für jede Spec-Aussage „konsistent mit X"
-   oder „analog zu Y": lies X/Y im echten Code, zitiere die echte Zeile,
-   vergleiche wortwörtlich mit dem Spec-Wert. Falls divergent: Finding.
-3. **Negative-Behauptungen-Beweis:** Für jede „rendert nicht" / „läuft nicht" /
-   „wird nicht ausgeführt" / „bricht nichts"-Aussage: zeige die Code-Stelle,
-   die das beweist. Negative-Behauptungen ohne Beweis sind fast immer falsch.
-4. **Missing-Directory-Check:** Für jeden neuen Datei-Pfad in der Spec
-   (`path/to/x.ts`): prüfe ob `path/to/` existiert (`ls path/to/`). Falls
-   nicht: `[AUTO-FIX]` Finding mit Vorschlag „mkdir-Schritt explizit".
-5. **Tool-Coverage-Awareness:** Bei neuen Files: erwähne welche Pipeline-
-   Stufen (`typecheck`/`lint`/`test`/`smoke`) sie abdecken. Hinweis: `tsc`
-   excludet typischerweise `**/*.test.ts`; ESLint läuft typischerweise nur
-   auf `src/**/*.ts`.
-
-**Format der Antwort (max 500 Worte):**
-
-Jedes Finding MUSS explizit kategorisiert werden:
-
-- **`[AUTO-FIX]`** — Klar, faktisch falsch oder Form-Lücke **mit Beweis-Quote** (`Datei:Zeile`). Beispiele: Tippfehler, fehlende Doku-Cross-Ref, Spec-Behauptung widerspricht echtem Code (mit Quote), Inkonsistenz zwischen zwei Spec-Sektionen, fehlendes `mkdir` im Plan (verifiziert via `ls`), ungenaues Snippet. Hauptagent darf das alleine fixen.
-- **`[USER-DECISION]`** — Architektur-Wahl, UX-Trade-off, Scope-Frage, Strategie-Inkonsistenz mit ungewisser richtiger Antwort. Hauptagent darf das NICHT alleine entscheiden.
-- **`[VERIFY-NEEDED]`** — Vermutung ohne Quote, könnte falsch sein. Hauptagent muss vor Auto-Fix selbst gegen echten Code prüfen (Trust-but-Verify). Falls verifiziert → wird zu `[AUTO-FIX]`. Falls widerlegt → Sub-Agent-Fehler, Finding verworfen.
-
-Format:
+**Format (max 500 Worte):**
 
 ## Phase A (Discovery)
-- [AUTO-FIX] Finding 1 (mit konkretem Fix-Vorschlag)
-- [USER-DECISION] Finding 2 (mit Optionen A/B)
+- [AUTO-FIX] Finding (Beweis-Quote)
 
 ## Phase B (Spec-Struktur)
-- [AUTO-FIX / USER-DECISION] Finding X
+...
 
-(... pro Phase A–H ...)
+(pro Phase A–H)
 
 ## Top-3 Plan-Blocker
-Falls vorhanden — Lücken, die der Planer NICHT umsetzen kann.
-
 ## Empfehlung
-[ready for user / iterate (N auto-fixes offen) / blocker]
+[ready for next pass / iterate (N auto-fixes offen) / blocker]
 ```
 
-**Hauptagent-Verhalten (Iterations-Loop):**
+### Pass-2-Prompt — Auswirkungs-Suche
 
-1. Sub-Agent-Pass durchführen
-2. Findings als Tasks anlegen (`TaskCreate`), Kategorie als `metadata` mitführen
-3. Pro `AUTO-FIX`-Task: Trust-but-Verify gegen echten Code, dann Spec aktualisieren
-4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen
-5. Neue Spec-Version → erneuten Sub-Agent-Pass starten
-6. Mindestens 3 Iterationen, höchstens 5
-7. Stop wenn Sub-Agent „ready for user" meldet oder nur noch `USER-DECISION` offen
+```
+Du bist Spec-Reviewer ohne Vorab-Kontext. Pass 2 von N: **Auswirkungs-Suche**.
+Lies die Spec unter `[SPEC-PFAD]` und such systematisch nach **übersehenen Auswirkungen**.
 
-**Erst nach Iterations-Loop: User die Spec mit gesammelten `USER-DECISION`-Fragen zeigen.**
+**Fokus dieses Passes:** Was wurde übersehen? Die Spec beschreibt was geändert wird —
+aber welche Files/Sensoren/Edge-Cases haben Abhängigkeiten zu den geänderten Werten,
+die in der Spec NICHT erwähnt sind?
 
-**Loop-Oszillations-Schutz:** Wenn Pass N+1 dasselbe Finding zurückbringt wie Pass N (gleicher Wortlaut oder gleicher File/Section), STOP und Fix prüfen. Sub-Agents können bei semantischen Verschiebungen verwirrt sein.
+**Konkrete Suchstrategie:**
+1. Für jede geänderte Konstante/Funktion in §3: `grep -rn "[KONSTANTE]" src/` —
+   welche anderen Files lesen sie? Sind die in der Spec als „check" oder „edit" markiert?
+2. Für jeden geänderten Test-Assert: gibt es ABGELEITETE Test-Werte (z.B. dasharray
+   aus Radius berechnet), die mit-aktualisiert werden müssen?
+3. Sandbox / Smoke-Test / Screenshots: sind sie betroffen? Plan-Schritte vorgesehen?
+4. CSS-Selektoren (`grep "[selektor]" src/card-styles.ts`) — betroffen?
+5. HA-Globals (`ha-icon`, `ha-form`, etc.) — Type-Declarations ausreichend?
+
+**Beweisführung:** [gemeinsame Regeln]
+**Finding-Kategorien:** [gemeinsame Regeln]
+
+**Format (max 500 Worte):** wie Pass 1.
+
+**Spezial-Hinweis:** Du suchst Lücken, NICHT Fehler in vorhandenen Aussagen.
+Doppelte Findings zu Pass 1 sind erlaubt (Bestätigung), aber dein Hauptwert
+liegt in den BISHER NICHT GENANNTEN Auswirkungen.
+```
+
+### Pass-3-Prompt — Planer-Klarheit + Architektur
+
+```
+Du bist Spec-Reviewer ohne Vorab-Kontext. Pass 3 von N: **Planer-Klarheit + Architektur**.
+Lies die Spec unter `[SPEC-PFAD]` aus der Perspektive eines Implementierers, der die Spec
+ZUERST liest und danach den Code schreiben muss.
+
+**Fokus dieses Passes:**
+1. **Layer-Klarheit:** Weiß der Planer welche Layer er anfasst und welche tabu sind?
+   Sind Layer-Imports konkret aus `.eslintrc.cjs` zitiert oder nur vage erwähnt?
+2. **Helper-Wiederverwendung:** Welche bestehenden Helper (in `util/`, `engine/`, `render/`)
+   muss der Planer wiederverwenden? Ist die Code-Reuse-Tabelle vollständig?
+3. **Code-Duplikation:** Wo droht Duplikation, weil ähnliche Logik schon existiert?
+   `grep -rn "ähnliche Funktion"` — vorhandene Implementierungen identifizieren.
+4. **Test-Struktur:** Sind Test-Schritte konkret genug (welcher Test-File, welcher Test-Case,
+   welcher Assert), oder muss der Planer raten?
+5. **Datentrennung:** Sind Daten-/Logik-/Render-Schichten sauber getrennt in den Plan-Aufgaben?
+   Wird Engine-Pure gewahrt (ADR-0004)?
+6. **TDD-Order:** Sind Tests-rot-vor-Implementation-grün konkret geplant (CLAUDE.md §9)?
+
+**Beweisführung:** [gemeinsame Regeln]
+**Finding-Kategorien:** [gemeinsame Regeln]
+
+**Format (max 500 Worte):** wie Pass 1.
+
+**Spezial-Hinweis:** Findings dieser Kategorie sind oft `[USER-DECISION]`, weil
+Architektur-Wahl betroffen ist. Wenn ein bestehender Helper existiert, der die
+gleiche Logik abdeckt: `[AUTO-FIX]` mit Verweis. Wenn die Spec den Planer in einen
+Layer-Verstoß führen würde: `[USER-DECISION]` mit Optionen.
+```
+
+### Pass-4-Prompt — Conventions + ADR-Abgleich
+
+```
+Du bist Spec-Reviewer ohne Vorab-Kontext. Pass 4 von N: **Conventions + ADR-Abgleich**.
+Lies die Spec unter `[SPEC-PFAD]` und prüfe sie systematisch gegen `docs/conventions.md`
+(§1–§15) und alle relevanten ADRs in `docs/adr/`.
+
+**Fokus dieses Passes:**
+
+**Conventions (`docs/conventions.md`):**
+- §1.2 Type-Safety: kein `any` ohne Begründungs-Kommentar?
+- §1.5 Function Design: ≤ 3–4 Parameter sonst Argument-Objekt?
+- §2 Comments-Policy: keine WHAT-Kommentare im finalen Code (Spec-Doku-Kommentare als solche markiert)?
+- §3 Datei-Größen-Limits: `card.ts` ≤ 200, `editor.ts` ≤ 400, sonst ≤ 250?
+- §5.3 Test-Stil: `it.each`, aussagekräftige Test-Namen?
+- §5.4 TDD: Test-first für Engine/Util/Config?
+- §11 Anti-Patterns: alle 12 verbotenen Muster geprüft?
+- §12 Doku-Pflicht: bei neuem ADR alle drei Pflicht-Updates (File, Index, architecture.md §4)?
+- §13 Dependencies: neue Runtime-Dep mit ADR? DevDep mit Commit-Body-Begründung?
+- §15 Sprache: User-Strings DE in `i18n/de.ts`?
+
+**ADR-Abgleich (`docs/adr/`):**
+- ADR-0002 Layered Architecture: Layer-Boundaries respektiert?
+- ADR-0003 No Runtime Deps außer Lit: keine neuen Runtime-Deps ohne ADR?
+- ADR-0004 Pure Engine: Engine unangetastet?
+- ADR-0009 ESLint Layer Boundaries: keine neuen Zone-Verstöße?
+- ADR-0010 Shared Util Single-Source: Helper nicht dupliziert?
+- ADR-0012 Smoke-Test: nach Änderung weiter grün?
+- ADR-0017 / 0018 / 0019 / 0020: falls Funktionalität dort beschrieben — Cross-Reference oder Update?
+- **Neuer ADR nötig?** Bei Architektur-Wechsel, Strategie-Änderung, Tech-Stack-Erweiterung → ADR-Stub in §8 vorhanden?
+
+**Beweisführung:** [gemeinsame Regeln]
+**Finding-Kategorien:** [gemeinsame Regeln]
+
+**Format (max 500 Worte):** wie Pass 1.
+
+**Spezial-Hinweis:** ADR-Drift ist häufig — wenn die Spec Werte ändert, die in
+einem ADR fixiert sind, MUSS der ADR mit-aktualisiert werden (in §7 Doku-Pflicht).
+Findings hier sind oft `[AUTO-FIX]` weil Doku-Update statt Architektur-Wahl.
+```
+
+### Pass-5-Prompt — Restrisiko + Konsolidierung
+
+```
+Du bist Spec-Reviewer ohne Vorab-Kontext. Pass 5 von N: **Restrisiko + Konsolidierung**.
+Lies die Spec unter `[SPEC-PFAD]` und such nach verbleibenden Unklarheiten, Inkonsistenzen
+zwischen Sektionen, und potenziellen Sackgassen für den Planer.
+
+**Fokus dieses Passes:**
+1. **Sektion-Querkonsistenz:** Sagt §3 etwas, das §6 (Tests) oder §11 (Erfolgs-Kriterien) widerspricht?
+   Z.B.: §6.5 Coverage-Aussage vs §11 Coverage-Erfolgs-Kriterium.
+2. **Restunklarheit:** Wo sagt die Spec „ggf." / „falls" / „evtl." / „prüfen ob" —
+   ist das eine ECHTE Entscheidung des Planers oder hat die Spec hier nur die Antwort offen gelassen?
+3. **Risiko-Honorierung:** §10 listet Risiken. Sind die Mitigations konkret genug oder vage
+   („wird in Plan geprüft")? Gibt es Risiken, die NICHT erwähnt sind (z.B. HACS-Cache,
+   Browser-Compatibility, Bundle-Budget-Schwellwert-Nähe)?
+4. **Planer-Sackgasse:** Gibt es einen Plan-Schritt, der ohne weitere Discovery
+   nicht ausführbar ist? Spec sollte alle blockierenden Informationen mitliefern.
+5. **Iteration-History-Drift:** Diese Spec hat möglicherweise N Iterationen durchlaufen.
+   Sind die Fixes konsistent — oder hat ein späterer Fix einen früheren teilweise revertet?
+
+**Beweisführung:** [gemeinsame Regeln]
+**Finding-Kategorien:** [gemeinsame Regeln]
+
+**Format (max 500 Worte):** wie Pass 1, plus:
+
+## Restrisiko-Top-3 (falls vorhanden)
+Verbleibende Risiken aus Planer-Sicht, NICHT in §10 explizit.
+
+## Konsolidierungs-Status
+- Alle vorherigen Iterationen-Fixes konsistent? Ja / Nein (mit Beleg)
+- Spec ist „freistehend lesbar"? (Planer kann sie lesen, ohne Brainstorming-Kontext nötig?)
+
+**Spezial-Hinweis:** Wenn du in Pass 5 nur Findings aus Pass 1–4 wiederholst,
+sage „keine neuen Findings, Spec stabil" — das ist ein gültiges Ergebnis.
+Bei Pass 5 ist „ready for user" eine häufige und legitime Empfehlung.
+```
+
+### Hauptagent-Verhalten (Iterations-Loop)
+
+1. **Vor Pass 1:** Self-Review (Phase A–H) durchführen, Findings dokumentieren.
+2. **Pro Pass:**
+   1. Sub-Agent mit Fokus-Vektor-Prompt dispatch.
+   2. Findings als Tasks anlegen (`TaskCreate`), Kategorie als `metadata` mitführen, Pass-Nummer notieren.
+   3. Pro `AUTO-FIX`-Task: **Trust-but-Verify** gegen echten Code (Sub-Agents irren auch!), dann Spec aktualisieren.
+   4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen.
+   5. Spec-Status hochzählen (`vN+1 (post-subagent-K-FOKUSNAME)`).
+3. **Nach jedem Pass:** Entscheide ob nächster Pass nötig oder ob „ready for user".
+4. **Stop-Kriterien:** Sub-Agent meldet „ready for user", oder zwei aufeinanderfolgende Pässe keine neuen Findings, oder nur noch `USER-DECISION` offen.
+
+**Loop-Oszillations-Schutz:**
+
+- Wenn Pass N+1 ein Finding aus Pass N WORTWÖRTLICH wiederholt: STOP und Fix prüfen.
+- Wenn Pass N+1 ein Finding aus Pass N **aus anderer Brille** identifiziert (Pass 1: faktisch falsch, Pass 4: ADR-Bruch wegen demselben Wert): das ist KEINE Oszillation, sondern Bestätigung — Fix war richtig, aber Spec-Doku braucht Cross-Reference.
+
+**Erst nach Iterations-Loop:** User die Spec mit gesammelten `USER-DECISION`-Fragen zeigen.
