@@ -26021,5 +26021,5292 @@
       "import_cycles": [],
       "dead_exports": []
     }
+  },
+  {
+    "version": "1.0",
+    "timestamp": "2026-05-15T19:17:22.958Z",
+    "commit": "3205cb24f5872d0deaf1af409a7dbb764c5d1a70",
+    "branch": "main",
+    "plan_id": "akku-prozent-im-ring",
+    "phase": "post",
+    "label": "post-akku-prozent-im-ring",
+    "totals": {
+      "loc": 2784,
+      "files": 34,
+      "coverage_pct": 99.76,
+      "bundle_bytes": 61475,
+      "any_count": 0,
+      "as_count": 21,
+      "non_null_count": 0,
+      "eslint_disable_count": 0,
+      "ts_directive_count": 0,
+      "todo_count": 0,
+      "custom_elements_count": 2,
+      "dependencies": {
+        "runtime": 1,
+        "dev": 20
+      }
+    },
+    "layers": {
+      "card_editor": {
+        "files": 7,
+        "loc": 971,
+        "complexity_sum": 234,
+        "escape_hatches_sum": 9,
+        "complexity_avg": 33.4,
+        "coverage_pct": null
+      },
+      "config": {
+        "files": 4,
+        "loc": 419,
+        "complexity_sum": 131,
+        "escape_hatches_sum": 9,
+        "complexity_avg": 32.8,
+        "coverage_pct": 100
+      },
+      "engine": {
+        "files": 3,
+        "loc": 275,
+        "complexity_sum": 78,
+        "escape_hatches_sum": 1,
+        "complexity_avg": 26,
+        "coverage_pct": 100
+      },
+      "ha": {
+        "files": 3,
+        "loc": 61,
+        "complexity_sum": 2,
+        "escape_hatches_sum": 0,
+        "complexity_avg": 0.7,
+        "coverage_pct": null
+      },
+      "i18n": {
+        "files": 1,
+        "loc": 59,
+        "complexity_sum": 3,
+        "escape_hatches_sum": 0,
+        "complexity_avg": 3,
+        "coverage_pct": null
+      },
+      "render": {
+        "files": 10,
+        "loc": 818,
+        "complexity_sum": 217,
+        "escape_hatches_sum": 0,
+        "complexity_avg": 21.7,
+        "coverage_pct": null
+      },
+      "util": {
+        "files": 6,
+        "loc": 181,
+        "complexity_sum": 36,
+        "escape_hatches_sum": 2,
+        "complexity_avg": 6,
+        "coverage_pct": 98.3
+      }
+    },
+    "files": [
+      {
+        "path": "src/card-helpers.test.ts",
+        "layer": "card_editor",
+        "is_test": true,
+        "loc": 88,
+        "imports_count": 3,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 6
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 22,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 15
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 16
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 29,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 38
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 39
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 43
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 49
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 54
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 61
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 34,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 68
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 82
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 86
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 90
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 94
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 98
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/card-helpers.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 90,
+        "imports_count": 6,
+        "fan_in": 2,
+        "exports": [
+          "buildCardState",
+          "renderSkeleton",
+          "isStubConfig",
+          "relevantSensorIds",
+          "hassRelevantSensorsChanged",
+          "resolveEntityId"
+        ],
+        "functions": [
+          {
+            "name": "buildCardState",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 14
+          },
+          {
+            "name": "renderSkeleton",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "isStubConfig",
+            "loc": 11,
+            "cyclomatic": 12,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 38
+          },
+          {
+            "name": "relevantSensorIds",
+            "loc": 14,
+            "cyclomatic": 7,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 50
+          },
+          {
+            "name": "hassRelevantSensorsChanged",
+            "loc": 19,
+            "cyclomatic": 10,
+            "max_nesting": 2,
+            "params": 3,
+            "line_start": 65
+          },
+          {
+            "name": "resolveEntityId",
+            "loc": 14,
+            "cyclomatic": 8,
+            "max_nesting": 1,
+            "params": 3,
+            "line_start": 85
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 91
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 93
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/card-styles.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 74,
+        "imports_count": 1,
+        "fan_in": 1,
+        "exports": ["cardStyles"],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/card.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 159,
+        "imports_count": 12,
+        "fan_in": 1,
+        "exports": ["CustomEnergyFlowCard"],
+        "functions": [
+          {
+            "name": "setConfig",
+            "loc": 13,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 43
+          },
+          {
+            "name": "getConfigElement",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 57
+          },
+          {
+            "name": "getStubConfig",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 61
+          },
+          {
+            "name": "firstUpdated",
+            "loc": 15,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 71
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 73
+          },
+          {
+            "name": "disconnectedCallback",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 87
+          },
+          {
+            "name": "shouldUpdate",
+            "loc": 8,
+            "cyclomatic": 5,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 92
+          },
+          {
+            "name": "willUpdate",
+            "loc": 26,
+            "cyclomatic": 9,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 101
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 110
+          },
+          {
+            "name": "render",
+            "loc": 44,
+            "cyclomatic": 13,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 128
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 164
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/derive-display-consumers.test.ts",
+        "layer": "config",
+        "is_test": true,
+        "loc": 187,
+        "imports_count": 2,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 10
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 15
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 16
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 169,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 33
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 27,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 34
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 62
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 80
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 83
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 97
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 107
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 111
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 122
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 125
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 132
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 18,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 135
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 151
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 154
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 166
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 184
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/derive-display-consumers.ts",
+        "layer": "config",
+        "is_test": false,
+        "loc": 103,
+        "imports_count": 3,
+        "fan_in": 3,
+        "exports": ["deriveDisplayConsumers"],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 2,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 17
+          },
+          {
+            "name": "deriveDisplayConsumers",
+            "loc": 19,
+            "cyclomatic": 6,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 20
+          },
+          {
+            "name": "mapNoneMode",
+            "loc": 9,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 40
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 41
+          },
+          {
+            "name": "groupByArea",
+            "loc": 62,
+            "cyclomatic": 11,
+            "max_nesting": 3,
+            "params": 3,
+            "line_start": 50
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 103
+          },
+          {
+            "name": "resolveAreaId",
+            "loc": 10,
+            "cyclomatic": 5,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 113
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/schema.test.ts",
+        "layer": "config",
+        "is_test": true,
+        "loc": 474,
+        "imports_count": 5,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 8
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 79,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 17
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 18
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 19
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 23
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 33
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 36
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 41
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 44
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 52
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 55
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 57
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 60
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 62
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 65
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 67
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 70
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 72
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 75
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 77
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 80
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 82
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 85
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 93
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 171,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 97
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 98
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 18,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 102
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 22,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 121
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 144
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 154
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 164
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 168
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 184
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 201
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 25,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 216
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 25,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 242
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 81,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 269
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 270
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 271
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 274
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 275
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 278
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 290
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 293
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 298
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 301
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 306
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 309
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 314
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 317
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 324
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 327
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 329
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 332
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 337
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 340
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 342
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 345
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 347
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 156,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 351
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 352
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 356
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 369
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 372
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 386
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 389
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 400
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 403
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 416
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 419
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 432
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 23,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 435
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 23,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 459
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 23,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 483
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 508
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 509
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 511
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 514
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 516
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 519
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 521
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 5,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/schema.ts",
+        "layer": "config",
+        "is_test": false,
+        "loc": 166,
+        "imports_count": 1,
+        "fan_in": 3,
+        "exports": ["validateConfig"],
+        "functions": [
+          {
+            "name": "isStubShape",
+            "loc": 9,
+            "cyclomatic": 10,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 17
+          },
+          {
+            "name": "validateConfig",
+            "loc": 102,
+            "cyclomatic": 36,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 27
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 57
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 61
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 72
+          },
+          {
+            "name": "validateBatteryPower",
+            "loc": 30,
+            "cyclomatic": 16,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 130
+          },
+          {
+            "name": "validateGrid",
+            "loc": 19,
+            "cyclomatic": 8,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 161
+          },
+          {
+            "name": "validateUniqueIds",
+            "loc": 9,
+            "cyclomatic": 3,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 181
+          },
+          {
+            "name": "isObject",
+            "loc": 3,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 191
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 9,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/system-state.ts",
+        "layer": "config",
+        "is_test": false,
+        "loc": 81,
+        "imports_count": 5,
+        "fan_in": 2,
+        "exports": ["buildSystemState"],
+        "functions": [
+          {
+            "name": "buildSystemState",
+            "loc": 78,
+            "cyclomatic": 12,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 19
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 3,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 35
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 37
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 66
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 67
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 73
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 84
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/config/types.ts",
+        "layer": "config",
+        "is_test": false,
+        "loc": 69,
+        "imports_count": 1,
+        "fan_in": 15,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/const.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 17,
+        "imports_count": 0,
+        "fan_in": 5,
+        "exports": [
+          "CARD_VERSION",
+          "CARD_TYPE",
+          "CARD_NAME",
+          "CARD_DOC_URL",
+          "DEFAULTS",
+          "VIEWBOX",
+          "MIN_CONTAINER_WIDTH_PX"
+        ],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/editor-list-sections.test.ts",
+        "layer": "card_editor",
+        "is_test": true,
+        "loc": 64,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 7
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 8
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 9
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 10
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 22,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 21
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 24
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 25
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 27
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 28
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 29
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 24,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 44
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 22,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 45
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 47
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 48
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 49
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 50
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 51
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 52
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/editor-list-sections.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 233,
+        "imports_count": 3,
+        "fan_in": 2,
+        "exports": ["renderSolarSection", "renderBatterySection", "renderConsumersSection"],
+        "functions": [
+          {
+            "name": "renderSolarSection",
+            "loc": 43,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 29
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 47
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 53
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 58
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 61
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 64
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 68
+          },
+          {
+            "name": "renderBatterySection",
+            "loc": 125,
+            "cyclomatic": 14,
+            "max_nesting": 1,
+            "params": 4,
+            "line_start": 73
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 112,
+            "cyclomatic": 14,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 82
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 83
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 148
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 166
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 172
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 184
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 187
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 190
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 194
+          },
+          {
+            "name": "renderConsumersSection",
+            "loc": 41,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 199
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 18,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 217
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 2,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 223
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 226
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 229
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 232
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 236
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 7,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/editor.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 370,
+        "imports_count": 7,
+        "fan_in": 1,
+        "exports": ["CustomEnergyFlowCardEditor"],
+        "functions": [
+          {
+            "name": "setConfig",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 94
+          },
+          {
+            "name": "render",
+            "loc": 31,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 98
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 107
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 108
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 109
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 110
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 113
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 114
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 115
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 116
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 117
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 118
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 122
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 123
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 124
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 125
+          },
+          {
+            "name": "_renderGeneral",
+            "loc": 43,
+            "cyclomatic": 7,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 130
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 2,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 166
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 168
+          },
+          {
+            "name": "_onGeneralChange",
+            "loc": 14,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 174
+          },
+          {
+            "name": "_renderGridSection",
+            "loc": 38,
+            "cyclomatic": 5,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 189
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 222
+          },
+          {
+            "name": "_onGridChange",
+            "loc": 16,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 228
+          },
+          {
+            "name": "_nextUniqueId",
+            "loc": 6,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 245
+          },
+          {
+            "name": "_onSolarItemChange",
+            "loc": 6,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 252
+          },
+          {
+            "name": "_addSolar",
+            "loc": 9,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 259
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 263
+          },
+          {
+            "name": "_removeSolar",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 269
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 271
+          },
+          {
+            "name": "_moveSolar",
+            "loc": 12,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 275
+          },
+          {
+            "name": "_onBatteryItemChange",
+            "loc": 6,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 288
+          },
+          {
+            "name": "_onBatteryPairChange",
+            "loc": 8,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 295
+          },
+          {
+            "name": "_onBatteryModeChange",
+            "loc": 21,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 304
+          },
+          {
+            "name": "_addBattery",
+            "loc": 9,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 326
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 330
+          },
+          {
+            "name": "_removeBattery",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 336
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 338
+          },
+          {
+            "name": "_moveBattery",
+            "loc": 12,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 342
+          },
+          {
+            "name": "_onConsumerItemChange",
+            "loc": 6,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 355
+          },
+          {
+            "name": "_addConsumer",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 362
+          },
+          {
+            "name": "_removeConsumer",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 368
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 370
+          },
+          {
+            "name": "_moveConsumer",
+            "loc": 12,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 374
+          },
+          {
+            "name": "_emitChange",
+            "loc": 12,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 387
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/engine/energy-engine.test.ts",
+        "layer": "engine",
+        "is_test": true,
+        "loc": 301,
+        "imports_count": 2,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 44,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 13
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 14
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 20
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 33
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 40
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 45
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 48
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 54
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 51,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 58
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 59
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 71
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 83
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 86
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 98
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 116,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 110
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 111
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 127
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 128
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 129
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 19,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 132
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 146
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 147
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 12,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 152
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 165
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 176
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 12,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 179
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 188
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 189
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 192
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 204
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 205
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 210
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 221
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 223
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 102,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 227
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 228
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 246
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 255
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 12,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 258
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 267
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 271
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 280
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 283
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 12,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 294
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 21,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 307
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 309
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 310
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 317
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/engine/energy-engine.ts",
+        "layer": "engine",
+        "is_test": false,
+        "loc": 196,
+        "imports_count": 1,
+        "fan_in": 2,
+        "exports": ["compute"],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 10
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 10
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 11
+          },
+          {
+            "name": "compute",
+            "loc": 210,
+            "cyclomatic": 33,
+            "max_nesting": 3,
+            "params": 1,
+            "line_start": 13
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 16
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 28
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 29
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 33
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 53
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 54
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 21,
+            "cyclomatic": 11,
+            "max_nesting": 3,
+            "params": 2,
+            "line_start": 58
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 93
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 97
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 101
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 105
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 123
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 124
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 139
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 140
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 158
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 162
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 175
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 180
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 188
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 193
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 203
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 204
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/engine/flow-graph.test.ts",
+        "layer": "engine",
+        "is_test": true,
+        "loc": 30,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 29,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 12,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 18
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/engine/flow-graph.ts",
+        "layer": "engine",
+        "is_test": false,
+        "loc": 20,
+        "imports_count": 0,
+        "fan_in": 4,
+        "exports": ["FLOW_EDGE_KINDS"],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/engine/types.ts",
+        "layer": "engine",
+        "is_test": false,
+        "loc": 59,
+        "imports_count": 1,
+        "fan_in": 8,
+        "exports": ["EngineWarning", "EngineWarningCode"],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/ha/ha-globals.d.ts",
+        "layer": "ha",
+        "is_test": false,
+        "loc": 23,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/ha/ha-helpers.ts",
+        "layer": "ha",
+        "is_test": false,
+        "loc": 16,
+        "imports_count": 0,
+        "fan_in": 2,
+        "exports": ["fireMoreInfo", "fireConfigChanged"],
+        "functions": [
+          {
+            "name": "fireMoreInfo",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 1
+          },
+          {
+            "name": "fireConfigChanged",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 10
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/ha/ha-types.ts",
+        "layer": "ha",
+        "is_test": false,
+        "loc": 22,
+        "imports_count": 0,
+        "fan_in": 6,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/i18n/de.ts",
+        "layer": "i18n",
+        "is_test": false,
+        "loc": 59,
+        "imports_count": 0,
+        "fan_in": 9,
+        "exports": ["DE"],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 37
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 51
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/index.ts",
+        "layer": "card_editor",
+        "is_test": false,
+        "loc": 28,
+        "imports_count": 4,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/battery-ring.test.ts",
+        "layer": "render",
+        "is_test": true,
+        "loc": 122,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "serialize",
+            "loc": 16,
+            "cyclomatic": 6,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 6,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 7
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 37,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 21
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 38
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 48
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 53
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 56,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 59
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 70
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 75
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 81
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 92
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 99
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 105
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 110
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 22,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 116
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 129
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 133
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/battery-ring.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 30,
+        "imports_count": 1,
+        "fan_in": 2,
+        "exports": ["formatSocPct", "renderBatteryRing"],
+        "functions": [
+          {
+            "name": "clampSoc",
+            "loc": 3,
+            "cyclomatic": 4,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 17
+          },
+          {
+            "name": "formatSocPct",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 21
+          },
+          {
+            "name": "renderBatteryRing",
+            "loc": 16,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 25
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/context.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 17,
+        "imports_count": 3,
+        "fan_in": 2,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/edge-color.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 19,
+        "imports_count": 2,
+        "fan_in": 2,
+        "exports": ["edgeColorRole"],
+        "functions": [
+          {
+            "name": "edgeColorRole",
+            "loc": 17,
+            "cyclomatic": 9,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 4
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/flow-animation.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 83,
+        "imports_count": 6,
+        "fan_in": 2,
+        "exports": ["computeAnimationParams", "renderDots", "ANIMATION_CSS"],
+        "functions": [
+          {
+            "name": "computeAnimationParams",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 4,
+            "line_start": 15
+          },
+          {
+            "name": "renderDots",
+            "loc": 24,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 31
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 13,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 36
+          },
+          {
+            "name": "clamp",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 56
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/flow-renderer.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 142,
+        "imports_count": 9,
+        "fan_in": 1,
+        "exports": ["RenderContext", "renderCard"],
+        "functions": [
+          {
+            "name": "sortForTabOrder",
+            "loc": 9,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 16
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 17
+          },
+          {
+            "name": "renderCard",
+            "loc": 20,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 40
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 41
+          },
+          {
+            "name": "renderDiagnostics",
+            "loc": 43,
+            "cyclomatic": 6,
+            "max_nesting": 2,
+            "params": 3,
+            "line_start": 47
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 2,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 56
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 69
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 4,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 74
+          },
+          {
+            "name": "edgePower",
+            "loc": 20,
+            "cyclomatic": 9,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 91
+          },
+          {
+            "name": "findFlow",
+            "loc": 3,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 112
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 113
+          },
+          {
+            "name": "renderEdge",
+            "loc": 35,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 3,
+            "line_start": 116
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/home-ring.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 44,
+        "imports_count": 2,
+        "fan_in": 1,
+        "exports": ["renderHomeRing"],
+        "functions": [
+          {
+            "name": "renderHomeRing",
+            "loc": 40,
+            "cyclomatic": 6,
+            "max_nesting": 2,
+            "params": 4,
+            "line_start": 9
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 15
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/icon.test.ts",
+        "layer": "render",
+        "is_test": true,
+        "loc": 77,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "flatten",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 70,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 9
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 10
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 23
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 28
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 34
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 40
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 48
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 5,
+            "line_start": 70
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 80
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 81
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 88
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/icon.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 50,
+        "imports_count": 1,
+        "fan_in": 3,
+        "exports": ["DEFAULT_MDI_ICONS", "nodeIcon", "diagnosticsIcon"],
+        "functions": [
+          {
+            "name": "nodeIcon",
+            "loc": 11,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 37
+          },
+          {
+            "name": "diagnosticsIcon",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 49
+          },
+          {
+            "name": "renderEmojiText",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 53
+          },
+          {
+            "name": "renderIconForeignObject",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 57
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/layout.test.ts",
+        "layer": "render",
+        "is_test": true,
+        "loc": 138,
+        "imports_count": 2,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 14
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 15
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 19,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 21
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 28
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 30
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 34
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 36
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 19,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 41
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 49
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 51
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 54
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 54
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 55
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 16,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 61
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 14,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 62
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 71
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 72
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 63,
+            "cyclomatic": 6,
+            "max_nesting": 3,
+            "params": 0,
+            "line_start": 78
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 79
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 81
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 18,
+            "cyclomatic": 4,
+            "max_nesting": 3,
+            "params": 1,
+            "line_start": 88
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 90
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 108
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 110
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 3,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 118
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 120
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 129
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 131
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 19,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 142
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 143
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 155
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 158
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/layout.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 208,
+        "imports_count": 4,
+        "fan_in": 6,
+        "exports": ["NODE_R_MEDIUM", "computeLayout"],
+        "functions": [
+          {
+            "name": "computeLayout",
+            "loc": 37,
+            "cyclomatic": 5,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 56
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 64
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 3,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 75
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 76
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 83
+          },
+          {
+            "name": "sourceClusterXs",
+            "loc": 9,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 94
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 101
+          },
+          {
+            "name": "consumerArcPositions",
+            "loc": 16,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 104
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 111
+          },
+          {
+            "name": "computeEdges",
+            "loc": 99,
+            "cyclomatic": 16,
+            "max_nesting": 3,
+            "params": 4,
+            "line_start": 121
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 128
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 129
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 135
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 151
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 153
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 167
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 194
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 11,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 206
+          },
+          {
+            "name": "consumerEdgePath",
+            "loc": 20,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 3,
+            "line_start": 221
+          },
+          {
+            "name": "midpoint",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 242
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/node-renderer.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 211,
+        "imports_count": 11,
+        "fan_in": 1,
+        "exports": [
+          "nodeColorRole",
+          "renderNode",
+          "isNodeUnavailable",
+          "entityIdForNode",
+          "labelYOffset",
+          "nodeValueText",
+          "nodeName"
+        ],
+        "functions": [
+          {
+            "name": "nodeColorRole",
+            "loc": 14,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 14
+          },
+          {
+            "name": "renderNode",
+            "loc": 80,
+            "cyclomatic": 16,
+            "max_nesting": 1,
+            "params": 3,
+            "line_start": 29
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 69
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 70
+          },
+          {
+            "name": "isNodeUnavailable",
+            "loc": 22,
+            "cyclomatic": 10,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 110
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 119
+          },
+          {
+            "name": "entityIdForNode",
+            "loc": 15,
+            "cyclomatic": 8,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 133
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 134
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 136
+          },
+          {
+            "name": "labelYOffset",
+            "loc": 13,
+            "cyclomatic": 6,
+            "max_nesting": 1,
+            "params": 1,
+            "line_start": 149
+          },
+          {
+            "name": "findFlow",
+            "loc": 3,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 163
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 164
+          },
+          {
+            "name": "nodeValueText",
+            "loc": 34,
+            "cyclomatic": 10,
+            "max_nesting": 1,
+            "params": 3,
+            "line_start": 167
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 173
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 174
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 186
+          },
+          {
+            "name": "configEntryForNode",
+            "loc": 9,
+            "cyclomatic": 4,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 202
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 206
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 207
+          },
+          {
+            "name": "nodeName",
+            "loc": 16,
+            "cyclomatic": 8,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 212
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/render/theme.ts",
+        "layer": "render",
+        "is_test": false,
+        "loc": 14,
+        "imports_count": 1,
+        "fan_in": 5,
+        "exports": ["colorFor", "HA_CSS_VARS"],
+        "functions": [
+          {
+            "name": "colorFor",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 7
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/format-power.test.ts",
+        "layer": "util",
+        "is_test": true,
+        "loc": 47,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 56,
+            "cyclomatic": 2,
+            "max_nesting": 2,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 14
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 18
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 26
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 31
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 20,
+            "cyclomatic": 2,
+            "max_nesting": 2,
+            "params": 0,
+            "line_start": 39
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/format-power.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 22,
+        "imports_count": 0,
+        "fan_in": 2,
+        "exports": ["formatPowerW"],
+        "functions": [
+          {
+            "name": "defaultLocale",
+            "loc": 4,
+            "cyclomatic": 3,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 7
+          },
+          {
+            "name": "formatPowerW",
+            "loc": 13,
+            "cyclomatic": 7,
+            "max_nesting": 1,
+            "params": 2,
+            "line_start": 12
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/memo.test.ts",
+        "layer": "util",
+        "is_test": true,
+        "loc": 25,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 25,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 6
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 7
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 13
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 14
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 15
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 7,
+            "cyclomatic": 2,
+            "max_nesting": 1,
+            "params": 0,
+            "line_start": 21
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 22
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 23
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/memo.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 23,
+        "imports_count": 0,
+        "fan_in": 1,
+        "exports": ["memoize"],
+        "functions": [
+          {
+            "name": "memoize",
+            "loc": 23,
+            "cyclomatic": 4,
+            "max_nesting": 2,
+            "params": 2,
+            "line_start": 3
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 17,
+            "cyclomatic": 4,
+            "max_nesting": 2,
+            "params": 1,
+            "line_start": 8
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/read-sensor.test.ts",
+        "layer": "util",
+        "is_test": true,
+        "loc": 91,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 104,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 8
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 9
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 16
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 23
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 4,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 30
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 8,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 35
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 44
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 51
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 57
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 64
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 71
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 78
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 10,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 94
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 6,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 105
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/read-sensor.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 87,
+        "imports_count": 1,
+        "fan_in": 3,
+        "exports": ["readSensorW"],
+        "functions": [
+          {
+            "name": "readSensorW",
+            "loc": 64,
+            "cyclomatic": 13,
+            "max_nesting": 2,
+            "params": 3,
+            "line_start": 33
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 1,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/resolve-color.test.ts",
+        "layer": "util",
+        "is_test": true,
+        "loc": 19,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 19,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 9,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 15
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 19
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/resolve-color.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 23,
+        "imports_count": 0,
+        "fan_in": 5,
+        "exports": ["COLOR_DEFAULTS", "resolveColor"],
+        "functions": [
+          {
+            "name": "resolveColor",
+            "loc": 6,
+            "cyclomatic": 2,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 20
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/svg-path.test.ts",
+        "layer": "util",
+        "is_test": true,
+        "loc": 15,
+        "imports_count": 1,
+        "fan_in": 0,
+        "exports": [],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 15,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 4
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 5,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 5
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 11
+          },
+          {
+            "name": "<anonymous>",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 0,
+            "line_start": 15
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/svg-path.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 11,
+        "imports_count": 0,
+        "fan_in": 2,
+        "exports": ["bezierPath", "straightPath"],
+        "functions": [
+          {
+            "name": "<anonymous>",
+            "loc": 1,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 1,
+            "line_start": 6
+          },
+          {
+            "name": "bezierPath",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 3,
+            "line_start": 8
+          },
+          {
+            "name": "straightPath",
+            "loc": 3,
+            "cyclomatic": 1,
+            "max_nesting": 0,
+            "params": 2,
+            "line_start": 12
+          }
+        ],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "src/util/warning-types.ts",
+        "layer": "util",
+        "is_test": false,
+        "loc": 15,
+        "imports_count": 0,
+        "fan_in": 6,
+        "exports": [],
+        "functions": [],
+        "escape_hatches": {
+          "any": 0,
+          "as": 0,
+          "non_null": 0,
+          "eslint_disable": 0,
+          "ts_directive": 0,
+          "todo": 0
+        }
+      }
+    ],
+    "import_cycles": [],
+    "dead_exports": [],
+    "violations": {
+      "loc_exceeds_limit": [],
+      "complexity_above_10": [
+        {
+          "path": "src/card-helpers.ts",
+          "function": "isStubConfig",
+          "value": 12
+        },
+        {
+          "path": "src/card.ts",
+          "function": "render",
+          "value": 13
+        },
+        {
+          "path": "src/config/derive-display-consumers.ts",
+          "function": "groupByArea",
+          "value": 11
+        },
+        {
+          "path": "src/config/schema.ts",
+          "function": "validateConfig",
+          "value": 36
+        },
+        {
+          "path": "src/config/schema.ts",
+          "function": "validateBatteryPower",
+          "value": 16
+        },
+        {
+          "path": "src/config/system-state.ts",
+          "function": "buildSystemState",
+          "value": 12
+        },
+        {
+          "path": "src/editor-list-sections.ts",
+          "function": "renderBatterySection",
+          "value": 14
+        },
+        {
+          "path": "src/editor-list-sections.ts",
+          "function": "<anonymous>",
+          "value": 14
+        },
+        {
+          "path": "src/engine/energy-engine.ts",
+          "function": "compute",
+          "value": 33
+        },
+        {
+          "path": "src/engine/energy-engine.ts",
+          "function": "<anonymous>",
+          "value": 11
+        },
+        {
+          "path": "src/render/layout.ts",
+          "function": "computeEdges",
+          "value": 16
+        },
+        {
+          "path": "src/render/node-renderer.ts",
+          "function": "renderNode",
+          "value": 16
+        },
+        {
+          "path": "src/util/read-sensor.ts",
+          "function": "readSensorW",
+          "value": 13
+        }
+      ],
+      "function_loc_above_50": [
+        {
+          "path": "src/config/derive-display-consumers.ts",
+          "function": "groupByArea",
+          "value": 62
+        },
+        {
+          "path": "src/config/schema.ts",
+          "function": "validateConfig",
+          "value": 102
+        },
+        {
+          "path": "src/config/system-state.ts",
+          "function": "buildSystemState",
+          "value": 78
+        },
+        {
+          "path": "src/editor-list-sections.ts",
+          "function": "renderBatterySection",
+          "value": 125
+        },
+        {
+          "path": "src/editor-list-sections.ts",
+          "function": "<anonymous>",
+          "value": 112
+        },
+        {
+          "path": "src/engine/energy-engine.ts",
+          "function": "compute",
+          "value": 210
+        },
+        {
+          "path": "src/render/layout.ts",
+          "function": "computeEdges",
+          "value": 99
+        },
+        {
+          "path": "src/render/node-renderer.ts",
+          "function": "renderNode",
+          "value": 80
+        },
+        {
+          "path": "src/util/read-sensor.ts",
+          "function": "readSensorW",
+          "value": 64
+        }
+      ],
+      "params_above_4": [],
+      "fan_in_above_10": [
+        {
+          "path": "src/config/types.ts",
+          "value": 15
+        }
+      ],
+      "max_nesting_above_4": [],
+      "coverage_below_90_pure_layers": [],
+      "bundle_above_budget": false,
+      "custom_elements_not_2": false,
+      "any_in_pure_layers": [],
+      "non_null_in_pure_layers": [],
+      "missing_tests_pure_layers": [
+        "src/config/system-state.ts",
+        "src/config/types.ts",
+        "src/engine/types.ts",
+        "src/util/warning-types.ts"
+      ],
+      "import_cycles": [],
+      "dead_exports": []
+    }
   }
 ]

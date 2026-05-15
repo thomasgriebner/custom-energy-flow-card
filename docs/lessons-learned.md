@@ -96,3 +96,32 @@
 **Lehre für nächstes Mal:** Pass-6-Workflow-Erweiterung: bei `pnpm check`-FAIL `git blame` auf failing Test-File-Zeile. Wenn Blame-Commit nicht im Plan-Diff: als pre-existing markieren, LESSON-LEARNED appenden, USER-DECISION für Fix-Hotfix.
 **Promotion-Kandidat:** `code-review-checklist.md` Phase Z Pass 6: Bullet "Bei `pnpm check`-FAIL: `git blame` auf failing test → Pre-existing? → LESSON statt Block"
 **Status:** PROMOTED zu `docs/templates/code-review-checklist.md` Pass-6-Prompt Punkt 2 (2026-05-15)
+
+### 2026-05-15 — Plan: 2026-05-15-akku-prozent-im-ring
+
+#### LESSON: Bundle-Optimierung via Whitespace-Trim ist Einmal-Trick — proaktiv Headroom planen (2026-05-15, Plan: 2026-05-15-akku-prozent-im-ring)
+
+**Quelle:** Code-Review Pass 3 + Pass 6 USER-DECISION
+**Beobachtet:** Bundle lag vor Implementation bei 61446 B (6 B über 60-KiB-Budget durch Drift). Nach Spec-treuer Implementation 61984 B (+538 B). Whitespace-Compaction in `src/render/battery-ring.ts` Lit-Templates brachte das Bundle auf 61434 B (6 B Reserve), aber um den Preis von Spec-Plan-Drift (Magic-Numbers inline statt Konstanten). Pass 3 markierte: Lit-`svg`-Templates lassen sich exakt einmal whitespace-komprimieren — die nächste Render-Subspec hätte kein Polster mehr.
+**Fix im Code:** Bundle-Budget angehoben (ADR-0022, 60 → 64 KiB), Konstanten danach wieder extrahiert (Commit `3205cb2`). Net-Bundle 61475 B (4061 B Reserve).
+**Lehre für nächstes Mal:** Code-Review-Pass 3 sollte Bundle-Headroom explizit prüfen — wenn Reserve < 1 KiB ODER Whitespace-Trim als Bundle-Recovery genutzt wurde: USER-DECISION für Budget-Anhebung VOR der nächsten Render-Subspec einplanen, nicht reaktiv.
+**Promotion-Kandidat:** `code-review-checklist.md` Pass 3 Bullet: „Bundle-Headroom < 1 KiB ODER Whitespace-Trim genutzt → USER-DECISION für Budget-Bump"
+**Status:** offen
+
+#### LESSON: Theme-adaptive SVG-Text via `var(--primary-text-color, ...)` als Attribut funktioniert (2026-05-15, Plan: 2026-05-15-akku-prozent-im-ring)
+
+**Quelle:** User-Feedback nach Initial-Implementation + Sandbox-Verifikation
+**Beobachtet:** Statisches `fill="#ffffff"` auf gesättigtem grünem Stroke (`#10b981`) ist bei font-size 9 schwach lesbar — User-Beanstandung im Light-Theme. Die etablierte Lösung via HA-CSS-Custom-Property `var(--primary-text-color, #1c1c1c)` als SVG-Text-`fill`-Attribut wurde live in der Sandbox verifiziert (DevTools `style.setProperty('--primary-text-color', '#1c1c1c'|'#ffffff')` toggelt `computedStyle.fill` zwischen `rgb(28,28,28)` und `rgb(255,255,255)`). HA-Light-Theme → dunkel, Dark-Theme → hell.
+**Fix im Code:** `src/render/battery-ring.ts` `LABEL_FILL = 'var(--primary-text-color, #1c1c1c)'`. `node-renderer.ts:81` (Knoten-Kreis) nutzte das Pattern schon, also Repo-konsistent.
+**Lehre für nächstes Mal:** Für Text auf Theme-abhängiger Background-Fläche (gesättigte Stroke-Farbe, Card-Background etc.): default theme-adaptiv via HA-CSS-Var, NICHT statisch weiß oder schwarz. Konvention in conventions.md §15 Sprache („Farben") ergänzen oder als Render-Anti-Pattern in §11 dokumentieren.
+**Promotion-Kandidat:** `docs/conventions.md` neue §15.X „Render-Farben auf themable Background: `var(--primary-text-color, …)` statt statische Werte"
+**Status:** offen
+
+#### LESSON: Spec-Risiko §10 + Plan-STOP-Condition mit konkretem Mitigation-Pfad sind das richtige Pattern (2026-05-15, Plan: 2026-05-15-akku-prozent-im-ring)
+
+**Quelle:** User-Feedback (Name-Label-Kollision) + Plan-Phase-4-STOP-Condition
+**Beobachtet:** Spec §10 listete „Name-Label kollidiert mit Ring-Außenrand (7 px Reserve)" als niedrig-Risiko mit Mitigation „Falls Kollision: Name-Offset von 22 auf 26 anheben". Plan Phase 4 Task 4.1 Step 3 hatte die STOP-Condition wortwörtlich übernommen. User-Feedback nach Preview bestätigte die Kollision — der vorgesehene Mitigation-Pfad wurde dann **ohne neue Spec/Plan-Iteration** umgesetzt (Commit `3205cb2`, Offset 22 → 30 statt 26 wegen +4 px Sicherheits-Puffer).
+**Fix im Code:** `src/render/node-renderer.ts:154` `node.r + 22` → `node.r + 30`.
+**Lehre für nächstes Mal:** Wenn Spec §10 Risiken + Plan STOP-Conditions mit **konkretem Wert** als Mitigation hat, ist post-Implementation-User-Feedback der eingeplante Trigger — kein Pattern-Bruch, sondern Pattern-Erfolg. Code-Drift gegenüber Spec dann als Lesson dokumentieren (analog zur Grid-Font-Lesson 2026-05-15-icon-positionierung).
+**Promotion-Kandidat:** `spec-template.md` §10 Risiken: Hinweis „Mitigations-Pfade dürfen konkrete Code-Werte vorgeben — der Plan übernimmt sie als STOP-Conditions, der Drift wird in lessons-learned dokumentiert."
+**Status:** offen
