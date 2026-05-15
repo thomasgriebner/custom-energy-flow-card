@@ -59,7 +59,7 @@
 **Fix im Code:** Skript-Verbesserung: Vergleich nach `(path, function)`-Tupel statt JSON-Substring, mit Wertangabe `(was 16, now 15)`.
 **Lehre für nächstes Mal:** KPI-Skript Delta-Logik mit echter Tupel-Vergleichs-Semantik bauen (path+function als Key, value als Vergleichsfeld). Test-Case: künstlicher Snapshot mit complexity-Reduktion → soll als "VERBESSERT" gelabelt werden, nicht "NEU".
 **Promotion-Kandidat:** `scripts/kpi.mjs` Refactor (Sub-Plan-Kandidat falls User priorisiert)
-**Status:** offen
+**Status:** PROMOTED zu `scripts/kpi.mjs` Delta-Logik (Tupel-Vergleich + IMPROVED/REGRESSED/NEW/RESOLVED-Labels) (2026-05-15)
 
 #### LESSON: Phase-0-Pre-Snapshot von Build-Stale-State abhängig (2026-05-15, Plan: 2026-05-15-icon-positionierung)
 

@@ -555,12 +555,36 @@ function renderDeltaReport(pre, post) {
     const b = post.layers[layer].coverage_pct;
     if (a != null || b != null) lines.push(`  ${layer.padEnd(12)}${a ?? 'n/a'} → ${b ?? 'n/a'}`);
   }
-  lines.push('', 'Threshold-Verstöße (NEU):');
+  lines.push('', 'Threshold-Verstöße — Delta pre → post:');
   for (const key of Object.keys(post.violations).filter((k) => Array.isArray(post.violations[k]))) {
-    const preItems = JSON.stringify(pre.violations[key] || []);
-    for (const item of post.violations[key] || []) {
-      if (!preItems.includes(JSON.stringify(item)))
-        lines.push(`  - ${key}: ${JSON.stringify(item)}`);
+    const preList = pre.violations[key] || [];
+    const postList = post.violations[key] || [];
+    const violationKey = (item) => {
+      if (typeof item === 'string') return item;
+      const parts = [item.path];
+      if (item.function) parts.push(item.function);
+      if (item.from && item.to) return `${item.from}->${item.to}`;
+      return parts.join('::') || JSON.stringify(item);
+    };
+    const preMap = new Map(preList.map((item) => [violationKey(item), item]));
+    const postMap = new Map(postList.map((item) => [violationKey(item), item]));
+    for (const [k, item] of postMap) {
+      const preItem = preMap.get(k);
+      if (preItem == null) {
+        lines.push(`  - ${key}: NEW ${JSON.stringify(item)}`);
+      } else if (
+        typeof item === 'object' &&
+        item.value != null &&
+        typeof preItem === 'object' &&
+        preItem.value != null &&
+        item.value !== preItem.value
+      ) {
+        const dir = item.value > preItem.value ? 'REGRESSED' : 'IMPROVED';
+        lines.push(`  - ${key}: ${dir} ${k} (${preItem.value} → ${item.value})`);
+      }
+    }
+    for (const [k, preItem] of preMap) {
+      if (!postMap.has(k)) lines.push(`  - ${key}: RESOLVED ${JSON.stringify(preItem)}`);
     }
   }
   const n = loadHistory().length;
