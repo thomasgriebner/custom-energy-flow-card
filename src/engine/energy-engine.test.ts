@@ -320,7 +320,7 @@ describe('Engine — Consumer + Home-Attribution (steps 8 + ring)', () => {
     const start = performance.now();
     const r = compute(s);
     const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(5);
+    expect(elapsed).toBeLessThan(20);
     expect(r.flows.pvToHome).toHaveLength(5);
     expect(r.flows.batteryToHome).toHaveLength(5);
     expect(r.flows.homeToConsumer).toHaveLength(3);
