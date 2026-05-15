@@ -235,6 +235,41 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 
 ## Changelog
 
+### v0.13.0 — 2026-05-15 — Akku-Prozent im Ring + Theme-adaptive Schriftfarbe
+
+Neues User-facing Feature am Akku-Knoten:
+
+- **SoC-Prozentwert direkt im Akku-Ring sichtbar** (z. B. „73 %") — tangential
+  oben-links im Stroke. Bisher war der Ladestand nur als Ring-Füllung dargestellt,
+  jetzt steht der genaue Wert daneben.
+- **Akku-Ring breiter** (Stroke-Width 6 → 14 px), um den Prozent-Text aufzunehmen.
+  Akku-Kreis-Radius (r=42) und Ring-Radius (r=50) bleiben gleich — Layout-
+  Verhalten unverändert.
+- **Theme-adaptive Schriftfarbe** für den %-Text: dunkel im Light-Theme, hell im
+  Dark-Theme (via `--primary-text-color`). Bestehende `card-mod`-Selektoren
+  bleiben kompatibel.
+- **Akku-Name-Label** sitzt 8 px weiter unten, damit Name und Ring sich nicht
+  berühren.
+- **aria-Label-Format** auf `"X %"` mit Leerzeichen angepasst (konsistent zum
+  Watt-Format `"X.Y kW"`).
+
+Interne Architektur-Änderungen:
+
+- **Bundle-Budget angehoben** von 60 KiB auf 64 KiB (ADR-0022). Hintergrund:
+  Whitespace-Optimierung in Lit-Templates war erschöpft, neue Render-Features
+  hatten keinen Headroom mehr ohne Lesbarkeits-Verlust. CI-Gate weiter aktiv,
+  nur Schwellenwert verschoben.
+
+**Card-Mod-Hinweis:** Der Shadow-DOM-Part `::part(battery-ring)` zielt jetzt auf
+den äußeren `<g>`-Wrapper (vorher: innere Rotationsgruppe). Neuer Hook:
+`::part(battery-ring-label)` für den %-Text. Bestehende Selektoren, die nur den
+Ring-Stroke stylen, sollten weiter funktionieren — Custom-CSS, das auf die
+innere Gruppen-Struktur baute, ist evtl. anzupassen.
+
+Keine Config-Migration nötig. SoC-Sensor war seit v0.9.0 Pflicht-Feld der
+Battery-Config — Anzeige aktiviert sich automatisch, sobald der Sensor verfügbar
+ist.
+
 ### v0.12.1 — 2026-05-15 — Icon-Positionierung + Kreis-Skalierung
 
 Visuelles Polish-Release. Behebt vier Render-Issues aus dem Live-Betrieb:

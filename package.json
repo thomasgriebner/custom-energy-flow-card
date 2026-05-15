@@ -1,6 +1,6 @@
 {
   "name": "custom-energy-flow-card",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "type": "module",
   "module": "dist/custom-energy-flow-card.js",
   "scripts": {
