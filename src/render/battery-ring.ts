@@ -1,6 +1,6 @@
 import { svg, type SVGTemplateResult } from 'lit';
 
-const RING_RADIUS = 42;
+const RING_RADIUS = 50;
 const STROKE_WIDTH = 6;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 

@@ -52,7 +52,7 @@ export function renderNode(
   const labelOffset = labelYOffset(node);
   const strokeDash = unavailable ? '4 4' : '';
 
-  const valueY = node.kind === 'home' ? 14 : 16;
+  const valueY = 20;
 
   const isConsumer = node.kind === 'consumer';
   const consumerLabelX = node.r + 8; // right of the circle
@@ -95,7 +95,7 @@ export function renderNode(
             </text>
           `
           : svg`
-            <text class="node-value" text-anchor="middle" y="${valueY}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 13}">
+            <text class="node-value" text-anchor="middle" y="${valueY}" font-weight="700" font-size="${node.kind === 'home' ? 15 : 14}">
               ${value}
             </text>
             <text class="node-name" text-anchor="middle" y="${labelOffset}" font-size="11" font-weight="600">

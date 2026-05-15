@@ -4,7 +4,7 @@ import type { LayoutNode } from './layout';
 
 export const DEFAULT_MDI_ICONS: Record<LayoutNode['kind'], string> = {
   pv: 'mdi:solar-power',
-  battery: 'mdi:battery',
+  battery: 'mdi:home-battery',
   grid: 'mdi:transmission-tower',
   home: 'mdi:home',
   consumer: 'mdi:power-plug',
@@ -18,11 +18,11 @@ interface IconBox {
 }
 
 const NODE_ICON_BOX: Record<LayoutNode['kind'], IconBox> = {
-  pv: { size: 24, centerY: -4, emojiFontSize: 22, emojiY: -4 },
-  battery: { size: 24, centerY: -4, emojiFontSize: 22, emojiY: -4 },
-  grid: { size: 24, centerY: -4, emojiFontSize: 22, emojiY: -4 },
-  home: { size: 32, centerY: -10, emojiFontSize: 28, emojiY: -10 },
-  consumer: { size: 18, centerY: 6, emojiFontSize: 18, emojiY: 6 },
+  pv: { size: 24, centerY: -12, emojiFontSize: 22, emojiY: -12 },
+  battery: { size: 24, centerY: -12, emojiFontSize: 22, emojiY: -12 },
+  grid: { size: 24, centerY: -12, emojiFontSize: 22, emojiY: -12 },
+  home: { size: 32, centerY: -16, emojiFontSize: 28, emojiY: -16 },
+  consumer: { size: 24, centerY: 0, emojiFontSize: 22, emojiY: 0 },
 };
 
 const DIAGNOSTICS_ICON_BOX: IconBox = {

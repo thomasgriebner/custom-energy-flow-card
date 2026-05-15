@@ -27,9 +27,9 @@ export interface LayoutResult {
 }
 
 const NODE_R_LARGE = 50;
-export const NODE_R_MEDIUM = 34;
-const NODE_R_CONSUMER = 24;
-const NODE_R_GRID = 32;
+export const NODE_R_MEDIUM = 42;
+const NODE_R_CONSUMER = 28;
+const NODE_R_GRID = 40;
 const TOP_Y = 80;
 const BOTTOM_Y = 460;
 const MIDDLE_Y = 270;
@@ -38,13 +38,13 @@ const HOME_X = 480;
 const SOURCE_X_MIN = 200;
 const SOURCE_X_MAX = 560;
 const CONSUMER_ARC_R = 350;
-// 42° cap: limited by viewBox-top margin (top consumer y = 36 → 12 px to
-// viewBox top y=0). PV/Akku collision is NOT the constraint — they sit at
-// x≈250/560 while consumers are at x≈740+, horizontally far apart.
+// 42° cap: limited by viewBox-top margin (top consumer y = 36 → 8 px to
+// viewBox top y=0 at r=28). PV/Akku collision is NOT the constraint — they
+// sit at x≈250/560 while consumers are at x≈740+, horizontally far apart.
 const CONSUMER_ARC_MAX_DEG = 42;
 // 14° step keeps adjacent center-to-center gap at 85 px (= 2·R·sin(7°)),
-// well above the 48 px consumer diameter, for N=2..7. At N=8 the cap kicks
-// in and gap shrinks to 73 px — still 25 px margin to diameter.
+// well above the 56 px consumer diameter, for N=2..7. At N=8 the cap kicks
+// in and gap shrinks to 73 px — still 17 px margin to diameter.
 const CONSUMER_ARC_STEP_DEG = 14;
 
 interface ArcPosition {
