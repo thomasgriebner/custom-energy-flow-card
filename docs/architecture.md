@@ -120,6 +120,7 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 | [0018](./adr/0018-ha-dashboard-layout-api.md)                | HA-Dashboard-Layout-API (`getGridOptions`) immer aktiv        | superseded — Slider-Bounds erwiesen sich als künstliche Einschränkung        |
 | [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
 | [0020](./adr/0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | Dynamische User-/Area-Icons + null Wartungslast (Subspec 2026-05-13)         |
+| [0021](./adr/0021-code-review-workflow-pre-release-gate.md)  | Code-Review-Workflow als Pre-Release-Quality-Gate             | 6 Brillen + KPI-Skript + Lessons-Pipeline (Subspec 2026-05-15)               |
 
 ## 5. Konventionen kurz
 
