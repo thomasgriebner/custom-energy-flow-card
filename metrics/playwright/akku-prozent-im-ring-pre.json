@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "label": "pre-akku-prozent-im-ring",
+    "phase": "pre",
+    "captured_at": "2026-05-15T18:36:24Z",
+    "git_head": "e12e2d8f3ef68af09447633d6833adc0ed279f23",
+    "card_bundle_built": {
+      "path": "dist/custom-energy-flow-card.js",
+      "sha256": "b447c7a55e5b2353ba95da672503f04f058647a01da9a03ba6b2f66be9bda7bd",
+      "bytes": 61446,
+      "mtime_unix": 1778862750,
+      "_note": "WARNING: bundle 61446 B exceeds BUNDLE_BUDGET_BYTES=61440 by 6 B before any change. Investigate before Phase 4 commit."
+    },
+    "preview_url": "http://127.0.0.1:5173/preview/preview.html",
+    "scenario": "default (first scenario from examples/preview-mocks.ts)"
+  },
+  "console": {
+    "errors": [
+      {
+        "msg": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://127.0.0.1:5173/favicon.ico",
+        "note": "harmless favicon 404"
+      }
+    ],
+    "warnings": []
+  },
+  "card_state": {
+    "node_count": 9,
+    "batteries": [
+      {
+        "transform": "translate(250 460)",
+        "aria_label": "Dach-Speicher: +600 W, 75%",
+        "value_text": "+600 W",
+        "ring_circles": [
+          {
+            "r": "50",
+            "stroke_width": "6",
+            "stroke_dasharray": null,
+            "opacity": "0.18",
+            "role": "background ring"
+          },
+          {
+            "r": "50",
+            "stroke_width": "6",
+            "stroke_dasharray": "235.61944901923448 78.53981633974485",
+            "opacity": null,
+            "role": "filled segment (75 %)"
+          }
+        ]
+      },
+      {
+        "transform": "translate(560 460)",
+        "aria_label": "Balkon-Speicher: +200 W, 42%",
+        "value_text": "+200 W",
+        "ring_circles": [
+          {
+            "r": "50",
+            "stroke_width": "6",
+            "stroke_dasharray": null,
+            "opacity": "0.18",
+            "role": "background ring"
+          },
+          {
+            "r": "50",
+            "stroke_width": "6",
+            "stroke_dasharray": "131.94689145077132 182.212373908208",
+            "opacity": null,
+            "role": "filled segment (42 %)"
+          }
+        ]
+      }
+    ],
+    "all_nodes": [
+      { "kind": "pv", "transform": "translate(250 80)", "aria_label": "Solar Dach: 2,600 W" },
+      { "kind": "pv", "transform": "translate(560 80)", "aria_label": "Solar Balkon: 600 W" },
+      { "kind": "grid", "transform": "translate(60 270)", "aria_label": "Netz: −1,200 W" },
+      {
+        "kind": "battery",
+        "transform": "translate(250 460)",
+        "aria_label": "Dach-Speicher: +600 W, 75%"
+      },
+      {
+        "kind": "battery",
+        "transform": "translate(560 460)",
+        "aria_label": "Balkon-Speicher: +200 W, 42%"
+      },
+      {
+        "kind": "consumer",
+        "transform": "translate(819.6035041965988 185.32733654011628)",
+        "aria_label": "Wärmepumpe: 400 W"
+      },
+      {
+        "kind": "consumer",
+        "transform": "translate(819.6035041965988 354.6726634598837)",
+        "aria_label": "Herd: 100 W"
+      },
+      { "kind": "consumer", "transform": "translate(830 270)", "aria_label": "Wallbox: 0 W" },
+      { "kind": "home", "transform": "translate(480 270)", "aria_label": "Hausverbrauch: 1,200 W" }
+    ]
+  },
+  "observations": [
+    "Battery aria-label format BEFORE change: 'Dach-Speicher: +600 W, 75%' — no space before %.",
+    "Battery ring has 2 circles (background + filled) when SoC in normal range (here 75 % and 42 %).",
+    "Stroke-width = 6 confirms current state. Spec changes to 14.",
+    "No <text> element inside [part~='battery-ring'] — confirmed: current renderer has no SoC label."
+  ]
+}
