@@ -16,8 +16,8 @@ describe('renderBatteryRing', () => {
   it('renders background ring + filled segment for 50 %', () => {
     const out = serialize(renderBatteryRing(50, '#10b981'));
     expect(out).toContain('stroke-dasharray');
-    // For 50%: dasharray = (2π·42 · 0.5) ≈ 131.95 131.95
-    expect(out).toMatch(/131\.\d+ 131\.\d+/);
+    // For 50%: dasharray = (2π·50 · 0.5) ≈ 157.08 157.08
+    expect(out).toMatch(/157\.\d+ 157\.\d+/);
   });
 
   it('renders solid stroke (no dasharray) when socPct ≥ 99.5', () => {
@@ -40,5 +40,10 @@ describe('renderBatteryRing', () => {
     const out = serialize(renderBatteryRing(-10, '#10b981'));
     const matches = out.match(/stroke-dasharray/g);
     expect(matches).toBeNull();
+  });
+
+  it('SOC-ring radius=50 sits outside battery circle (NODE_R_MEDIUM=42)', () => {
+    const out = serialize(renderBatteryRing(50, '#10b981'));
+    expect(out).toMatch(/r="50"/);
   });
 });

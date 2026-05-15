@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeLayout } from './layout';
+import { computeLayout, NODE_R_MEDIUM } from './layout';
 import type { Config, DisplayConsumer } from '../config/types';
 
 const baseConfig = (over: Partial<Config> = {}): Config => ({
@@ -34,7 +34,7 @@ describe('computeLayout — viewBox + grid', () => {
   it('places grid at (60, 270)', () => {
     const layout = computeLayout(baseConfig(), []);
     const grid = layout.nodes.find((n) => n.kind === 'grid');
-    expect(grid).toMatchObject({ x: 60, y: 270, r: 32 });
+    expect(grid).toMatchObject({ x: 60, y: 270, r: 40 });
   });
 });
 
@@ -90,15 +90,15 @@ describe('computeLayout — consumer arc', () => {
       const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
       expect(consumers).toHaveLength(n);
       for (const c of consumers) {
-        // ViewBox bounds: consumer (r=24) must stay fully visible
+        // ViewBox bounds: consumer (r=NODE_R_CONSUMER) must stay fully visible
         expect(c.y - c.r).toBeGreaterThanOrEqual(0);
         expect(c.y + c.r).toBeLessThanOrEqual(540);
-        // No physical circle overlap with PV (x=250/560, y=80, r=32)
-        // or Akku (x=250/560, y=460, r=32) — consumers are far right (x>740).
+        // No physical circle overlap with PV (x=250/560, y=80, r=NODE_R_MEDIUM)
+        // or Akku (x=250/560, y=460, r=NODE_R_MEDIUM) — consumers are far right (x>740).
         for (const cx of [250, 560]) {
           for (const cy of [80, 460]) {
             const d = Math.hypot(c.x - cx, c.y - cy);
-            expect(d).toBeGreaterThan(c.r + 32 + 4); // 4px breathing
+            expect(d).toBeGreaterThan(c.r + NODE_R_MEDIUM + 4); // 4px breathing
           }
         }
       }
@@ -124,6 +124,18 @@ describe('computeLayout — consumer arc', () => {
         expect(d).toBeGreaterThan(consumers[i].r * 2 + 4); // 4 px breathing
       }
     }
+  });
+
+  it('N=8: adjacent consumer gap ≥ 15 px clearance (post-r=28 update)', () => {
+    const layout = computeLayout(baseConfig(), mkDisplayConsumers(8));
+    const consumers = layout.nodes.filter((n) => n.kind === 'consumer');
+    expect(consumers).toHaveLength(8);
+    // noUncheckedIndexedAccess: explizite Non-Null-Assertion erlaubt in *.test.ts
+    // (.eslintrc.cjs:55-60 override). toHaveLength garantiert die Existenz semantisch.
+    const c0 = consumers[0]!;
+    const c1 = consumers[1]!;
+    const adjGap = Math.hypot(c0.x - c1.x, c0.y - c1.y) - 2 * c0.r;
+    expect(adjGap).toBeGreaterThanOrEqual(15);
   });
 });
 

@@ -27,7 +27,7 @@ export interface LayoutResult {
 }
 
 const NODE_R_LARGE = 50;
-const NODE_R_MEDIUM = 34;
+export const NODE_R_MEDIUM = 34;
 const NODE_R_CONSUMER = 24;
 const NODE_R_GRID = 32;
 const TOP_Y = 80;
