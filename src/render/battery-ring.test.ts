@@ -89,11 +89,11 @@ describe('renderBatteryRing — %-Text-Element', () => {
     expect(out.slice(innerCloseIdx)).toContain('<text');
   });
 
-  it('Text hat font-size=9, font-weight=400, fill=#ffffff', () => {
+  it('Text hat font-size=9, font-weight=400, theme-adaptive fill (--primary-text-color)', () => {
     const out = serialize(renderBatteryRing(50, '#10b981'));
     expect(out).toContain('font-size="9"');
     expect(out).toContain('font-weight="400"');
-    expect(out).toContain('fill="#ffffff"');
+    expect(out).toContain('fill="var(--primary-text-color, #1c1c1c)"');
   });
 
   it('Text hat dominant-baseline=middle und text-anchor=middle', () => {

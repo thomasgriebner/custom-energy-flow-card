@@ -151,7 +151,7 @@ export function labelYOffset(node: LayoutNode): number {
     case 'pv':
       return -node.r - 16;
     case 'battery':
-      return node.r + 22;
+      return node.r + 30;
     case 'home':
       return node.r + 32;
     case 'grid':
