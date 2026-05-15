@@ -360,3 +360,40 @@ Aus Spec §11.5 (verbindlich):
 - **Doku, Spec, ADRs**: Deutsch (Anwender + Maintainer sprechen Deutsch)
 - **Commit-Messages**: Deutsch oder Englisch — **konsistent innerhalb eines
   PRs / Branches**
+
+## 16. Render-Farben auf themable Background
+
+Für Text/Icons, die **auf einer theme-abhängigen Fläche** sitzen (gesättigte
+Stroke-Farbe, Card-Background, semitransparenter Hintergrund), ist die
+Standard-Farbe **theme-adaptiv** via HA-CSS-Custom-Property — **nicht statisch
+weiß oder schwarz**.
+
+**Empfohlenes Pattern:**
+
+```typescript
+// Text-Farbe, die im Light-Theme dunkel und im Dark-Theme hell wird
+fill = 'var(--primary-text-color, #1c1c1c)';
+
+// Background-Farbe (Card-Innenfüllung), die mit dem HA-Theme mitwandert
+fill = '${HA_CSS_VARS.cardBackground}'; // = 'var(--ha-card-background, var(--card-background-color, #fff))'
+```
+
+**Verfügbare HA-CSS-Variablen** (siehe `src/render/theme.ts` für `HA_CSS_VARS`):
+
+- `--primary-text-color` — Standard-Textfarbe (Light dunkel, Dark hell)
+- `--secondary-text-color` — Sekundär-Textfarbe (gedämpft)
+- `--ha-card-background` / `--card-background-color` — Card-Fläche
+- `--divider-color` — Trennlinien
+
+**Wann erlaubt, statisch zu sein:** Ringe und Icons, die selbst die
+**Theme-tragende Fläche** definieren (z. B. `colorFor('battery', theme)` als
+Stroke-Farbe — die Theme-Override-Logik sitzt dann eine Ebene tiefer in
+`util/resolve-color.ts`). Auch zentrale Brand-Akzente, die in beiden Themes
+gleich wirken müssen.
+
+**Anti-Pattern:** `fill="#ffffff"` für Text auf gesättigtem farbigem Stroke —
+liest sich im Light-Theme als „schwach", im Dark-Theme als korrekt; Bug fällt
+beim ersten Theme-Switch auf.
+
+**Lesson-Quelle:** `docs/lessons-learned.md` 2026-05-15 (akku-prozent-im-ring,
+User-Feedback nach Initial-Implementation).

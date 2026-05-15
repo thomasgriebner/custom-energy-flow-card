@@ -357,8 +357,17 @@ Implementation messbare Wartbarkeits-Kennzahlen? Welche Threshold-Verstöße sin
      mit konkretem Auflöse-Pfad (Helper extrahieren, Interface invertieren).
 
 3. **Bundle-Budget (kritisch):**
-   - `bundle_bytes` post ≤ 60 000 (60 kB)?
+   - `bundle_bytes` post ≤ `BUNDLE_BUDGET_BYTES` aus `scripts/kpi.mjs:29` (aktuell 64 KiB seit ADR-0022)?
    - Bei Überschreitung: `[FIX-PLAN]` mit `pnpm build:analyze`-Hinweis zur Diagnose.
+   - **Bundle-Headroom-Check (Lesson 2026-05-15 akku-prozent-im-ring):**
+     - Bei `BUNDLE_BUDGET_BYTES - bundle_bytes < 1024` (Headroom < 1 KiB): `[USER-DECISION]`
+       präsentieren — „nächste Render-Subspec wird das Budget reißen, Strategie wählen:
+       (a) Budget-Bump per ADR-Update, (b) gezielter Refactor, (c) Headroom akzeptieren."
+     - Wenn die aktuelle Iteration **Whitespace-Trim** in Lit-Templates als Bundle-Recovery
+       genutzt hat (erkennbar an `perf(render): compact … templates`-Commits oder negativem
+       LOC-Delta bei stabiler Funktionalität): immer `[USER-DECISION]` für Budget-Bump,
+       weil Whitespace-Trim **Einmal-Trick** ist und beim nächsten Render-Edit kein Polster
+       mehr da ist.
 
 4. **Coverage-Drift:**
    - `coverage_pct` und `coverage_per_layer` (engine/config/util) ≥ 90 %?

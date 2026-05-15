@@ -106,7 +106,7 @@
 **Fix im Code:** Bundle-Budget angehoben (ADR-0022, 60 → 64 KiB), Konstanten danach wieder extrahiert (Commit `3205cb2`). Net-Bundle 61475 B (4061 B Reserve).
 **Lehre für nächstes Mal:** Code-Review-Pass 3 sollte Bundle-Headroom explizit prüfen — wenn Reserve < 1 KiB ODER Whitespace-Trim als Bundle-Recovery genutzt wurde: USER-DECISION für Budget-Anhebung VOR der nächsten Render-Subspec einplanen, nicht reaktiv.
 **Promotion-Kandidat:** `code-review-checklist.md` Pass 3 Bullet: „Bundle-Headroom < 1 KiB ODER Whitespace-Trim genutzt → USER-DECISION für Budget-Bump"
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/code-review-checklist.md` Pass-3-Prompt Punkt 3 Bundle-Headroom-Check (2026-05-15)
 
 #### LESSON: Theme-adaptive SVG-Text via `var(--primary-text-color, ...)` als Attribut funktioniert (2026-05-15, Plan: 2026-05-15-akku-prozent-im-ring)
 
@@ -115,7 +115,7 @@
 **Fix im Code:** `src/render/battery-ring.ts` `LABEL_FILL = 'var(--primary-text-color, #1c1c1c)'`. `node-renderer.ts:81` (Knoten-Kreis) nutzte das Pattern schon, also Repo-konsistent.
 **Lehre für nächstes Mal:** Für Text auf Theme-abhängiger Background-Fläche (gesättigte Stroke-Farbe, Card-Background etc.): default theme-adaptiv via HA-CSS-Var, NICHT statisch weiß oder schwarz. Konvention in conventions.md §15 Sprache („Farben") ergänzen oder als Render-Anti-Pattern in §11 dokumentieren.
 **Promotion-Kandidat:** `docs/conventions.md` neue §15.X „Render-Farben auf themable Background: `var(--primary-text-color, …)` statt statische Werte"
-**Status:** offen
+**Status:** PROMOTED zu `docs/conventions.md` neue §16 „Render-Farben auf themable Background" (2026-05-15)
 
 #### LESSON: Spec-Risiko §10 + Plan-STOP-Condition mit konkretem Mitigation-Pfad sind das richtige Pattern (2026-05-15, Plan: 2026-05-15-akku-prozent-im-ring)
 
@@ -124,4 +124,4 @@
 **Fix im Code:** `src/render/node-renderer.ts:154` `node.r + 22` → `node.r + 30`.
 **Lehre für nächstes Mal:** Wenn Spec §10 Risiken + Plan STOP-Conditions mit **konkretem Wert** als Mitigation hat, ist post-Implementation-User-Feedback der eingeplante Trigger — kein Pattern-Bruch, sondern Pattern-Erfolg. Code-Drift gegenüber Spec dann als Lesson dokumentieren (analog zur Grid-Font-Lesson 2026-05-15-icon-positionierung).
 **Promotion-Kandidat:** `spec-template.md` §10 Risiken: Hinweis „Mitigations-Pfade dürfen konkrete Code-Werte vorgeben — der Plan übernimmt sie als STOP-Conditions, der Drift wird in lessons-learned dokumentiert."
-**Status:** offen
+**Status:** PROMOTED zu `docs/templates/spec-template.md` §10 Mitigations-als-STOP-Conditions-Blockquote (2026-05-15)

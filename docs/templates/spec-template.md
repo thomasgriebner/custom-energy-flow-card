@@ -254,6 +254,9 @@ Sortiert nach Schwere (Wahrscheinlichkeit × Auswirkung), absteigend:
 
 [**Wichtig:** Bei "niedrig" — habe ich das verifiziert oder ist das eine Annahme? Annahmen explizit markieren.]
 
+> **Mitigations-Pfade als Plan-STOP-Conditions (Lesson 2026-05-15 akku-prozent-im-ring):**
+> Mitigations dürfen **konkrete Code-Werte** vorgeben (z. B. „Falls Kollision: Offset von 22 auf 26 anheben"). Der Plan übernimmt sie in der STOP-Condition-Sektion (siehe `plan-template.md`). Wenn die Implementation den Mitigations-Pfad aktiviert (z. B. weil Preview-Verifikation die Kollision bestätigt), entsteht **legitimer Spec-Code-Drift** — er ist im voraus erlaubt und wird in `docs/lessons-learned.md` dokumentiert. **Nicht** Spec retroaktiv patchen.
+
 ### 10.1 [Optional: Verschärfter Risiko-Block bei "hoch"]
 
 [Detail-Analyse + Workaround-Strategie + Verifikations-Code für Spike.]
