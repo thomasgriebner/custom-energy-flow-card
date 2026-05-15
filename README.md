@@ -235,6 +235,19 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 
 ## Changelog
 
+### v0.12.1 — 2026-05-15 — Icon-Positionierung + Kreis-Skalierung
+
+Visuelles Polish-Release. Behebt vier Render-Issues aus dem Live-Betrieb:
+
+- **Icon-Positionierung in den Knoten-Kreisen vergrößert** (~10 px Spacing zwischen Icon und Wert)
+- **PV/Batterie/Grid-Kreise vergrößert** für 4–5-stellige Werte (z. B. `−12.345 W`)
+- **Consumer-Icon vergrößert** (18 → 24 px)
+- **Battery-Ring** sitzt jetzt außerhalb des Batterie-Kreises
+- **Default-Icon für Batterie:** `mdi:battery` → `mdi:home-battery`
+
+Keine Config-Migration nötig. Bestehende User-Configs mit eigenem `icon:`-Property
+bleiben unverändert.
+
 ### v0.12.0 — 2026-05-14 — MDI-Icon-Rendering + Editor-ID-Cleanup
 
 #### Neu

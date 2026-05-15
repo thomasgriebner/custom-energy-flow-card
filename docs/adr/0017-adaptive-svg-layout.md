@@ -28,7 +28,7 @@ Das ursprüngliche Layout (Quellen voll-breit verteilt, Verbraucher als vertikal
 ### Positive Konsequenzen
 
 - Pro Verbraucher eine eigene animierte Bezier-Kurve — Schaltbild-DNA bleibt erhalten
-- α-Cap bei 42° / Step 14° verhindert PV/Akku-Kollision UND Consumer-Überlappung bis N=8 (Gap 25 px bei R=350)
+- α-Cap bei 42° / Step 14° verhindert PV/Akku-Kollision UND Consumer-Überlappung bis N=8 (Gap 17 px bei R=350 und N=8 mit r=28)
 - ViewBox-Höhe bleibt fix (fixer Aspect 16:9, [ADR-0019](./0019-aspect-16-9-no-grid-options.md))
 
 ### Negative Konsequenzen
@@ -36,6 +36,10 @@ Das ursprüngliche Layout (Quellen voll-breit verteilt, Verbraucher als vertikal
 - **Breaking Visual Change**: Existierende Configs sehen anders aus (Quellen rücken zusammen, Verbraucher fächern). Datenmapping bleibt 1:1. Kommunikation via README-Changelog.
 - Bei N>8 wird der Bogen visuell dicht (Knoten-Abstand < Durchmesser) — Doku-Hinweis im README.
 - Consumer-Labels mussten rechts neben den Kreis (statt unter/über), damit sie im engen Arc nicht überlappen.
+
+> **Update 2026-05-15 (Subspec 2026-05-15 icon-positionierung):** Consumer-Radius
+> erhöht von 24 auf 28 (für stärkere Icon-Präsenz). Daraus folgt: Adjacent-Gap-
+> Margin bei N=8 schrumpft von 25 px auf 17 px — bleibt über dem 15-px-Mindestmaß.
 
 ### Style-Konsistenz Battery-Ring ↔ Home-Ring
 

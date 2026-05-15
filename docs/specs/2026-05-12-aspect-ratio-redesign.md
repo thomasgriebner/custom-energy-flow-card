@@ -161,6 +161,11 @@ Bei `preserveAspectRatio="xMidYMid meet"` (`flow-renderer.ts:34`, unverändert) 
 
 ### 1.2 Layout-Konstanten
 
+> **NB (2026-05-15):** Die in dieser Tabelle als „unverändert" markierten
+> `NODE_R_*`-Werte (PV/Batt 34, Consumer 24, Grid 32) wurden in Subspec
+> 2026-05-15 angepasst (auf 42/28/40). Siehe
+> [`docs/specs/2026-05-15-icon-positionierung-und-kreis-skalierung.md`](./2026-05-15-icon-positionierung-und-kreis-skalierung.md) §3.2.
+
 | Konstante                       | Heute       | Neu         | Datei                                   |
 | ------------------------------- | ----------- | ----------- | --------------------------------------- |
 | `HOME_X`                        | 380         | 480         | `src/render/layout.ts:37`               |

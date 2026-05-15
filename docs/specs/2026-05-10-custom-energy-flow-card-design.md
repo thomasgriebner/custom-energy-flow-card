@@ -724,10 +724,13 @@ read(charge_power) − read(discharge_power)`. Engine sieht weiterhin nur
 
 **Default-Icons:**
 
+> **NB (2026-05-15):** Default-Icon für Akku wurde in Subspec 2026-05-15 von
+> `mdi:battery` auf `mdi:home-battery` aktualisiert.
+
 | Knoten      | MDI-Icon                 |
 | ----------- | ------------------------ |
 | PV          | `mdi:solar-power`        |
-| Akku        | `mdi:battery`            |
+| Akku        | `mdi:home-battery`       |
 | Netz        | `mdi:transmission-tower` |
 | Haus        | `mdi:home`               |
 | Verbraucher | `mdi:power-plug`         |

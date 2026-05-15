@@ -214,6 +214,8 @@ Sekundäre Motivation: In WSL/Linux ohne Color-Emoji-Font werden die heutigen Em
 - Solar/Battery/Consumer-Icons aus dem Editor (`mdi:*`-Strings) werden tatsächlich gerendert.
 - Area-Icons (aus `hass.areas[*].icon`) werden im `consumer_grouping: 'by_area'`-Mode tatsächlich gerendert.
 - Diagnostics-Marker (Warnings) wird auf `mdi:alert-circle-outline` umgestellt.
+- > **NB (2026-05-15):** `mdi:battery` wurde in Subspec 2026-05-15 auf
+  > `mdi:home-battery` aktualisiert. Siehe [`docs/specs/2026-05-15-icon-positionierung-und-kreis-skalierung.md`](./2026-05-15-icon-positionierung-und-kreis-skalierung.md).
 - Default-Icons pro Knoten-Kind aus Hauptspec §3.2 werden zur Quelle der Wahrheit (`mdi:solar-power`, `mdi:battery`, `mdi:transmission-tower`, `mdi:home`, `mdi:power-plug`).
 - Icon-Logik liegt in einem neuen `src/render/icon.ts`-Modul (Single-Source per ADR-0010).
 - Sandbox (`examples/preview.html`) und Vitest-Tests rendern `ha-icon` über einen geteilten Stub, der echte MDI-Paths aus `@mdi/js` einbettet. Screenshots in WSL werden brauchbar.
@@ -307,6 +309,8 @@ Single-Source für Default-Icons, Size-Konfiguration und Rendering. Wird sowohl 
 import { svg, type SVGTemplateResult } from 'lit';
 import type { LayoutNode } from './layout';
 
+// NB: `battery`-Default + NODE_ICON_BOX-Werte aktualisiert in
+// docs/specs/2026-05-15-icon-positionierung-und-kreis-skalierung.md
 export const DEFAULT_MDI_ICONS: Record<LayoutNode['kind'], string> = {
   pv: 'mdi:solar-power',
   battery: 'mdi:battery',
