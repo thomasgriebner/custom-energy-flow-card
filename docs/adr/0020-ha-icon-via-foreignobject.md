@@ -12,7 +12,7 @@ Hauptspec [`2026-05-10-…-design.md`](../specs/2026-05-10-custom-energy-flow-ca
 
 - User-konfigurierbare Icons aus dem Editor (Solar/Battery/Consumer) sollen tatsächlich gerendert werden — heute werden alle `mdi:*`-Werte verworfen
 - Area-Icons aus `hass.areas[*].icon` (dynamische User-HA-Konfig) müssen ebenfalls funktionieren
-- Bundle-Budget ≤ 60 kB (Hauptspec §2.1) bleibt einzuhalten
+- Bundle-Budget einzuhalten (zur Zeit dieses ADRs: 60 kB; seit ADR-0022: 64 KiB)
 - Wartungsaufwand soll niedrig sein
 
 ## Geprüfte Optionen

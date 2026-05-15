@@ -26,7 +26,7 @@ const FUNCTION_LOC_LIMIT = 50;
 const PARAMS_LIMIT = 4; // conv §1.5: >4 = Verstoß; 4 ist KPI-grün (Code-Review-Hinweis OK).
 const FAN_IN_LIMIT = 10;
 const MAX_NESTING_LIMIT = 4;
-const BUNDLE_BUDGET_BYTES = 60 * 1024;
+const BUNDLE_BUDGET_BYTES = 64 * 1024; // 64 KiB — siehe ADR-0022 (Bump 60→64 KiB)
 const COVERAGE_REQUIRED_LAYERS = ['engine', 'config', 'util'];
 const COVERAGE_MIN_PCT = 90;
 

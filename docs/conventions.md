@@ -344,7 +344,7 @@ Aus Spec §11.5 (verbindlich):
 ## 13. Dependencies
 
 - **Pinning:** `^x.y.0` (Major-Pin, Minor/Patch frei)
-- **Neue Runtime-Dep außer Lit:** **braucht ADR.** Bundle-Budget ist 60 kB.
+- **Neue Runtime-Dep außer Lit:** **braucht ADR.** Bundle-Budget ist `BUNDLE_BUDGET_BYTES` aus `scripts/kpi.mjs:29` (Single-Source, aktuell 64 KiB — siehe ADR-0022).
 - **Neue Dev-Dep:** OK ohne ADR, aber kurz im Commit-Body begründen.
 - **Update von Major-Versionen:** ADR + manueller Test.
 

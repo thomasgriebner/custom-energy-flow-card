@@ -131,7 +131,7 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 - **Schicht-Imports** lint-enforced. Spec §11.4.
 - **Anti-Patterns** (god-class, SVG-Strings, eigene State-Lib, …). Spec §11.5.
 - **Pre-Commit-Hook** mit lint-staged. Spec §11.8.
-- **Bundle ≤ 60 kB**. Erfolgs-Kriterium §10.2.
+- **Bundle ≤ `BUNDLE_BUDGET_BYTES`** (`scripts/kpi.mjs:29`, aktuell 64 KiB seit ADR-0022; war 60 KiB in v0.9.0 — ADR-0013).
 
 ## 6. Wie wir erweitern
 

@@ -67,3 +67,4 @@ siehe [`0000-template.md`](./0000-template.md).
 | [0019](./0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | accepted                                                    |
 | [0020](./0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | accepted                                                    |
 | [0021](./0021-code-review-workflow-pre-release-gate.md)  | Code-Review-Workflow als Pre-Release-Quality-Gate             | accepted                                                    |
+| [0022](./0022-bundle-budget-60-to-64-kib.md)             | Bundle-Budget 60 KiB → 64 KiB                                 | accepted                                                    |
