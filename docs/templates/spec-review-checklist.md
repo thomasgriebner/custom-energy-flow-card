@@ -360,15 +360,32 @@ Bei Pass 5 ist „ready for user" eine häufige und legitime Empfehlung.
 
 ### Hauptagent-Verhalten (Iterations-Loop)
 
+**Ablauf: SEQUENTIELL, nicht parallel.** Pässe NACHEINANDER, jeder gegen die aktualisierte Spec-Version.
+
+**Warum sequentiell:**
+
+- Sub-Agent N+1 liest die durch Pass-N-Fixes verbesserte Spec → sieht den Fix-Diff (vN → vN+1) und prüft implizit, ob der Fix korrekt war (zweite Trust-but-Verify-Schicht).
+- Sub-Agent N+1 muss keine Findings duplizieren, die N schon gemeldet hat → kann tiefer auf die nächste Brille gehen statt halb dasselbe zu finden.
+- Iterationen werden sichtbar konvergent (Pass-Findings sinken: 8 → 2 → 0) — diagnostisches Signal für Stabilität.
+- Kosten: ~2× langsamer Wall-Clock-Zeit, aber Token-Kosten nicht höher (jeder Pass liest eh die Spec).
+
+**Anti-Pattern:** Parallel-Dispatch aller Pässe gegen v3. Erkennbar daran, dass Pässe Findings doppelt melden (z.B. Pass 4 + Pass 5 finden denselben Commit-Scope-Verstoß, weil keiner den Fix des anderen sieht).
+
+**Konkreter Ablauf:**
+
 1. **Vor Pass 1:** Self-Review (Phase A–H) durchführen, Findings dokumentieren.
-2. **Pro Pass:**
-   1. Sub-Agent mit Fokus-Vektor-Prompt dispatch.
-   2. Findings als Tasks anlegen (`TaskCreate`), Kategorie als `metadata` mitführen, Pass-Nummer notieren.
+2. **Pass-Loop (sequentiell, ein Pass nach dem anderen):**
+   1. Sub-Agent mit Fokus-Vektor-Prompt dispatchen (`run_in_background: false` ist NICHT pflicht — Hintergrund-Dispatch ist OK, aber **erst NACH Abschluss + Fixes** den nächsten Pass starten).
+   2. Findings als Tasks anlegen (`TaskCreate`), Kategorie + Pass-Nummer als `metadata`.
    3. Pro `AUTO-FIX`-Task: **Trust-but-Verify** gegen echten Code (Sub-Agents irren auch!), dann Spec aktualisieren.
-   4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen.
+   4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen — werden am Ende präsentiert.
    5. Spec-Status hochzählen (`vN+1 (post-subagent-K-FOKUSNAME)`).
-3. **Nach jedem Pass:** Entscheide ob nächster Pass nötig oder ob „ready for user".
-4. **Stop-Kriterien:** Sub-Agent meldet „ready for user", oder zwei aufeinanderfolgende Pässe keine neuen Findings, oder nur noch `USER-DECISION` offen.
+   6. **Jetzt nächster Pass:** Sub-Agent mit nächstem Fokus-Vektor gegen die aktualisierte Spec.
+3. **Stop-Kriterien:**
+   - Sub-Agent meldet „ready for user"
+   - Zwei aufeinanderfolgende Pässe keine neuen Findings
+   - Nur noch `USER-DECISION` offen
+   - Max-Pass-Anzahl erreicht (5)
 
 **Loop-Oszillations-Schutz:**
 

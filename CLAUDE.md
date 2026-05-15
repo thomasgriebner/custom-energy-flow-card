@@ -109,13 +109,15 @@ Erfahrung: Self-Review wird mit jedem Durchgang oberflächlicher („Sunk-Cost-B
 - Mittel (500–900 Zeilen, 4–8 Files): Pässe 1 + 2 + 4 + 5 (4 Pässe)
 - Groß (> 900 Zeilen, > 8 Files): Alle 5 Pässe
 
+**Ablauf: SEQUENTIELL, nicht parallel.** Pässe nacheinander, jeder gegen die aktualisierte Spec-Version. Sub-Agent N+1 sieht Fix-Diff (vN → vN+1) — implizite zweite Trust-but-Verify-Schicht + keine doppelten Findings. Parallel-Dispatch ist explizit verboten: erkennbar an doppelten Findings, weil keiner den Fix des anderen sieht.
+
 **Loop pro Pass:**
 
 1. **Sub-Agent-Pass mit passendem Fokus-Vektor-Prompt** (1:1 aus `spec-review-checklist.md` Phase I).
 2. **Findings als Tasks anlegen** (`TaskCreate`): pro Finding eine Task, Kategorie + Pass-Nummer als `metadata`.
 3. **Trust-but-Verify** pro `AUTO-FIX`-Task: Sub-Agent kann falsch liegen (siehe 2026-05-15-Spec Pass-1 F6 = False-Positive). Hauptagent prüft jedes Finding gegen echten Code, BEVOR er fixt.
 4. **Spec aktualisieren**, Status hochzählen (`vN+1 (post-subagent-K-FOKUSNAME)`).
-5. **Nächsten Pass starten** oder Stop entscheiden.
+5. **ERST DANN** nächsten Pass starten (sequentiell — Sub-Agent N+1 muss die geupdatete Spec sehen).
 
 **Stop-Kriterien:**
 
@@ -184,7 +186,9 @@ Analog zum Spec-Workflow, aber Plan-spezifische Fokus-Vektoren (vollständige Pr
 - Groß (25+ Tasks): Pässe 1 + 2 + 4 + 5 (4 Pässe)
 - v1.0-artig (mehrtägig): Alle 5 Pässe
 
-**Loop pro Pass:** identisch zur Spec-Phase 4 — Sub-Agent dispatchen, Findings als Tasks anlegen, Trust-but-Verify, Plan aktualisieren, Stop-Kriterien prüfen.
+**Ablauf: SEQUENTIELL, nicht parallel.** Pässe nacheinander, jeder gegen die aktualisierte Plan-Version. Analog zur Spec-Phase 4 — Sub-Agent N+1 muss den Fix-Diff (vN → vN+1) sehen, sonst Findings-Doppelung statt Konvergenz.
+
+**Loop pro Pass:** identisch zur Spec-Phase 4 — Sub-Agent dispatchen, warten auf Abschluss, Findings als Tasks anlegen, Trust-but-Verify, Plan aktualisieren, **erst dann** nächsten Pass.
 
 **Loop-Oszillations-Schutz:** WORTWÖRTLICH wiederholtes Finding → STOP; gleicher Code-Punkt aus anderer Brille → Bestätigung, keine Oszillation.
 

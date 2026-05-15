@@ -459,15 +459,28 @@ Was können wir tun, um das Risiko zu minimieren?
 
 ### Hauptagent-Verhalten (Iterations-Loop)
 
+**Ablauf: SEQUENTIELL, nicht parallel.** Pässe NACHEINANDER, jeder gegen die aktualisierte Plan-Version.
+
+**Warum sequentiell:**
+
+- Sub-Agent N+1 liest den durch Pass-N-Fixes verbesserten Plan → sieht den Fix-Diff (vN → vN+1) und prüft implizit, ob der Fix korrekt war (zweite Trust-but-Verify-Schicht).
+- Sub-Agent N+1 muss keine Findings duplizieren, die N schon gemeldet hat → kann tiefer auf die nächste Brille gehen statt halb dasselbe zu finden.
+- Iterationen werden sichtbar konvergent (Pass-Findings sinken) — diagnostisches Signal für Stabilität.
+- Kosten: ~2× langsamer Wall-Clock-Zeit, aber Token-Kosten nicht höher.
+
+**Anti-Pattern:** Parallel-Dispatch aller Pässe gegen v1. Erkennbar daran, dass Pässe Findings doppelt melden, weil keiner den Fix des anderen sieht.
+
+**Konkreter Ablauf:**
+
 1. **Vor Pass 1:** Self-Review (Phase A–L) durchführen, Findings dokumentieren.
-2. **Pro Pass:**
+2. **Pass-Loop (sequentiell, ein Pass nach dem anderen):**
    1. Sub-Agent mit passendem Fokus-Vektor-Prompt dispatchen.
    2. Findings als Tasks anlegen (`TaskCreate`), Kategorie und Pass-Nummer als `metadata`.
    3. Pro `AUTO-FIX`-Task: **Trust-but-Verify** gegen echten Code, dann Plan aktualisieren.
    4. Bei `USER-DECISION`-Tasks: sammeln, NICHT alleine fixen.
    5. Plan-Status hochzählen (`vN+1 (post-subagent-K-FOKUSNAME)`).
-3. **Nach jedem Pass:** Entscheide ob nächster Pass nötig oder ob „ready for user".
-4. **Stop-Kriterien:**
+   6. **Jetzt nächster Pass:** Sub-Agent mit nächstem Fokus-Vektor gegen die aktualisierte Plan-Version.
+3. **Stop-Kriterien:**
    - Sub-Agent meldet „ready for user"
    - Zwei aufeinanderfolgende Pässe ohne neue Findings
    - Nur noch `USER-DECISION` offen
