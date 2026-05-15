@@ -1,0 +1,120 @@
+{
+  "_meta": {
+    "label": "post-akku-prozent-im-ring",
+    "phase": "post",
+    "captured_at": "2026-05-15T18:56:08Z",
+    "git_head": "a46125fb36833d2ff1f243c59cfb681ae8f8cb1e",
+    "card_bundle_built": {
+      "path": "dist/custom-energy-flow-card.js",
+      "sha256": "0c91dba870c8dfb57fb637b4bab700f006b8a622a8707e3c65d3d65df3d7bf6c",
+      "bytes": 61434,
+      "mtime_unix": 1778870934,
+      "_note": "Bundle 61434 ≤ BUNDLE_BUDGET_BYTES=61440 — 6 B Reserve. Pre war 61446 B (über Limit), perf-Commit 5045c6d kompaktierte SVG-Templates."
+    },
+    "preview_url": "http://127.0.0.1:5173/preview/preview.html",
+    "scenario": "default (first scenario from examples/preview-mocks.ts)"
+  },
+  "console": {
+    "errors": [
+      {
+        "msg": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://127.0.0.1:5173/favicon.ico",
+        "note": "harmless favicon 404 (same as pre)"
+      }
+    ],
+    "warnings": []
+  },
+  "card_state": {
+    "node_count": 9,
+    "batteries": [
+      {
+        "transform": "translate(250 460)",
+        "aria_label": "Dach-Speicher: +600 W, 75 %",
+        "value_text": "+600 W",
+        "label_text": "75 %",
+        "label_transform": "rotate(-45 -35 -35)",
+        "ring_circles": [
+          {
+            "r": "50",
+            "stroke_width": "14",
+            "stroke_dasharray": null,
+            "opacity": "0.18",
+            "role": "background ring"
+          },
+          {
+            "r": "50",
+            "stroke_width": "14",
+            "stroke_dasharray": "235.61944901923448 78.53981633974485",
+            "opacity": null,
+            "role": "filled segment (75 %)"
+          }
+        ]
+      },
+      {
+        "transform": "translate(560 460)",
+        "aria_label": "Balkon-Speicher: +200 W, 42 %",
+        "value_text": "+200 W",
+        "label_text": "42 %",
+        "label_transform": "rotate(-45 -35 -35)",
+        "ring_circles": [
+          {
+            "r": "50",
+            "stroke_width": "14",
+            "stroke_dasharray": null,
+            "opacity": "0.18",
+            "role": "background ring"
+          },
+          {
+            "r": "50",
+            "stroke_width": "14",
+            "stroke_dasharray": "131.94689145077132 182.212373908208",
+            "opacity": null,
+            "role": "filled segment (42 %)"
+          }
+        ]
+      }
+    ],
+    "all_nodes": [
+      { "kind": "pv", "transform": "translate(250 80)", "aria_label": "Solar Dach: 2,600 W" },
+      { "kind": "pv", "transform": "translate(560 80)", "aria_label": "Solar Balkon: 600 W" },
+      { "kind": "grid", "transform": "translate(60 270)", "aria_label": "Netz: −1,200 W" },
+      {
+        "kind": "battery",
+        "transform": "translate(250 460)",
+        "aria_label": "Dach-Speicher: +600 W, 75 %"
+      },
+      {
+        "kind": "battery",
+        "transform": "translate(560 460)",
+        "aria_label": "Balkon-Speicher: +200 W, 42 %"
+      },
+      {
+        "kind": "consumer",
+        "transform": "translate(819.6035041965988 185.32733654011628)",
+        "aria_label": "Wärmepumpe: 400 W"
+      },
+      {
+        "kind": "consumer",
+        "transform": "translate(819.6035041965988 354.6726634598837)",
+        "aria_label": "Herd: 100 W"
+      },
+      { "kind": "consumer", "transform": "translate(830 270)", "aria_label": "Wallbox: 0 W" },
+      { "kind": "home", "transform": "translate(480 270)", "aria_label": "Hausverbrauch: 1,200 W" }
+    ]
+  },
+  "pre_post_diff": {
+    "aria_label_format": "'75%' → '75 %' (Leerzeichen vor %, konsistent zu Watt-Format)",
+    "stroke_width": "6 → 14 (Stroke verbreitert)",
+    "label_element": "NEW — <text part='battery-ring-label'> mit rotate(-45) im äußeren Wrapper, NICHT in rotate(-90)-Gruppe",
+    "part_hooks": "äußerer <g part='battery-ring'> + neuer <text part='battery-ring-label'>",
+    "bundle_size": "61446 → 61434 B (-12 B, perf-commit kompaktierte SVG-Templates)",
+    "loc": "2807 → 2780 (-27, davon -55 in battery-ring.ts durch Template-Kompaktierung)"
+  },
+  "observations": [
+    "Beide Akkus zeigen jetzt '75 %' / '42 %' direkt im verbreiterten Ring oben-links.",
+    "aria-Label format konsistent angepasst (Leerzeichen vor %).",
+    "100% Edge-Case (DevTools-Override) gerendert ohne visuelle Probleme.",
+    "5% Edge-Case (L1 akzeptiert) zeigt schwachen Text auf Hintergrund-Ring opacity 0.18.",
+    "Smoke-Test grün, Bundle unter Budget, 217/217 Tests grün."
+  ]
+}
