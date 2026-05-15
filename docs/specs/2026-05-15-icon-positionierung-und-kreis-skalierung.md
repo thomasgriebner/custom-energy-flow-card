@@ -165,26 +165,26 @@ displayConsumers ────────────────► computeLayo
 
 ### 0.4 Don't-Touch-Liste
 
-| Element                                       | Wo                               | Warum nicht anfassen                                                                     |
-| --------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
-| `DEFAULT_MDI_ICONS` für pv/grid/home/consumer | `src/render/icon.ts:5-11`        | Nur `battery` ist Issue D; andere Defaults bleiben (User hat nur Battery genannt)        |
-| `DIAGNOSTICS_ICON_BOX`                        | `src/render/icon.ts:28-33`       | Diagnostics-Icon-Geometrie unabhängig vom Knoten-Layout                                  |
-| `NODE_R_LARGE = 50`                           | `src/render/layout.ts:29`        | Home als Anker behält Größe — visuelle Hierarchie soll erhalten bleiben                  |
-| `TOP_Y = 80`, `MIDDLE_Y = 270`                | `src/render/layout.ts:33, 35`    | Vertikal-Layout unverändert; nur Radien wachsen (ausreichend Margin verifiziert in §1.3) |
-| `HOME_X`, `GRID_X`, `SOURCE_X_MIN/MAX`        | `src/render/layout.ts:36-39`     | X-Geometrie bleibt; nur Y/Radius betroffen                                               |
-| `CONSUMER_ARC_R = 350`                        | `src/render/layout.ts:40`        | Arc-Radius bleibt                                                                        |
-| `home.color`, `home-ring.RING_RADIUS=60`      | `src/render/home-ring.ts:5`      | Home-Ring außerhalb r=50 mit 10 px Margin — unverändert (Home wächst nicht)              |
-| `STROKE_WIDTH` (Battery-Ring) = 6             | `src/render/battery-ring.ts:4`   | Strichbreite unverändert; nur Radius wandert                                             |
-| `STROKE_WIDTH` (Knoten-Kreis) = 2.5           | `src/render/node-renderer.ts:83` | Strichbreite unverändert                                                                 |
-| Stroke-Dash `4 4` für unavailable             | `src/render/node-renderer.ts:53` | Unavailable-Indikator unverändert                                                        |
-| `TAB_ORDER` in `flow-renderer.ts`             | `src/render/flow-renderer.ts:13` | Reihenfolge ist semantisch (Knoten-Typ), nicht räumlich                                  |
-| `aria-label` auf Nodes                        | `src/render/node-renderer.ts:68` | A11y, semantisch                                                                         |
-| `prefers-reduced-motion`-CSS                  | `src/render/flow-animation.ts`   | OS-Setting unverändert                                                                   |
-| `VIEWBOX = { width: 960, height: 540 }`       | `src/const.ts:20`                | 16:9-Layout bleibt (Subspec 2026-05-12)                                                  |
-| `MIN_CONTAINER_WIDTH_PX = 280`                | `src/const.ts:21`                | Narrow-Banner-Schwelle, container-bezogen                                                |
-| `_containerW = 720` Default                   | `src/card.ts`                    | ResizeObserver-Default, unverändert                                                      |
-| `shouldUpdate`/`willUpdate`/`render`          | `src/card.ts`                    | Lifecycle-Logik unverändert (ADR-0011, CLAUDE.md 5–6)                                    |
-| Engine, Config-Schema, i18n, Editor           | alle entsprechenden Dateien      | siehe §0.2                                                                               |
+| Element                                       | Wo                               | Warum nicht anfassen                                                                                                                                                                               |
+| --------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEFAULT_MDI_ICONS` für pv/grid/home/consumer | `src/render/icon.ts:5-11`        | Nur `battery` ist Issue D; andere Defaults bleiben (User hat nur Battery genannt)                                                                                                                  |
+| `DIAGNOSTICS_ICON_BOX`                        | `src/render/icon.ts:28-33`       | Diagnostics-Icon-Geometrie unabhängig vom Knoten-Layout                                                                                                                                            |
+| `NODE_R_LARGE = 50`                           | `src/render/layout.ts:29`        | Home als Anker behält Größe — visuelle Hierarchie soll erhalten bleiben                                                                                                                            |
+| `TOP_Y = 80`, `MIDDLE_Y = 270`                | `src/render/layout.ts:33, 35`    | Vertikal-Layout unverändert; nur Radien wachsen (ausreichend Margin verifiziert in §1.3)                                                                                                           |
+| `HOME_X`, `GRID_X`, `SOURCE_X_MIN/MAX`        | `src/render/layout.ts:36-39`     | X-Geometrie bleibt; nur Y/Radius betroffen                                                                                                                                                         |
+| `CONSUMER_ARC_R = 350`                        | `src/render/layout.ts:40`        | Arc-Radius bleibt                                                                                                                                                                                  |
+| `home.color`, `home-ring.RING_RADIUS=60`      | `src/render/home-ring.ts:5`      | Home-Ring außerhalb r=50 mit 10 px Margin — unverändert (Home wächst nicht)                                                                                                                        |
+| `STROKE_WIDTH` (Battery-Ring) = 6             | `src/render/battery-ring.ts:4`   | Strichbreite unverändert; nur Radius wandert. **Update 2026-05-15:** in Subspec [`2026-05-15-akku-prozent-im-ring.md`](./2026-05-15-akku-prozent-im-ring.md) auf 14 erhöht (SoC-%-Text im Stroke). |
+| `STROKE_WIDTH` (Knoten-Kreis) = 2.5           | `src/render/node-renderer.ts:83` | Strichbreite unverändert                                                                                                                                                                           |
+| Stroke-Dash `4 4` für unavailable             | `src/render/node-renderer.ts:53` | Unavailable-Indikator unverändert                                                                                                                                                                  |
+| `TAB_ORDER` in `flow-renderer.ts`             | `src/render/flow-renderer.ts:13` | Reihenfolge ist semantisch (Knoten-Typ), nicht räumlich                                                                                                                                            |
+| `aria-label` auf Nodes                        | `src/render/node-renderer.ts:68` | A11y, semantisch                                                                                                                                                                                   |
+| `prefers-reduced-motion`-CSS                  | `src/render/flow-animation.ts`   | OS-Setting unverändert                                                                                                                                                                             |
+| `VIEWBOX = { width: 960, height: 540 }`       | `src/const.ts:20`                | 16:9-Layout bleibt (Subspec 2026-05-12)                                                                                                                                                            |
+| `MIN_CONTAINER_WIDTH_PX = 280`                | `src/const.ts:21`                | Narrow-Banner-Schwelle, container-bezogen                                                                                                                                                          |
+| `_containerW = 720` Default                   | `src/card.ts`                    | ResizeObserver-Default, unverändert                                                                                                                                                                |
+| `shouldUpdate`/`willUpdate`/`render`          | `src/card.ts`                    | Lifecycle-Logik unverändert (ADR-0011, CLAUDE.md 5–6)                                                                                                                                              |
+| Engine, Config-Schema, i18n, Editor           | alle entsprechenden Dateien      | siehe §0.2                                                                                                                                                                                         |
 
 ## 1. Kontext und Motivation
 
