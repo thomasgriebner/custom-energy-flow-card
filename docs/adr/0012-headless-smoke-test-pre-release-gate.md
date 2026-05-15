@@ -1,8 +1,8 @@
 # ADR-0012: Headless Smoke-Test als Pre-Release-Gate
 
-* **Status:** accepted
-* **Datum:** 2026-05-10
-* **Entscheider:** @griebner
+- **Status:** accepted
+- **Datum:** 2026-05-10
+- **Entscheider:** @griebner
 
 ## Kontext und Problem
 
@@ -19,18 +19,18 @@ abfängt **vor** dem Release.
 
 ## Entscheidungs-Treiber
 
-* Muss in CI in jeder PR laufen (schnell, deterministisch)
-* Muss den real-laufenden Bundle-Code testen (nicht nur Source)
-* Muss ohne externe Dependencies (kein Docker, kein laufender Server) auskommen
-* Ergebnis muss interpretierbar sein (klare Pass/Fail-Logs)
-* Aufwand für Wartung muss verhältnismäßig zum Nutzen bleiben
+- Muss in CI in jeder PR laufen (schnell, deterministisch)
+- Muss den real-laufenden Bundle-Code testen (nicht nur Source)
+- Muss ohne externe Dependencies (kein Docker, kein laufender Server) auskommen
+- Ergebnis muss interpretierbar sein (klare Pass/Fail-Logs)
+- Aufwand für Wartung muss verhältnismäßig zum Nutzen bleiben
 
 ## Geprüfte Optionen
 
-* **A — `happy-dom`-basierter Smoke-Test in Node**
-* **B — `Playwright` / Headless-Chrome End-to-End-Tests**
-* **C — Nur manuelle Sandbox-Verifikation**
-* **D — Docker-HA-Integration**
+- **A — `happy-dom`-basierter Smoke-Test in Node**
+- **B — `Playwright` / Headless-Chrome End-to-End-Tests**
+- **C — Nur manuelle Sandbox-Verifikation**
+- **D — Docker-HA-Integration**
 
 ## Entscheidung
 
@@ -50,57 +50,58 @@ Läuft als `pnpm smoke` Skript und als CI-Step nach `pnpm build`.
 
 ### Positive Konsequenzen
 
-* Class-Load-Crashes (Lit `css`-Tag-Probleme, fehlende Imports, kaputte
+- Class-Load-Crashes (Lit `css`-Tag-Probleme, fehlende Imports, kaputte
   Decorator-Konfigurationen) → CI fängt sie vor Merge auf `main`.
-* Rendert real ein DOM mit dem Bundle → erkennt nicht nur Compile-Fehler,
+- Rendert real ein DOM mit dem Bundle → erkennt nicht nur Compile-Fehler,
   sondern auch Runtime-Initialisierungs-Bugs.
-* Schnell (~1–2 Sek.) und deterministisch — kein Flaky-Test-Risiko.
-* Keine externen Services, kein Docker → läuft auf jeder CI-Maschine.
+- Schnell (~1–2 Sek.) und deterministisch — kein Flaky-Test-Risiko.
+- Keine externen Services, kein Docker → läuft auf jeder CI-Maschine.
 
 ### Negative Konsequenzen
 
-* `happy-dom` ist kein echter Browser → echte CSS-Animation, `offset-path`-
+- `happy-dom` ist kein echter Browser → echte CSS-Animation, `offset-path`-
   Rendering, SVG-Tabindex-Verhalten werden **nicht** verifiziert.
-  *Mitigation:* Dafür ist die manuelle Sandbox-Verifikation da (Phase 2 + 3).
-* HA-spezifische Verhalten (`<ha-form>`-Rendering, `<ha-entity-picker>`-
-  Listing) werden nicht getestet. *Mitigation:* M1-Reference-Comparison-Pass
-  + manuelle Editor-Verifikation in der Sandbox.
-* Test-Code muss bei API-Änderungen (z. B. neuer setConfig-Pflichtparameter)
-  mitgepflegt werden. *Mitigation:* die getesteten Touchpoints sind sehr
+  _Mitigation:_ Dafür ist die manuelle Sandbox-Verifikation da (Phase 2 + 3).
+- HA-spezifische Verhalten (`<ha-form>`-Rendering, `<ha-entity-picker>`-
+  Listing) werden nicht getestet. _Mitigation:_ M1-Reference-Comparison-Pass
+  - manuelle Editor-Verifikation in der Sandbox.
+- Test-Code muss bei API-Änderungen (z. B. neuer setConfig-Pflichtparameter)
+  mitgepflegt werden. _Mitigation:_ die getesteten Touchpoints sind sehr
   stabile HA-Konventionen.
 
 ## Pros und Cons der Optionen
 
 ### Option A — `happy-dom` Smoke-Test
 
-* ✅ Schnell, kein externes Setup
-* ✅ Testet das gebaute Bundle, nicht nur Source
-* ✅ Class-Load + erste Render zuverlässig
-* ❌ Keine echte Browser-Engine — CSS-Quirks bleiben unentdeckt
+- ✅ Schnell, kein externes Setup
+- ✅ Testet das gebaute Bundle, nicht nur Source
+- ✅ Class-Load + erste Render zuverlässig
+- ❌ Keine echte Browser-Engine — CSS-Quirks bleiben unentdeckt
 
 ### Option B — Playwright / Headless-Chrome
 
-* ✅ Echter Browser → CSS, Animation, SVG real
-* ❌ Setup-Komplexität (Browser-Binary in CI)
-* ❌ Langsamer (Sekunden statt Millisekunden)
-* ❌ Test-Stabilität tendenziell schlechter
+- ✅ Echter Browser → CSS, Animation, SVG real
+- ❌ Setup-Komplexität (Browser-Binary in CI)
+- ❌ Langsamer (Sekunden statt Millisekunden)
+- ❌ Test-Stabilität tendenziell schlechter
 
 ### Option C — Nur Sandbox-Verifikation
 
-* ✅ Kein zusätzlicher Test-Code
-* ❌ Manuelle Verifikation skaliert nicht; bei jeder Änderung neuer Sandbox-
+- ✅ Kein zusätzlicher Test-Code
+- ❌ Manuelle Verifikation skaliert nicht; bei jeder Änderung neuer Sandbox-
   Walk-Through nötig
-* ❌ Bricht den CI-Gate-Workflow
+- ❌ Bricht den CI-Gate-Workflow
 
 ### Option D — Docker-HA
 
-* ✅ Echteste Umgebung
-* ❌ Anwender hat explizit kein Docker
-* ❌ Setup-/Maintenance-Aufwand sehr hoch
-* ❌ HA-Versionsdrift → dauerhafte Pflege
+- ✅ Echteste Umgebung
+- ❌ Anwender hat explizit kein Docker
+- ❌ Setup-/Maintenance-Aufwand sehr hoch
+- ❌ HA-Versionsdrift → dauerhafte Pflege
 
 ## Verlinkte Spec-Sektionen / Referenzen
 
-* Plan Task 5.5 (`scripts/smoke-test.mjs`)
-* Plan Task 0.1 (CI-Workflow mit Smoke-Step)
-* Plan Phase 0.2 (M1-Reference-Comparison als Komplement)
+- Plan Task 5.5 (`scripts/smoke-test.mjs`)
+- Plan Task 0.1 (CI-Workflow mit Smoke-Step)
+- Plan Phase 0.2 (M1-Reference-Comparison als Komplement)
+- [ADR-0021](./0021-code-review-workflow-pre-release-gate.md) — Code-Review-Workflow erweitert das Smoke-Test-Gate um Post-Implementation-6-Brillen-Review
