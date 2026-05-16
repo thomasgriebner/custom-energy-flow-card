@@ -143,3 +143,30 @@
 **Lehre für nächstes Mal:** KPI-Skript-`import_cycles`-Findings, die ausschließlich `import type`-Pfade durchlaufen, sind False-Positives. Code-Review Pass 3 (KPI-Drift) sollte das beim Sub-Agent-Briefing erwähnen. Alternativ: `scripts/kpi.mjs` erweitern, sodass `import type`-Edges nicht in Cycle-Detection eingehen — v1.x-Verbesserung, jetzt nicht blockend.
 **Promotion-Kandidat:** `scripts/kpi.mjs` Type-Only-Edge-Filter (separater Patch, v0.15+).
 **Status:** OFFEN
+
+#### LESSON: Bundle-Forecast für i18n-Erweiterungen unterschätzt (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
+
+**Quelle:** Code-Review Pass 3 KPI-Delta + Pass 6 Restrisiko-Analyse
+**Beobachtet:** Plan §1.5 Bundle-Strategie schätzte „+0.8–1.2 KiB" Overhead für EN-Translations. Tatsächlich nach Phase 3c: Bundle 61475 → 64615 Bytes (+3140 Bytes, ~3 KiB). Drei Hauptursachen identifiziert: (a) EN-Strings ~700 B, (b) Lit-Property-Materialisierung für 3 neue Argument-Objekt-Interfaces (`SolarSectionProps`/`BatterySectionProps`/`ConsumersSectionProps`) ~800 B, (c) zusätzlicher `_lang`-State + willUpdate-Logik in card.ts/editor.ts + neuer `t`-Throughput durch RenderContext ~1.5 KiB.
+**Fix im Code:** keiner — Bundle bleibt unter 64 KiB Budget (921 Bytes Reserve), Bundle-Wachstum ist semantisch korrekt.
+**Lehre für nächstes Mal:** Bei i18n-Erweiterungen pro Sprache **~700 B Strings + ~500 B Hash-Map/Lookup-Overhead + ggf. Lit-Property-Patterns** einplanen. Bei FR/ES würde Budget knapp — ADR-0022-Bundle-Budget vor v0.15 erneut evaluieren. Für Spec/Plan-Bundle-Schätzungen: nicht nur die User-facing-Strings rechnen, sondern auch das Framework-Pattern (Argument-Objekte, RenderContext-Erweiterungen) explizit kalkulieren.
+**Promotion-Kandidat:** `spec-template.md` §1.5 Bundle-Strategie: Hinweis „Bei i18n-Plans pro Sprache ≥ 1.5 KiB einplanen, plus Framework-Pattern-Overhead falls Argument-Objekte/Context-Erweiterungen."
+**Status:** OFFEN
+
+#### LESSON: `derive-display-consumers.ts` complexity-Regression durch ADR-0023-Toleranz akzeptabel (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
+
+**Quelle:** Code-Review Pass 3 KPI-Delta + Pass 2 Architektur-Findings
+**Beobachtet:** `pnpm kpi:report` meldet `groupByArea` complexity 11 → 13 und function-LOC 62 → 64 (beide REGRESSED, beide über Soft-Threshold 10 bzw. 50). Ursache: `name: undefined`-Fix in Line 72 + `?? ''`-Narrowing in Line 106 (Sort-Funktion). Spec §2.2 + ADR-0023 negative Konsequenz dokumentieren bewusst, dass `mapNoneMode` (Line 43) den DE-Import behält — Refactor würde komplexere Lösung erzwingen (Index-Codierung in DisplayConsumer.id oder Marker-Feld), v1.x-Kandidat.
+**Fix im Code:** keiner — KPI-Regression ist erwartet und in ADR-0023 referenziert.
+**Lehre für nächstes Mal:** KPI-Regressions, die in einem ADR (negative Konsequenz) explizit als Toleranz dokumentiert sind, sind NICHT Code-Review-Blocker. Pass 3 (KPI-Drift) sollte beim Sub-Agent-Briefing erwähnen, dass ADR-dokumentierte Regressions akzeptabel sind — sonst entsteht False-Positive-Loop.
+**Promotion-Kandidat:** `code-review-checklist.md` Pass-3-Prompt: „KPI-Regressionen prüfen, ob sie in einem aktiven ADR als Toleranz dokumentiert sind — falls ja: kein AUTO-FIX, sondern Bestätigung."
+**Status:** OFFEN
+
+#### LESSON: Playwright en-i18n-Capture fehlt (Pass 5 funktional skipped) (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
+
+**Quelle:** Code-Review Pass 6 Restrisiko-Analyse
+**Beobachtet:** Plan Phase 0 + Phase 5 sehen Playwright-Capture-Stufe-1 mit `metrics/playwright/2026-05-15-en-i18n-{pre,post}.json` vor. Bei Implementation auf `main` (kein Worktree) wurde der Playwright-MCP-Server nicht aktiv genutzt — entsprechend liegt für i18n-Plans kein funktionaler Sprach-Beleg vor. Pass 5 (UX + Funktional via Playwright) ist damit faktisch „skipped".
+**Fix im Code:** keiner — `pnpm preview` mit DE/EN-Toggle ist als manuelle Verifikation vorhanden (`examples/preview.html` + `scripts/build-preview.mjs`).
+**Lehre für nächstes Mal:** Bei i18n-Plans ist Playwright-Capture mit Lang-Toggle (DE-Screenshot + EN-Screenshot) der EINZIGE automatisierte funktionale Sprach-Beleg. Smoke-Test rendert ohne `locale`-Mock-hass (fällt auf EN), prüft also nur EN-Pfad. Pre/Post-Capture NACHHOLEN vor Tag/Release, ODER explizit als „skipped, manuell via `pnpm preview` verifiziert" im Code-Review-Output dokumentieren.
+**Promotion-Kandidat:** `code-review-checklist.md` Pass-5-Pflicht: „Bei i18n-Plans: Playwright-Capture pro Sprache OR explizite Manual-Preview-Notiz."
+**Status:** OFFEN (Playwright-Capture jetzt nicht zwingend, bei Tag-Bump v0.14.0 nachholen)
