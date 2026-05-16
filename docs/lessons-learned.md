@@ -133,7 +133,7 @@
 **Fix im Code:** `.eslintrc.cjs:24` `except: ['./i18n']` → `except: ['./i18n', './const.ts']`.
 **Lehre für nächstes Mal:** Bei Spec/Plan-Erstellung muss die ESLint-Layer-Zone-Tabelle (z.B. Spec §0.1) NICHT NUR die Production-Imports, sondern auch **Test-File-Imports** abdecken. `const.ts` ist Repo-weit als Root-Singleton legitim importierbar — gehört in JEDER Layer-Exception-Liste. Beim nächsten Plan mit i18n/-Tests oder anderen Layer-Test-Files: Vorab prüfen, ob die Layer-Zone Test-Imports erlaubt.
 **Promotion-Kandidat:** `spec-template.md` §0.1 ESLint-Tabelle: Hinweis „Test-File-Imports (z.B. `const.ts`) müssen in der Zone-Exception-Liste enthalten sein, sonst bricht Lint nach Test-Hinzufügen." UND `conventions.md` §11 Anti-Patterns: „ESLint-Zone-Exception ohne `const.ts` ist Anti-Pattern für jeden Layer der seinen eigenen Tests schreibt."
-**Status:** OFFEN (User-curiert; Promotion-Vorschläge oben)
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `spec-template.md` §0.1 + `conventions.md` §11 + Commit `e3098a3` `.eslintrc.cjs` defensive `const.ts` in `config/` und `ha/` Zonen)
 
 #### LESSON: Mapped-Type Re-Export erzeugt Type-Only-Import-Cycle, der KPI-Skript meldet (2026-05-16, Plan: 2026-05-15-en-i18n Phase 1)
 
@@ -142,7 +142,7 @@
 **Fix im Code:** keiner — Pattern ist semantisch korrekt (zero runtime impact).
 **Lehre für nächstes Mal:** KPI-Skript-`import_cycles`-Findings, die ausschließlich `import type`-Pfade durchlaufen, sind False-Positives. Code-Review Pass 3 (KPI-Drift) sollte das beim Sub-Agent-Briefing erwähnen. Alternativ: `scripts/kpi.mjs` erweitern, sodass `import type`-Edges nicht in Cycle-Detection eingehen — v1.x-Verbesserung, jetzt nicht blockend.
 **Promotion-Kandidat:** `scripts/kpi.mjs` Type-Only-Edge-Filter (separater Patch, v0.15+).
-**Status:** OFFEN
+**Status:** PROMOTED (2026-05-16, Commit `e3098a3` — `scripts/kpi.mjs:extractImports` skippt `import type {...}` top-level. Verifiziert: `import_cycles: []` nach Fix, vorher 1 i18n-Cycle.)
 
 #### LESSON: Bundle-Forecast für i18n-Erweiterungen unterschätzt (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
 
@@ -151,7 +151,7 @@
 **Fix im Code:** keiner — Bundle bleibt unter 64 KiB Budget (921 Bytes Reserve), Bundle-Wachstum ist semantisch korrekt.
 **Lehre für nächstes Mal:** Bei i18n-Erweiterungen pro Sprache **~700 B Strings + ~500 B Hash-Map/Lookup-Overhead + ggf. Lit-Property-Patterns** einplanen. Bei FR/ES würde Budget knapp — ADR-0022-Bundle-Budget vor v0.15 erneut evaluieren. Für Spec/Plan-Bundle-Schätzungen: nicht nur die User-facing-Strings rechnen, sondern auch das Framework-Pattern (Argument-Objekte, RenderContext-Erweiterungen) explizit kalkulieren.
 **Promotion-Kandidat:** `spec-template.md` §1.5 Bundle-Strategie: Hinweis „Bei i18n-Plans pro Sprache ≥ 1.5 KiB einplanen, plus Framework-Pattern-Overhead falls Argument-Objekte/Context-Erweiterungen."
-**Status:** OFFEN
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `spec-template.md` §0.1 Bundle-Schätzungs-Hinweis). **Strategischer Folge-Schritt offen:** ADR-0022 Bundle-Budget (aktuell 64 KiB, 921 B Reserve) vor FR/ES-Plan auf 80 KiB bumpen oder Dynamic-Import aktivieren — bleibt USER-DECISION wenn FR/ES auf Roadmap kommt.
 
 #### LESSON: `derive-display-consumers.ts` complexity-Regression durch ADR-0023-Toleranz akzeptabel (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
 
@@ -160,7 +160,7 @@
 **Fix im Code:** keiner — KPI-Regression ist erwartet und in ADR-0023 referenziert.
 **Lehre für nächstes Mal:** KPI-Regressions, die in einem ADR (negative Konsequenz) explizit als Toleranz dokumentiert sind, sind NICHT Code-Review-Blocker. Pass 3 (KPI-Drift) sollte beim Sub-Agent-Briefing erwähnen, dass ADR-dokumentierte Regressions akzeptabel sind — sonst entsteht False-Positive-Loop.
 **Promotion-Kandidat:** `code-review-checklist.md` Pass-3-Prompt: „KPI-Regressionen prüfen, ob sie in einem aktiven ADR als Toleranz dokumentiert sind — falls ja: kein AUTO-FIX, sondern Bestätigung."
-**Status:** OFFEN
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `code-review-checklist.md` Pass-3-Prompt). **Folge-Schritt v1.x:** `derive-display-consumers.ts` Default-Naming sprachneutralisieren (Marker-Feld in `DisplayConsumer` oder Index-Codierung in `id`) — wird bei FR/ES-Plan schmerzhafter; bleibt USER-DECISION.
 
 #### LESSON: Playwright en-i18n-Capture fehlt (Pass 5 funktional skipped) (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
 
@@ -169,4 +169,4 @@
 **Fix im Code:** keiner — `pnpm preview` mit DE/EN-Toggle ist als manuelle Verifikation vorhanden (`examples/preview.html` + `scripts/build-preview.mjs`).
 **Lehre für nächstes Mal:** Bei i18n-Plans ist Playwright-Capture mit Lang-Toggle (DE-Screenshot + EN-Screenshot) der EINZIGE automatisierte funktionale Sprach-Beleg. Smoke-Test rendert ohne `locale`-Mock-hass (fällt auf EN), prüft also nur EN-Pfad. Pre/Post-Capture NACHHOLEN vor Tag/Release, ODER explizit als „skipped, manuell via `pnpm preview` verifiziert" im Code-Review-Output dokumentieren.
 **Promotion-Kandidat:** `code-review-checklist.md` Pass-5-Pflicht: „Bei i18n-Plans: Playwright-Capture pro Sprache OR explizite Manual-Preview-Notiz."
-**Status:** DONE (Capture nachgeholt 2026-05-16, Commit `b683f72` — `metrics/playwright/2026-05-15-en-i18n-post.json` zeigt aria-label-Differentiation für Sensor-Unavailable. Sub-Promotion-Kandidat für `code-review-checklist.md` Pass-5-Pflicht bleibt OFFEN)
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `code-review-checklist.md` Pass-5-Prompt erweitert + Capture nachgeholt in Commit `b683f72`). **Folge-Schritt v1.x:** `scripts/build-preview.mjs` Auto-Capture-Mode (`pnpm preview --capture-langs de,en`) für Headless-Playwright-Integration — wird bei FR/ES-Plan nützlich; bleibt USER-DECISION.
