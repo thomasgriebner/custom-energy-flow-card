@@ -125,3 +125,21 @@
 **Lehre für nächstes Mal:** Wenn Spec §10 Risiken + Plan STOP-Conditions mit **konkretem Wert** als Mitigation hat, ist post-Implementation-User-Feedback der eingeplante Trigger — kein Pattern-Bruch, sondern Pattern-Erfolg. Code-Drift gegenüber Spec dann als Lesson dokumentieren (analog zur Grid-Font-Lesson 2026-05-15-icon-positionierung).
 **Promotion-Kandidat:** `spec-template.md` §10 Risiken: Hinweis „Mitigations-Pfade dürfen konkrete Code-Werte vorgeben — der Plan übernimmt sie als STOP-Conditions, der Drift wird in lessons-learned dokumentiert."
 **Status:** PROMOTED zu `docs/templates/spec-template.md` §10 Mitigations-als-STOP-Conditions-Blockquote (2026-05-15)
+
+#### LESSON: ESLint-Layer-Zone-Exception für `const.ts` muss bei Tests berücksichtigt werden (2026-05-16, Plan: 2026-05-15-en-i18n Phase 1)
+
+**Quelle:** Sub-Agent-Concern Phase 1, Task 1.1 → Lint-Bruch nach Implementation
+**Beobachtet:** Plan §3.1 Task 1.1 schreibt `import { CARD_NAME } from '../const'` in `src/i18n/index.test.ts`. ESLint `no-restricted-paths` Zone für `./src/i18n` war `except: ['./i18n']` — `const.ts` war NICHT in der Exception-Liste. Lint brach nach `pnpm check` rot. Sub-Agent erweiterte die Zone auf `['./i18n', './const.ts']` analog zur bestehenden `editor.ts`-/`render/`-/`editor-list-sections.ts`-Zone (alle haben `'./const.ts'`). Fix war im selben Commit (`da8ea61`).
+**Fix im Code:** `.eslintrc.cjs:24` `except: ['./i18n']` → `except: ['./i18n', './const.ts']`.
+**Lehre für nächstes Mal:** Bei Spec/Plan-Erstellung muss die ESLint-Layer-Zone-Tabelle (z.B. Spec §0.1) NICHT NUR die Production-Imports, sondern auch **Test-File-Imports** abdecken. `const.ts` ist Repo-weit als Root-Singleton legitim importierbar — gehört in JEDER Layer-Exception-Liste. Beim nächsten Plan mit i18n/-Tests oder anderen Layer-Test-Files: Vorab prüfen, ob die Layer-Zone Test-Imports erlaubt.
+**Promotion-Kandidat:** `spec-template.md` §0.1 ESLint-Tabelle: Hinweis „Test-File-Imports (z.B. `const.ts`) müssen in der Zone-Exception-Liste enthalten sein, sonst bricht Lint nach Test-Hinzufügen." UND `conventions.md` §11 Anti-Patterns: „ESLint-Zone-Exception ohne `const.ts` ist Anti-Pattern für jeden Layer der seinen eigenen Tests schreibt."
+**Status:** OFFEN (User-curiert; Promotion-Vorschläge oben)
+
+#### LESSON: Mapped-Type Re-Export erzeugt Type-Only-Import-Cycle, der KPI-Skript meldet (2026-05-16, Plan: 2026-05-15-en-i18n Phase 1)
+
+**Quelle:** Sub-Agent-Concern Phase 1 + `pnpm kpi` Output
+**Beobachtet:** `src/i18n/index.ts` definiert `type Translations = Widen<typeof DE>` und exportiert ihn. `src/i18n/en.ts` macht `import type { Translations } from './index'`. `index.ts` importiert `EN` aus `./en` zur Laufzeit. KPI-Skript meldet `import_cycles: [['i18n', ['en.ts', 'index.ts', 'en.ts']]]` — der Zyklus ist zur Laufzeit nicht existent (rein type-only via `import type`), aber `scripts/kpi.mjs` unterscheidet das nicht.
+**Fix im Code:** keiner — Pattern ist semantisch korrekt (zero runtime impact).
+**Lehre für nächstes Mal:** KPI-Skript-`import_cycles`-Findings, die ausschließlich `import type`-Pfade durchlaufen, sind False-Positives. Code-Review Pass 3 (KPI-Drift) sollte das beim Sub-Agent-Briefing erwähnen. Alternativ: `scripts/kpi.mjs` erweitern, sodass `import type`-Edges nicht in Cycle-Detection eingehen — v1.x-Verbesserung, jetzt nicht blockend.
+**Promotion-Kandidat:** `scripts/kpi.mjs` Type-Only-Edge-Filter (separater Patch, v0.15+).
+**Status:** OFFEN
