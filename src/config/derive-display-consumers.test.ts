@@ -105,7 +105,7 @@ describe('deriveDisplayConsumers — by_area mode', () => {
     };
     const { consumers } = deriveDisplayConsumers(config, hass);
     expect(consumers.map((c) => c.id)).toEqual(['g_wz', 'g_unassigned']);
-    expect(consumers[1]?.name).toBe('Sonstige');
+    expect(consumers[1]?.name).toBeUndefined();
   });
 
   it('emits AREA_NOT_FOUND when area_id has no areas entry', () => {

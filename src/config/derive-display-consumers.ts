@@ -69,7 +69,7 @@ function groupByArea(
     if (key === '__unassigned') {
       groups.push({
         id: 'g_unassigned',
-        name: DE.nodes.unassignedGroup,
+        name: undefined,
         members,
         areaId: undefined,
       });

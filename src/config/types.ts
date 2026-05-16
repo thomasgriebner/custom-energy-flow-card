@@ -78,8 +78,9 @@ export interface AnimationConfig {
 export interface DisplayConsumer {
   /** Stabile ID. 'none'-Mode: 'c0','c1'… | 'by_area': 'g_<areaId>' bzw. 'g_unassigned'. */
   id: string;
-  /** Anzeige-Name (von Area oder vom einzelnen consumer). */
-  name: string;
+  /** Anzeige-Name (von Area oder vom einzelnen consumer).
+   * undefined ⇔ unassigned-group (Renderer löst gegen ctx.t.nodes.unassignedGroup auf, siehe Subspec §2.2) */
+  name?: string;
   /** Optional, Auflösung siehe deriveDisplayConsumers Algorithmus. */
   icon?: string;
   /** Entity-IDs, deren powerW in diese Gruppe summiert wird. NIE leer. */
