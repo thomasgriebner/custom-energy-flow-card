@@ -169,4 +169,4 @@
 **Fix im Code:** keiner — `pnpm preview` mit DE/EN-Toggle ist als manuelle Verifikation vorhanden (`examples/preview.html` + `scripts/build-preview.mjs`).
 **Lehre für nächstes Mal:** Bei i18n-Plans ist Playwright-Capture mit Lang-Toggle (DE-Screenshot + EN-Screenshot) der EINZIGE automatisierte funktionale Sprach-Beleg. Smoke-Test rendert ohne `locale`-Mock-hass (fällt auf EN), prüft also nur EN-Pfad. Pre/Post-Capture NACHHOLEN vor Tag/Release, ODER explizit als „skipped, manuell via `pnpm preview` verifiziert" im Code-Review-Output dokumentieren.
 **Promotion-Kandidat:** `code-review-checklist.md` Pass-5-Pflicht: „Bei i18n-Plans: Playwright-Capture pro Sprache OR explizite Manual-Preview-Notiz."
-**Status:** OFFEN (Playwright-Capture jetzt nicht zwingend, bei Tag-Bump v0.14.0 nachholen)
+**Status:** DONE (Capture nachgeholt 2026-05-16, Commit `b683f72` — `metrics/playwright/2026-05-15-en-i18n-post.json` zeigt aria-label-Differentiation für Sensor-Unavailable. Sub-Promotion-Kandidat für `code-review-checklist.md` Pass-5-Pflicht bleibt OFFEN)
