@@ -122,8 +122,9 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 | [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
 | [0020](./adr/0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | Dynamische User-/Area-Icons + null Wartungslast (Subspec 2026-05-13)         |
 | [0021](./adr/0021-code-review-workflow-pre-release-gate.md)  | Code-Review-Workflow als Pre-Release-Quality-Gate             | 6 Brillen + KPI-Skript + Lessons-Pipeline (Subspec 2026-05-15)               |
-| [0022](./adr/0022-bundle-budget-60-to-64-kib.md)             | Bundle-Budget 60 KiB → 64 KiB                                 | Whitespace-Optimierung erschöpft, Headroom für Render-Features nötig         |
+| [0022](./adr/0022-bundle-budget-60-to-64-kib.md)             | Bundle-Budget 60 KiB → 64 KiB                                 | superseded by ADR-0024                                                       |
 | [0023](./adr/0023-i18n-via-hass-locale.md)                   | i18n via HA-Locale (DE/EN) mit resolveT-Factory               | Auto-Sprachwechsel über `hass.locale.language`, kein Modul-Singleton         |
+| [0024](./adr/0024-bundle-budget-64-to-80-kib.md)             | Bundle-Budget 64 KiB → 80 KiB                                 | i18n-Headroom für 4–5 weitere Sprachen (FR/ES/IT/…) ohne Re-Bump             |
 
 ## 5. Konventionen kurz
 
@@ -134,7 +135,7 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 - **Schicht-Imports** lint-enforced. Spec §11.4.
 - **Anti-Patterns** (god-class, SVG-Strings, eigene State-Lib, …). Spec §11.5.
 - **Pre-Commit-Hook** mit lint-staged. Spec §11.8.
-- **Bundle ≤ `BUNDLE_BUDGET_BYTES`** (`scripts/kpi.mjs:29`, aktuell 64 KiB seit ADR-0022; war 60 KiB in v0.9.0 — ADR-0013).
+- **Bundle ≤ `BUNDLE_BUDGET_BYTES`** (`scripts/kpi.mjs:29`, aktuell 80 KiB seit ADR-0024; war 64 KiB ADR-0022, 60 KiB ADR-0013).
 
 ## 6. Wie wir erweitern
 

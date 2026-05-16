@@ -1,8 +1,10 @@
 # ADR-0022: Bundle-Budget 60 KiB → 64 KiB
 
-- **Status:** accepted
+- **Status:** superseded by [ADR-0024](./0024-bundle-budget-64-to-80-kib.md) (2026-05-16)
 - **Datum:** 2026-05-15
 - **Entscheider:** @griebner
+
+> **Superseded 2026-05-16:** Nach EN-i18n-Plan (Release v0.14.0) zeigte sich, dass die hier gewählten 64 KiB für FR/ES knapp werden (921 Bytes Reserve). ADR-0024 hebt das Budget auf 80 KiB an mit Headroom für 4–5 weitere Sprachen.
 
 ## Kontext und Problem
 
