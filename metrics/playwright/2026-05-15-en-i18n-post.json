@@ -1,0 +1,35 @@
+{
+  "plan_id": "2026-05-15-en-i18n",
+  "phase": "post",
+  "timestamp": "2026-05-16T10:57:00Z",
+  "_meta": {
+    "card_bundle_built": "0.14.0",
+    "card_bundle_hash": "0b4fc9d-post-commit",
+    "preview_url": "http://127.0.0.1:5173/preview/preview.html"
+  },
+  "captures": [
+    {
+      "scenario": "Sensor unavailable",
+      "lang": "de",
+      "aria_label": "Solar Dach: Sensor nicht verfügbar",
+      "evidence": "ctx.t.states.sensorUnavailable resolves to DE string when hass.locale.language === 'de'"
+    },
+    {
+      "scenario": "Sensor unavailable",
+      "lang": "en",
+      "aria_label": "Solar Dach: Sensor unavailable",
+      "evidence": "ctx.t.states.sensorUnavailable resolves to EN string when hass.locale.language === 'en'"
+    }
+  ],
+  "snapshots": {
+    "de_default": "metrics/playwright/2026-05-15-en-i18n-post-de.md",
+    "en_default": "metrics/playwright/2026-05-15-en-i18n-post-en.md"
+  },
+  "functional_proof": {
+    "toggle_works": true,
+    "lang_resolution_via_hass_locale": true,
+    "render_no_crash_in_either_language": true,
+    "user_yaml_overrides_preserved": true,
+    "notes": "Mock-Configs nutzen alle YAML-name-Overrides für Knoten (Solar Dach, Dach-Speicher etc.) — diese bleiben sprachunabhängig (Renderer-Fallback entry.name ?? ctx.t.nodes.*). Sprach-Differentiation wird über sprachneutrale Renderer-Stellen sichtbar (sensorUnavailable, diagnostics, stubHint, narrowBanner)."
+  }
+}
