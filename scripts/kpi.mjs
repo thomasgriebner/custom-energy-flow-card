@@ -171,6 +171,11 @@ function extractImports(sf) {
   const imports = [];
   sf.forEachChild((node) => {
     if (ts.isImportDeclaration(node)) {
+      // Skip top-level type-only imports (`import type { X } from '...'`): vom
+      // Compiler eliminiert, kein Runtime-Edge, kein echter Zyklus. Lesson
+      // 2026-05-16 (en-i18n Phase 1): Mapped-Type Re-Export erzeugt False-
+      // Positive in Cycle-Detection (i18n/index.ts ↔ i18n/en.ts).
+      if (node.importClause?.isTypeOnly) return;
       const spec = node.moduleSpecifier.getText(sf).replace(/['"]/g, '');
       if (spec.startsWith('.')) imports.push(spec);
     }
