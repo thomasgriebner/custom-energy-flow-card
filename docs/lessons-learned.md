@@ -151,7 +151,7 @@
 **Fix im Code:** keiner — Bundle bleibt unter 64 KiB Budget (921 Bytes Reserve), Bundle-Wachstum ist semantisch korrekt.
 **Lehre für nächstes Mal:** Bei i18n-Erweiterungen pro Sprache **~700 B Strings + ~500 B Hash-Map/Lookup-Overhead + ggf. Lit-Property-Patterns** einplanen. Bei FR/ES würde Budget knapp — ADR-0022-Bundle-Budget vor v0.15 erneut evaluieren. Für Spec/Plan-Bundle-Schätzungen: nicht nur die User-facing-Strings rechnen, sondern auch das Framework-Pattern (Argument-Objekte, RenderContext-Erweiterungen) explizit kalkulieren.
 **Promotion-Kandidat:** `spec-template.md` §1.5 Bundle-Strategie: Hinweis „Bei i18n-Plans pro Sprache ≥ 1.5 KiB einplanen, plus Framework-Pattern-Overhead falls Argument-Objekte/Context-Erweiterungen."
-**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `spec-template.md` §0.1 Bundle-Schätzungs-Hinweis). **Strategischer Folge-Schritt offen:** ADR-0022 Bundle-Budget (aktuell 64 KiB, 921 B Reserve) vor FR/ES-Plan auf 80 KiB bumpen oder Dynamic-Import aktivieren — bleibt USER-DECISION wenn FR/ES auf Roadmap kommt.
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `spec-template.md` §0.1 Bundle-Schätzungs-Hinweis + Commit `f89d644` ADR-0024 bumpt Bundle-Budget auf 80 KiB). Headroom für 4-5 weitere Sprachen vor erneutem Bump. Dynamic-Import bleibt v1.x-Kandidat falls > 5 Sprachen.
 
 #### LESSON: `derive-display-consumers.ts` complexity-Regression durch ADR-0023-Toleranz akzeptabel (2026-05-16, Plan: 2026-05-15-en-i18n Phase 5)
 
@@ -169,4 +169,4 @@
 **Fix im Code:** keiner — `pnpm preview` mit DE/EN-Toggle ist als manuelle Verifikation vorhanden (`examples/preview.html` + `scripts/build-preview.mjs`).
 **Lehre für nächstes Mal:** Bei i18n-Plans ist Playwright-Capture mit Lang-Toggle (DE-Screenshot + EN-Screenshot) der EINZIGE automatisierte funktionale Sprach-Beleg. Smoke-Test rendert ohne `locale`-Mock-hass (fällt auf EN), prüft also nur EN-Pfad. Pre/Post-Capture NACHHOLEN vor Tag/Release, ODER explizit als „skipped, manuell via `pnpm preview` verifiziert" im Code-Review-Output dokumentieren.
 **Promotion-Kandidat:** `code-review-checklist.md` Pass-5-Pflicht: „Bei i18n-Plans: Playwright-Capture pro Sprache OR explizite Manual-Preview-Notiz."
-**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `code-review-checklist.md` Pass-5-Prompt erweitert + Capture nachgeholt in Commit `b683f72`). **Folge-Schritt v1.x:** `scripts/build-preview.mjs` Auto-Capture-Mode (`pnpm preview --capture-langs de,en`) für Headless-Playwright-Integration — wird bei FR/ES-Plan nützlich; bleibt USER-DECISION.
+**Status:** PROMOTED (2026-05-16, Commit `9b69c19` `code-review-checklist.md` Pass-5-Prompt + Commit `b683f72` Capture nachgeholt + Commit `f89d644` `scripts/CAPTURE.md` Pattern-Doku). Headless-Auto-Capture mit Playwright DevDep bleibt v1.x-Kandidat falls reale Friction bei 3+ Sprachen entsteht.
