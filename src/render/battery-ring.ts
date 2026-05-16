@@ -1,5 +1,5 @@
 import { svg, type SVGTemplateResult } from 'lit';
-import { DE } from '../i18n/de';
+import type { Translations } from '../i18n';
 
 const RING_RADIUS = 50;
 const STROKE_WIDTH = 14;
@@ -18,13 +18,17 @@ function clampSoc(s: number): number {
   return !Number.isFinite(s) || s < 0 ? 0 : s > 100 ? 100 : s;
 }
 
-export function formatSocPct(socPct: number): string {
-  return `${Math.round(clampSoc(socPct))} ${DE.units.percent}`;
+export function formatSocPct(socPct: number, t: Translations): string {
+  return `${Math.round(clampSoc(socPct))} ${t.units.percent}`;
 }
 
-export function renderBatteryRing(socPct: number, color: string): SVGTemplateResult {
+export function renderBatteryRing(
+  socPct: number,
+  color: string,
+  t: Translations,
+): SVGTemplateResult {
   const clamped = clampSoc(socPct);
-  const label = svg`<text x="${LABEL_X}" y="${LABEL_Y}" text-anchor="middle" dominant-baseline="middle" font-size="${LABEL_FONT_SIZE}" font-weight="${LABEL_FONT_WEIGHT}" fill="${LABEL_FILL}" transform="rotate(${LABEL_ROTATE_DEG} ${LABEL_X} ${LABEL_Y})" part="battery-ring-label">${formatSocPct(clamped)}</text>`;
+  const label = svg`<text x="${LABEL_X}" y="${LABEL_Y}" text-anchor="middle" dominant-baseline="middle" font-size="${LABEL_FONT_SIZE}" font-weight="${LABEL_FONT_WEIGHT}" fill="${LABEL_FILL}" transform="rotate(${LABEL_ROTATE_DEG} ${LABEL_X} ${LABEL_Y})" part="battery-ring-label">${formatSocPct(clamped, t)}</text>`;
 
   if (clamped <= 0.5) {
     return svg`<g part="battery-ring"><g transform="rotate(-90)"><circle r="${RING_RADIUS}" fill="none" stroke="${color}" stroke-width="${STROKE_WIDTH}" opacity="0.18"></circle></g>${label}</g>`;

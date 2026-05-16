@@ -448,16 +448,21 @@ export const scenarios: MockScenario[] = [
   },
 ];
 
-export function buildMockHass(scenario: MockScenario): {
+export function buildMockHass(
+  scenario: MockScenario,
+  lang: 'de' | 'en' = 'de',
+): {
   states: Record<string, MockHassEntity>;
   entities?: Record<string, MockEntityRegistry>;
   devices?: Record<string, MockDeviceRegistry>;
   areas?: Record<string, MockAreaRegistry>;
+  locale: { language: 'de' | 'en' };
 } {
   return {
     states: scenario.hassStates,
     entities: scenario.entities,
     devices: scenario.devices,
     areas: scenario.areas,
+    locale: { language: lang },
   };
 }

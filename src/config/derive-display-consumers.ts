@@ -103,7 +103,9 @@ function groupByArea(
   groups.sort((a, b) => {
     if (a.id === 'g_unassigned') return 1;
     if (b.id === 'g_unassigned') return -1;
-    const byName = compareDe(a.name, b.name);
+    // a.name und b.name sind hier garantiert string (g_unassigned-Gruppen wurden in den
+    // beiden if-checks oberhalb mit return 1/-1 ausgesondert); ?? '' für TS-Narrowing.
+    const byName = compareDe(a.name ?? '', b.name ?? '');
     return byName !== 0 ? byName : compareDe(a.id, b.id);
   });
 

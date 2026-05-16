@@ -1,10 +1,10 @@
 import { html, type TemplateResult } from 'lit';
 import { buildSystemState, type BuildResult } from './config/system-state';
 import { compute } from './engine/energy-engine';
-import { DE } from './i18n/de';
 import type { Config, DisplayConsumer } from './config/types';
 import type { FlowResult } from './engine/types';
 import type { HomeAssistant } from './ha/ha-types';
+import type { Translations } from './i18n';
 
 export interface CardState {
   build: BuildResult;
@@ -23,8 +23,8 @@ export function buildCardState(config: Config, hass: HomeAssistant): CardState {
   };
 }
 
-export function renderSkeleton(): TemplateResult {
-  return html`<div class="loading" aria-busy="true">${DE.states.loading}</div>
+export function renderSkeleton(t: Translations): TemplateResult {
+  return html`<div class="loading" aria-busy="true">${t.states.loading}</div>
     <div class="skeleton" aria-hidden="true">
       <div class="skeleton-node"></div>
       <div class="skeleton-node"></div>

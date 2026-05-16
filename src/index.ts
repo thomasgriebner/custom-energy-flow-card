@@ -1,7 +1,7 @@
 import { CustomEnergyFlowCard } from './card';
 import { CARD_DOC_URL, CARD_NAME, CARD_TYPE, CARD_VERSION } from './const';
 import './editor'; // side-effect import: registriert custom-energy-flow-card-editor
-import { DE } from './i18n/de';
+import { EN } from './i18n/en';
 
 // Side-effect import — Lit's @customElement decorator registriert beim
 // Klassen-Eval. Wir referenzieren den Wert hier explizit, sonst eliminiert
@@ -30,7 +30,7 @@ win.customCards = win.customCards ?? [];
 win.customCards.push({
   type: CARD_TYPE,
   name: CARD_NAME,
-  description: DE.card.description,
+  description: EN.card.description,
   preview: true,
   documentationURL: CARD_DOC_URL,
 });

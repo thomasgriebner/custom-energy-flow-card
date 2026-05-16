@@ -1,5 +1,4 @@
 import { html, svg, type TemplateResult } from 'lit';
-import { DE } from '../i18n/de';
 import { edgeColorRole } from './edge-color';
 import { computeAnimationParams, renderDots } from './flow-animation';
 import { diagnosticsIcon } from './icon';
@@ -35,7 +34,7 @@ export function renderCard(
       preserveAspectRatio="xMidYMid meet"
       part="card"
       role="group"
-      aria-label="${DE.card.name}"
+      aria-label="${ctx.t.card.name}"
     >
       ${layout.edges.map((e) => renderEdge(e, result, ctx))}
       ${orderedNodes.map((n) => renderNode(n, result, ctx))}
@@ -50,7 +49,7 @@ function renderDiagnostics(
   ctx: RenderContext,
 ): TemplateResult {
   const count = result.warnings.length;
-  const label = `${DE.diagnostics.iconLabel}: ${count} ${DE.diagnostics.pluralize(count)}`;
+  const label = `${ctx.t.diagnostics.iconLabel}: ${count} ${ctx.t.diagnostics.pluralize(count)}`;
   const summary = result.warnings
     .map(
       (w) =>
@@ -83,7 +82,7 @@ function renderDiagnostics(
       <circle r="12" fill="${fill}" opacity="0.18"></circle>
       <circle r="12" fill="none" stroke="${fill}" stroke-width="1.5"></circle>
       ${diagnosticsIcon()}
-      <title>${count} ${DE.diagnostics.title}:\n${summary}</title>
+      <title>${count} ${ctx.t.diagnostics.title}:\n${summary}</title>
     </g>
   `;
 }

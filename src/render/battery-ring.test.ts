@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DE } from '../i18n/de';
 import { formatSocPct, renderBatteryRing } from './battery-ring';
 
 function serialize(template: ReturnType<typeof renderBatteryRing>): string {
@@ -20,7 +21,7 @@ function serialize(template: ReturnType<typeof renderBatteryRing>): string {
 
 describe('renderBatteryRing — Stroke und Branches', () => {
   it('rendert Ring-Stroke mit Breite 14', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toContain('stroke-width="14"');
     expect(out).not.toContain('stroke-width="6"');
   });
@@ -36,7 +37,7 @@ describe('renderBatteryRing — Stroke und Branches', () => {
     { soc: 150, branch: 'solid-only (clamp)', hasDasharray: false },
     { soc: -10, branch: 'background-only (clamp)', hasDasharray: false },
   ])('SoC=$soc → $branch', ({ soc, hasDasharray }) => {
-    const out = serialize(renderBatteryRing(soc, '#10b981'));
+    const out = serialize(renderBatteryRing(soc, '#10b981', DE));
     if (hasDasharray) {
       expect(out).toContain('stroke-dasharray');
     } else {
@@ -46,12 +47,12 @@ describe('renderBatteryRing — Stroke und Branches', () => {
 
   // Geometrie-Anker: 50 % → dasharray-Magnitude (CIRCUMFERENCE/2 ≈ 157.08 für r=50).
   it('SoC=50 → dasharray-Magnitude ≈ 157.08 (CIRCUMFERENCE/2 für r=50)', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toMatch(/157\.\d+ 157\.\d+/);
   });
 
   it('SOC-ring radius=50 sits outside battery circle (NODE_R_MEDIUM=42)', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toMatch(/r="50"/);
   });
 });
@@ -68,18 +69,18 @@ describe('renderBatteryRing — %-Text-Element', () => {
     { soc: 150, label: '100 %' },
     { soc: -10, label: '0 %' },
   ])('rendert Text "$label" für SoC=$soc', ({ soc, label }) => {
-    const out = serialize(renderBatteryRing(soc, '#10b981'));
+    const out = serialize(renderBatteryRing(soc, '#10b981', DE));
     expect(out).toContain(`>${label}</text>`);
   });
 
   it('positioniert Text bei (-35, -35) mit rotate(-45 -35 -35)', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toMatch(/x="-35"\s+y="-35"/);
     expect(out).toContain('transform="rotate(-45 -35 -35)"');
   });
 
   it('Text-Element ist NICHT in der mit rotate(-90) gedrehten Gruppe', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     const innerOpenIdx = out.indexOf('<g transform="rotate(-90)">');
     expect(innerOpenIdx).toBeGreaterThan(-1);
     const innerCloseIdx = out.indexOf('</g>', innerOpenIdx);
@@ -90,25 +91,25 @@ describe('renderBatteryRing — %-Text-Element', () => {
   });
 
   it('Text hat font-size=9, font-weight=400, theme-adaptive fill (--primary-text-color)', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toContain('font-size="9"');
     expect(out).toContain('font-weight="400"');
     expect(out).toContain('fill="var(--primary-text-color, #1c1c1c)"');
   });
 
   it('Text hat dominant-baseline=middle und text-anchor=middle', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toContain('text-anchor="middle"');
     expect(out).toContain('dominant-baseline="middle"');
   });
 
   it('Text exposiert part="battery-ring-label" als Theming-Hook', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toContain('part="battery-ring-label"');
   });
 
   it('äußerer Wrapper behält part="battery-ring" (API-Kompatibilität)', () => {
-    const out = serialize(renderBatteryRing(50, '#10b981'));
+    const out = serialize(renderBatteryRing(50, '#10b981', DE));
     expect(out).toContain('part="battery-ring"');
   });
 });
@@ -127,11 +128,11 @@ describe('formatSocPct', () => {
     [Number.POSITIVE_INFINITY, '0 %'],
     [Number.NEGATIVE_INFINITY, '0 %'],
   ])('formatSocPct(%d) === "%s"', (input, expected) => {
-    expect(formatSocPct(input)).toBe(expected);
+    expect(formatSocPct(input, DE)).toBe(expected);
   });
 
   it('nutzt DE.units.percent als Einheit', async () => {
     const { DE } = await import('../i18n/de');
-    expect(formatSocPct(50)).toContain(DE.units.percent);
+    expect(formatSocPct(50, DE)).toContain(DE.units.percent);
   });
 });

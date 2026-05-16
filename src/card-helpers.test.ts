@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildCardState, hassRelevantSensorsChanged, resolveEntityId } from './card-helpers';
+import {
+  buildCardState,
+  hassRelevantSensorsChanged,
+  renderSkeleton,
+  resolveEntityId,
+} from './card-helpers';
+import { resolveT } from './i18n';
 import type { Config, DisplayConsumer } from './config/types';
 import type { HomeAssistant } from './ha/ha-types';
 
@@ -97,5 +103,13 @@ describe('resolveEntityId', () => {
 
   it('returns undefined for unknown id', () => {
     expect(resolveEntityId(baseConfig(), 'g_nonsense', dc)).toBeUndefined();
+  });
+});
+
+describe('renderSkeleton — Sprach-Branching', () => {
+  it.each(['de', 'en'] as const)('rendert Loading-Text in %s', (lang) => {
+    const T = resolveT(lang);
+    const result = renderSkeleton(T);
+    expect(JSON.stringify(result)).toContain(T.states.loading);
   });
 });

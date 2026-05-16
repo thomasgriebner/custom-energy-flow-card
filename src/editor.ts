@@ -8,7 +8,7 @@ import {
   renderSolarSection,
 } from './editor-list-sections';
 import { fireConfigChanged } from './ha/ha-helpers';
-import { DE } from './i18n/de';
+import { langFromHass, resolveT, type Lang, type Translations } from './i18n';
 import type {
   BatteryConfig,
   Config,
@@ -28,6 +28,8 @@ export class CustomEnergyFlowCardEditor extends LitElement {
 
   @state()
   private _validationError?: string;
+
+  @state() private _lang: Lang = 'en';
 
   static override styles = css`
     :host {
@@ -95,39 +97,61 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     this._config = config;
   }
 
+  protected override willUpdate(): void {
+    // Lit dedupliziert Property-Setzungen auf gleichen Wert (default hasChanged) — kein Re-render-Loop.
+    this._lang = langFromHass(this.hass);
+  }
+
   override render(): TemplateResult {
     const c = this._config;
     if (!c) return html``;
+    const t = resolveT(this._lang);
     return html`
       ${this._validationError
         ? html` <div class="validation-banner" role="alert">${this._validationError}</div> `
         : ''}
-      ${this._renderGeneral()}
-      ${renderSolarSection(c.solar, this.hass, {
-        onItemChange: (i, value) => this._onSolarItemChange(i, value),
-        onAdd: () => this._addSolar(),
-        onRemove: (i) => this._removeSolar(i),
-        onMove: (i, delta) => this._moveSolar(i, delta),
+      ${this._renderGeneral(t)}
+      ${renderSolarSection({
+        solar: c.solar,
+        hass: this.hass,
+        t,
+        handlers: {
+          onItemChange: (i, v) => this._onSolarItemChange(i, v),
+          onAdd: () => this._addSolar(),
+          onRemove: (i) => this._removeSolar(i),
+          onMove: (i, d) => this._moveSolar(i, d),
+        },
       })}
-      ${renderBatterySection(c.battery, c.solar, this.hass, {
-        onItemChange: (i, value) => this._onBatteryItemChange(i, value),
-        onPairChange: (i, charged_by) => this._onBatteryPairChange(i, charged_by),
-        onModeChange: (i, mode) => this._onBatteryModeChange(i, mode),
-        onAdd: () => this._addBattery(),
-        onRemove: (i) => this._removeBattery(i),
-        onMove: (i, delta) => this._moveBattery(i, delta),
+      ${renderBatterySection({
+        battery: c.battery,
+        solar: c.solar,
+        hass: this.hass,
+        t,
+        handlers: {
+          onItemChange: (i, v) => this._onBatteryItemChange(i, v),
+          onPairChange: (i, cb) => this._onBatteryPairChange(i, cb),
+          onModeChange: (i, m) => this._onBatteryModeChange(i, m),
+          onAdd: () => this._addBattery(),
+          onRemove: (i) => this._removeBattery(i),
+          onMove: (i, d) => this._moveBattery(i, d),
+        },
       })}
-      ${this._renderGridSection()}
-      ${renderConsumersSection(c.consumers, this.hass, {
-        onItemChange: (i, value) => this._onConsumerItemChange(i, value),
-        onAdd: () => this._addConsumer(),
-        onRemove: (i) => this._removeConsumer(i),
-        onMove: (i, delta) => this._moveConsumer(i, delta),
+      ${this._renderGridSection(t)}
+      ${renderConsumersSection({
+        consumers: c.consumers,
+        hass: this.hass,
+        t,
+        handlers: {
+          onItemChange: (i, v) => this._onConsumerItemChange(i, v),
+          onAdd: () => this._addConsumer(),
+          onRemove: (i) => this._removeConsumer(i),
+          onMove: (i, d) => this._moveConsumer(i, d),
+        },
       })}
     `;
   }
 
-  private _renderGeneral(): TemplateResult {
+  private _renderGeneral(t: Translations): TemplateResult {
     const c = this._config;
     if (!c) return html``;
     const data = {
@@ -149,8 +173,8 @@ export class CustomEnergyFlowCardEditor extends LitElement {
           select: {
             mode: 'dropdown',
             options: [
-              { value: 'none', label: DE.editor.consumerGroupingNone },
-              { value: 'by_area', label: DE.editor.consumerGroupingByArea },
+              { value: 'none', label: t.editor.consumerGroupingNone },
+              { value: 'by_area', label: t.editor.consumerGroupingByArea },
             ],
           },
         },
@@ -158,13 +182,13 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     ];
     return html`
       <div class="section">
-        <h3>${DE.editor.sectionGeneral}</h3>
+        <h3>${t.editor.sectionGeneral}</h3>
         <ha-form
           .data=${data}
           .schema=${schema}
           .hass=${this.hass}
           .computeLabel=${(s: { name: string }): string =>
-            s.name === 'consumer_grouping' ? DE.editor.consumerGroupingLabel : s.name}
+            s.name === 'consumer_grouping' ? t.editor.consumerGroupingLabel : s.name}
           @value-changed=${(e: CustomEvent) => this._onGeneralChange(e.detail.value)}
         ></ha-form>
       </div>
@@ -186,7 +210,7 @@ export class CustomEnergyFlowCardEditor extends LitElement {
     this._emitChange(newConfig);
   }
 
-  private _renderGridSection(): TemplateResult {
+  private _renderGridSection(t: Translations): TemplateResult {
     const c = this._config;
     if (!c) return html``;
     const isSplit = !('power' in c.grid);
@@ -214,7 +238,7 @@ export class CustomEnergyFlowCardEditor extends LitElement {
         ];
     return html`
       <div class="section">
-        <h3>${DE.editor.sectionGrid}</h3>
+        <h3>${t.editor.sectionGrid}</h3>
         <ha-form
           .data=${data}
           .schema=${schema}

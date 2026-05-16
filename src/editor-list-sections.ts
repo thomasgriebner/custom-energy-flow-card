@@ -1,7 +1,7 @@
 import { html, type TemplateResult } from 'lit';
-import { DE } from './i18n/de';
 import type { BatteryConfig, ConsumerConfig, SolarConfig } from './config/types';
 import type { HomeAssistant } from './ha/ha-types';
+import type { Translations } from './i18n';
 
 export interface SolarSectionHandlers {
   onItemChange: (i: number, value: SolarConfig) => void;
@@ -26,11 +26,15 @@ export interface ConsumerSectionHandlers {
   onMove: (i: number, delta: number) => void;
 }
 
-export function renderSolarSection(
-  solar: readonly SolarConfig[],
-  hass: HomeAssistant | undefined,
-  h: SolarSectionHandlers,
-): TemplateResult {
+export interface SolarSectionProps {
+  solar: readonly SolarConfig[];
+  hass: HomeAssistant | undefined;
+  t: Translations;
+  handlers: SolarSectionHandlers;
+}
+
+export function renderSolarSection(props: SolarSectionProps): TemplateResult {
+  const { solar, hass, t, handlers: h } = props;
   const itemSchema = [
     { name: 'name', selector: { text: {} } },
     {
@@ -42,7 +46,7 @@ export function renderSolarSection(
   ];
   return html`
     <div class="section">
-      <h3>${DE.editor.sectionSolar}</h3>
+      <h3>${t.editor.sectionSolar}</h3>
       ${solar.map(
         (item, i) => html`
           <div class="list-item">
@@ -55,30 +59,32 @@ export function renderSolarSection(
                 h.onItemChange(i, { ...item, ...v } as SolarConfig);
               }}
             ></ha-form>
-            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>
-              ${DE.editor.moveUp}
-            </button>
+            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>${t.editor.moveUp}</button>
             <button @click=${() => h.onMove(i, 1)} ?disabled=${i === solar.length - 1}>
-              ${DE.editor.moveDown}
+              ${t.editor.moveDown}
             </button>
-            <button @click=${() => h.onRemove(i)}>${DE.editor.remove}</button>
+            <button @click=${() => h.onRemove(i)}>${t.editor.remove}</button>
           </div>
         `,
       )}
-      <button class="add-btn" @click=${() => h.onAdd()}>${DE.editor.addSolar}</button>
+      <button class="add-btn" @click=${() => h.onAdd()}>${t.editor.addSolar}</button>
     </div>
   `;
 }
 
-export function renderBatterySection(
-  battery: readonly BatteryConfig[],
-  solar: readonly SolarConfig[],
-  hass: HomeAssistant | undefined,
-  h: BatterySectionHandlers,
-): TemplateResult {
+export interface BatterySectionProps {
+  battery: readonly BatteryConfig[];
+  solar: readonly SolarConfig[];
+  hass: HomeAssistant | undefined;
+  t: Translations;
+  handlers: BatterySectionHandlers;
+}
+
+export function renderBatterySection(props: BatterySectionProps): TemplateResult {
+  const { battery, solar, hass, t, handlers: h } = props;
   return html`
     <div class="section">
-      <h3>${DE.editor.sectionBattery}</h3>
+      <h3>${t.editor.sectionBattery}</h3>
       ${battery.map((item, i) => {
         const pairingMissing = !solar.some((s) => s.id === item.charged_by);
         const isSplit = !('power' in item);
@@ -160,47 +166,49 @@ export function renderBatterySection(
                 }}
               ></ha-form>
               <label class="pairing">
-                ${DE.editor.chargedBy}
+                ${t.editor.chargedBy}
                 <select
                   .value=${item.charged_by}
                   @change=${(e: Event) => h.onPairChange(i, (e.target as HTMLSelectElement).value)}
                 >
                   <option value="" disabled ?selected=${item.charged_by === ''}>
-                    ${DE.editor.chargedByPlaceholder}
+                    ${t.editor.chargedByPlaceholder}
                   </option>
                   ${solar.map(
                     (s) => html`
                       <option value=${s.id} ?selected=${item.charged_by === s.id}>
-                        ${s.name ?? `${DE.nodes.solar} ${s.id}`}
+                        ${s.name ?? `${t.nodes.solar} ${s.id}`}
                       </option>
                     `,
                   )}
                 </select>
                 ${pairingMissing && item.charged_by
-                  ? html`<span class="error">${DE.editor.pairingMissing(item.charged_by)}</span>`
+                  ? html`<span class="error">${t.editor.pairingMissing(item.charged_by)}</span>`
                   : ''}
               </label>
             </div>
-            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>
-              ${DE.editor.moveUp}
-            </button>
+            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>${t.editor.moveUp}</button>
             <button @click=${() => h.onMove(i, 1)} ?disabled=${i === battery.length - 1}>
-              ${DE.editor.moveDown}
+              ${t.editor.moveDown}
             </button>
-            <button @click=${() => h.onRemove(i)}>${DE.editor.remove}</button>
+            <button @click=${() => h.onRemove(i)}>${t.editor.remove}</button>
           </div>
         `;
       })}
-      <button class="add-btn" @click=${() => h.onAdd()}>${DE.editor.addBattery}</button>
+      <button class="add-btn" @click=${() => h.onAdd()}>${t.editor.addBattery}</button>
     </div>
   `;
 }
 
-export function renderConsumersSection(
-  consumers: readonly ConsumerConfig[],
-  hass: HomeAssistant | undefined,
-  h: ConsumerSectionHandlers,
-): TemplateResult {
+export interface ConsumersSectionProps {
+  consumers: readonly ConsumerConfig[];
+  hass: HomeAssistant | undefined;
+  t: Translations;
+  handlers: ConsumerSectionHandlers;
+}
+
+export function renderConsumersSection(props: ConsumersSectionProps): TemplateResult {
+  const { consumers, hass, t, handlers: h } = props;
   const itemSchema = [
     { name: 'name', selector: { text: {} }, required: true },
     {
@@ -212,7 +220,7 @@ export function renderConsumersSection(
   ];
   return html`
     <div class="section">
-      <h3>${DE.editor.sectionConsumers}</h3>
+      <h3>${t.editor.sectionConsumers}</h3>
       ${consumers.map(
         (item, i) => html`
           <div class="list-item">
@@ -223,17 +231,15 @@ export function renderConsumersSection(
               @value-changed=${(e: CustomEvent) =>
                 h.onItemChange(i, e.detail.value as ConsumerConfig)}
             ></ha-form>
-            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>
-              ${DE.editor.moveUp}
-            </button>
+            <button @click=${() => h.onMove(i, -1)} ?disabled=${i === 0}>${t.editor.moveUp}</button>
             <button @click=${() => h.onMove(i, 1)} ?disabled=${i === consumers.length - 1}>
-              ${DE.editor.moveDown}
+              ${t.editor.moveDown}
             </button>
-            <button @click=${() => h.onRemove(i)}>${DE.editor.remove}</button>
+            <button @click=${() => h.onRemove(i)}>${t.editor.remove}</button>
           </div>
         `,
       )}
-      <button class="add-btn" @click=${() => h.onAdd()}>${DE.editor.addConsumer}</button>
+      <button class="add-btn" @click=${() => h.onAdd()}>${t.editor.addConsumer}</button>
     </div>
   `;
 }

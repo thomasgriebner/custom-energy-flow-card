@@ -1,5 +1,6 @@
 import type { ThemeContext } from './theme';
 import type { AnimationConfig, Config, DisplayConsumer } from '../config/types';
+import type { Translations } from '../i18n';
 import type { EngineWarning } from '../util/warning-types';
 
 export interface RenderContext {
@@ -16,4 +17,6 @@ export interface RenderContext {
   unavailableGroups: ReadonlySet<string>;
   animation?: AnimationConfig;
   onNodeClick?: (nodeId: string) => void;
+  /** Resolved translations (DE oder EN), bestimmt aus hass.locale.language in card.ts. */
+  t: Translations;
 }

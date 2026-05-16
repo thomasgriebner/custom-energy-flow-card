@@ -11,7 +11,7 @@ import { cardStyles } from './card-styles';
 import { validateConfig } from './config/schema';
 import { CARD_TYPE, DEFAULTS } from './const';
 import { fireMoreInfo } from './ha/ha-helpers';
-import { DE } from './i18n/de';
+import { langFromHass, resolveT, type Lang } from './i18n';
 import { renderCard } from './render/flow-renderer';
 import { computeLayout, type LayoutResult } from './render/layout';
 import type { Config, DisplayConsumer } from './config/types';
@@ -36,6 +36,7 @@ export class CustomEnergyFlowCard extends LitElement {
   @state() private _displayConsumers: ReadonlyMap<string, DisplayConsumer> = new Map();
   @state() private _unavailableGroups: Set<string> = new Set();
   @state() private _containerW = 720;
+  @state() private _lang: Lang = 'en';
   private _resizeObs?: ResizeObserver;
 
   static override styles = cardStyles;
@@ -93,12 +94,14 @@ export class CustomEnergyFlowCard extends LitElement {
     // If only `hass` changed and no relevant sensor moved, skip the update.
     if (changed.size === 1 && changed.has('hass') && this._config) {
       const prev = changed.get('hass') as HomeAssistant | undefined;
+      if (prev?.locale?.language !== this.hass?.locale?.language) return true;
       if (!hassRelevantSensorsChanged(prev, this.hass, this._config)) return false;
     }
     return true;
   }
 
   protected override willUpdate(changed: PropertyValues): void {
+    this._lang = langFromHass(this.hass);
     if (!this._config || !this.hass) return;
     if (isStubConfig(this._config)) return;
     if (!changed.has('hass') && !changed.has('_config')) return;
@@ -126,28 +129,29 @@ export class CustomEnergyFlowCard extends LitElement {
   }
 
   override render(): TemplateResult {
+    const t = resolveT(this._lang);
     if (this._renderError) {
       return html`<ha-card
         ><div class="error-banner" role="alert">
-          ${DE.states.cardError}: ${this._renderError}
+          ${t.states.cardError}: ${this._renderError}
         </div></ha-card
       >`;
     }
     if (!this.hass || !this._config) {
-      return html`<ha-card>${renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton(t)}</ha-card>`;
     }
     if (isStubConfig(this._config)) {
-      return html`<ha-card><div class="stub-hint">${DE.states.stubHint}</div></ha-card>`;
+      return html`<ha-card><div class="stub-hint">${t.states.stubHint}</div></ha-card>`;
     }
     if (!this._flowResult || !this._layout) {
-      return html`<ha-card>${renderSkeleton()}</ha-card>`;
+      return html`<ha-card>${renderSkeleton(t)}</ha-card>`;
     }
     const display = this._config.display ?? {};
     const narrow = this._containerW < 280;
     return html`
       <ha-card>
         ${narrow
-          ? html`<div class="narrow-banner" role="status">${DE.states.narrowBanner}</div>`
+          ? html`<div class="narrow-banner" role="status">${t.states.narrowBanner}</div>`
           : ''}
         ${renderCard(this._layout, this._flowResult, {
           config: this._config,
@@ -161,6 +165,7 @@ export class CustomEnergyFlowCard extends LitElement {
           batterySoc: this._batterySoc,
           displayConsumers: this._displayConsumers,
           unavailableGroups: this._unavailableGroups,
+          t,
           onNodeClick: (id) => {
             const entity = resolveEntityId(this._config, id, this._displayConsumers);
             if (entity) fireMoreInfo(this, entity);

@@ -1,5 +1,4 @@
 import { svg, type SVGTemplateResult } from 'lit';
-import { DE } from '../i18n/de';
 import { formatPowerW } from '../util/format-power';
 import { formatSocPct, renderBatteryRing } from './battery-ring';
 import { renderHomeRing } from './home-ring';
@@ -39,12 +38,12 @@ export function renderNode(
   const isBattery = node.kind === 'battery';
   const socPct = isBattery ? ctx.batterySoc.get(node.id) : undefined;
   const showRing = !unavailable && socPct !== undefined && Number.isFinite(socPct);
-  const batteryRing = showRing ? renderBatteryRing(socPct as number, color) : svg``;
+  const batteryRing = showRing ? renderBatteryRing(socPct as number, color, ctx.t) : svg``;
 
   const ariaLabel = unavailable
-    ? `${name}: ${DE.states.sensorUnavailable}`
+    ? `${name}: ${ctx.t.states.sensorUnavailable}`
     : showRing
-      ? `${name}: ${value}, ${formatSocPct(socPct as number)}`
+      ? `${name}: ${value}, ${formatSocPct(socPct as number, ctx.t)}`
       : `${name}: ${value}`;
 
   const ring =
@@ -212,16 +211,20 @@ function configEntryForNode(
 export function nodeName(node: LayoutNode, ctx: RenderContext): string {
   const entry = configEntryForNode(node, ctx);
   if (entry?.name) return entry.name;
+  // unassigned-group hat id === 'g_unassigned' (Subspec §2.2, derive-display-consumers.ts:72)
+  if (node.kind === 'consumer' && node.id === 'g_unassigned') {
+    return ctx.t.nodes.unassignedGroup;
+  }
   switch (node.kind) {
     case 'pv':
-      return `${DE.nodes.solar} ${node.id}`;
+      return `${ctx.t.nodes.solar} ${node.id}`;
     case 'battery':
-      return `${DE.nodes.battery} ${node.id}`;
+      return `${ctx.t.nodes.battery} ${node.id}`;
     case 'grid':
-      return DE.nodes.grid;
+      return ctx.t.nodes.grid;
     case 'home':
-      return ctx.config.home?.name ?? DE.nodes.home;
+      return ctx.config.home?.name ?? ctx.t.nodes.home;
     case 'consumer':
-      return `${DE.nodes.consumer} ${node.id}`;
+      return `${ctx.t.nodes.consumer} ${node.id}`;
   }
 }

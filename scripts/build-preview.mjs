@@ -15,15 +15,31 @@ const card = document.getElementById('card') as HTMLElement & {
   hass: unknown;
 };
 const list = document.getElementById('scenarios') as HTMLElement;
+const langDeBtn = document.getElementById('lang-de') as HTMLButtonElement;
+const langEnBtn = document.getElementById('lang-en') as HTMLButtonElement;
+
+let currentLang: 'de' | 'en' = 'de';
+let currentIdx = 0;
 
 function activate(idx: number): void {
   const sc = scenarios[idx];
   if (!sc) return;
+  currentIdx = idx;
   card.setConfig(sc.config);
-  card.hass = buildMockHass(sc);
+  card.hass = buildMockHass(sc, currentLang);
   for (const btn of Array.from(list.children)) btn.classList.remove('active');
   list.children[idx]?.classList.add('active');
 }
+
+function setLang(lang: 'de' | 'en'): void {
+  currentLang = lang;
+  langDeBtn.classList.toggle('active', lang === 'de');
+  langEnBtn.classList.toggle('active', lang === 'en');
+  activate(currentIdx);
+}
+
+langDeBtn.addEventListener('click', () => setLang('de'));
+langEnBtn.addEventListener('click', () => setLang('en'));
 
 scenarios.forEach((sc, idx) => {
   const btn = document.createElement('button');
@@ -31,7 +47,7 @@ scenarios.forEach((sc, idx) => {
   btn.addEventListener('click', () => activate(idx));
   list.appendChild(btn);
 });
-activate(0);
+setLang('de');
 `;
 
 mkdirSync('dist/preview', { recursive: true });
