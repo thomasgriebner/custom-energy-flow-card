@@ -41,13 +41,17 @@ Bei Konflikt zwischen Verbot und Plan-Schritt: STOP und nachfragen.]
 | -------------- | -------------------------------- |
 | `src/[layer]/` | [aus `.eslintrc.cjs` übernehmen] |
 
+**Test-Imports beachten (Lesson 2026-05-16, Plan en-i18n Phase 1):** Wenn ein Layer eigene `*.test.ts`-Files schreibt UND diese `CARD_NAME`/`CARD_VERSION`/andere Konstanten aus `src/const.ts` importieren wollen (z. B. für Single-Source-Konsistenz-Tests), MUSS `./const.ts` in der Zone-Exception-Liste enthalten sein. Ohne diese Exception bricht `pnpm lint` nach Test-Hinzufügen rot. Quick-Check vor Spec-Vorlage: für jeden Test-File des neuen Layers `grep "from '\.\./const'"` und Zone-Exception abgleichen.
+
 **Weitere Constraints:**
 
 | Constraint       | Quelle              | Konsequenz bei Verletzung |
 | ---------------- | ------------------- | ------------------------- |
 | [konkrete Regel] | [ADR / conventions] | [was bricht]              |
 
-[Hinweis: mindestens diese Constraints prüfen: Engine pure, `card.ts ≤ 200 LOC`, Bundle ≤ 60 kB, Layer-Boundaries, TDD-Coverage, i18n-Quelle, noUncheckedIndexedAccess.]
+[Hinweis: mindestens diese Constraints prüfen: Engine pure, `card.ts ≤ 200 LOC`, Bundle ≤ `BUNDLE_BUDGET_BYTES` aus `scripts/kpi.mjs:29`, Layer-Boundaries, TDD-Coverage, i18n-Quelle, noUncheckedIndexedAccess.]
+
+**Bundle-Schätzung bei i18n-Plans (Lesson 2026-05-16, en-i18n Phase 5):** Pro neuer Sprache ≥ 1.5 KiB einplanen (Strings + Hash-Map/Lookup-Overhead). Pro neuem Framework-Pattern (Argument-Objekt-Interface, RenderContext-Feld, neuer Lit-State + Lifecycle-Hook) zusätzlich ~500–800 B. Beispiel en-i18n: Plan-Schätzung +1 KiB, tatsächlich +3.1 KiB. Bei knappem Bundle-Headroom (< 2 KiB Reserve) ADR-0022 Bundle-Budget re-evaluieren VOR Plan-Start, nicht reaktiv nach Implementation.
 
 **Weitere verbindliche Lese-Quellen für den Planer:**
 

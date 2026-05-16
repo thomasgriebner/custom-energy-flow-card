@@ -341,6 +341,12 @@ Implementation messbare Wartbarkeits-Kennzahlen? Welche Threshold-Verstöße sin
    - **Threshold-Verstöße NEU** (`violations`-Array in post hat Items, die in pre fehlen):
      jedes Item als Finding. Wenn klar Code-Fehler: `[AUTO-FIX]` mit Datei:Zeile + Fix-
      Vorschlag. Wenn größerer Refactor: `[FIX-PLAN]`. Wenn Architektur-Frage: `[USER-DECISION]`.
+   - **ADR-dokumentierte Toleranzen (Lesson 2026-05-16, en-i18n Phase 5):** vor einem
+     AUTO-FIX prüfen, ob die KPI-Regression in einem aktiven ADR explizit als negative
+     Konsequenz / akzeptierte Toleranz dokumentiert ist (z. B. ADR-0023 `derive-display-
+     consumers.ts:43` mapNoneMode behält DE-Import → groupByArea complexity-Drift). Falls
+     ja: kein AUTO-FIX, sondern Bestätigung („Regression ist in ADR-XX als Toleranz
+     dokumentiert, kein Code-Eingriff nötig"). Verhindert False-Positive-Loop.
    - **LOC-Drift** (`loc_total` oder `loc_per_layer`): signifikant (> 10 % in einem Layer
      ODER > 5 % Gesamt) → ist die Begründung im Diff erkennbar (neuer Feature-Code legitim)?
      Oder Bloat-Indiz (Helper nicht extrahiert)?
@@ -517,6 +523,13 @@ Du liest beide Artefakte und Spec §9 (UX-Verhalten).
   → `browser_evaluate "customElements.get('custom-energy-flow-card-editor') !== undefined"`
 - Artefakte explizit per `Write`-Tool nach `metrics/playwright/[PLAN-ID]-{pre,post}.json`
   (NICHT MCP-Default `.playwright-mcp/` — der ist in `.gitignore`!)
+- **Bei i18n-Plans Pflicht (Lesson 2026-05-16, en-i18n Phase 5):** zusätzliche
+  Captures pro Sprache (`-de.md` + `-en.md` + Aggregat `-post.json` mit aria-label-
+  Differentiation-Beweisen). Mock-Configs nutzen oft User-YAML-Overrides für Knoten-
+  Namen — Sprach-Differentiation wird über sprachneutrale Renderer-Stellen sichtbar
+  (`ctx.t.states.sensorUnavailable`, `ctx.t.diagnostics.*`, Stub-Hint). Falls kein
+  Capture möglich (Plawright-MCP nicht verfügbar): explizit „Pass 5 skipped — manuelle
+  Preview-Verifikation via `pnpm preview` mit DE/EN-Toggle" im Output dokumentieren.
 
 **Fokus dieses Passes:** Funktioniert die Card im Browser? A11y-Tree intakt? Console
 sauber? Editor-Custom-Element registriert? Delta pre→post sinnvoll oder regression?

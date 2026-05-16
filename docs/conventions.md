@@ -326,6 +326,7 @@ Aus Spec §11.5 (verbindlich):
 - ❌ Lit's Default-Reactivity für `hass` unverändert lassen — wir filtern in `shouldUpdate(changedProperties)` auf relevante Sensor-IDs (Spec §5.7); `@property({ hasChanged })` funktioniert dafür nicht, weil das Callback `this` nicht erhält
 - ❌ Try-Catch-Schluck (immer mit `console.error` loggen)
 - ❌ Hardcoded User-Strings (immer aus `i18n/`, via `resolveT(lang)` aufgelöst — Modul-Singleton verboten)
+- ❌ ESLint-`no-restricted-paths`-Zone-Exception ohne `./const.ts` für Layer, die eigene Tests schreiben (Lesson 2026-05-16: `CARD_NAME`/`CARD_VERSION`-Imports in Tests brechen sonst Lint). Engine + util bleiben strikt (pure / const-Owner-Layer).
 - ❌ TODO-Kommentar im Release
 
 ## 12. Doku-Pflicht
