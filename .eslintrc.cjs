@@ -21,7 +21,7 @@ module.exports = {
           except: ['./render', './util', './engine/types.ts', './engine/flow-graph.ts',
                    './config/types.ts', './const.ts', './i18n'] },
         { target: './src/util', from: './src', except: ['./util'] },
-        { target: './src/i18n', from: './src', except: ['./i18n'] },
+        { target: './src/i18n', from: './src', except: ['./i18n', './const.ts'] },
         { target: './src/ha', from: './src',
           except: ['./ha', './config/types.ts', './engine/types.ts'] },
         { target: './src/editor.ts', from: './src',

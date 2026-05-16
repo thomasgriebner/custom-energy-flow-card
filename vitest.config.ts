@@ -12,7 +12,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
-      include: ['src/engine/**', 'src/config/**', 'src/util/**'],
+      include: ['src/engine/**', 'src/config/**', 'src/util/**', 'src/i18n/**'],
       exclude: ['**/*.test.ts'],
       thresholds: {
         statements: 90,
