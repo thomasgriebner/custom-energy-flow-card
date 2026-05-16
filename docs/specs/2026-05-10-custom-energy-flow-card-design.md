@@ -86,6 +86,8 @@ ausreichend.
 - HACS-installierbar
 - Crash-Resilient gegen fehlende Sensoren, sensor-unit-bewusst (W / kW / mW)
 - Diagnose-Indikator bei Engine-Warnings
+- **Mehrsprachig**: Card und Editor folgen `hass.locale.language` (`de*` → Deutsch,
+  alles andere → Englisch). Kein Config-Eingriff nötig.
 
 ### 1.4 Out of Scope (v1.0)
 
@@ -93,9 +95,9 @@ ausreichend.
 - Phasen-aufgelöste Anzeige (L1/L2/L3)
 - Dynamische Stromtarif-Anzeige
 - Tooltip-Detail-Werte beim Hover (`more-info`-Dialog reicht)
-- Internationalisierung (deutsche Default-Strings, mit `name`-Override pro
-  Knoten in der Config; alle Strings sind aber bereits zentral in `i18n/de.ts`
-  abgelegt — siehe §2.7 — sodass v1.x-i18n trivial wird)
+- ~~Internationalisierung~~ — aufgelöst durch Subspec
+  [`2026-05-15-en-i18n.md`](./2026-05-15-en-i18n.md) (DE/EN; weitere Sprachen
+  bleiben v1.x-Kandidat).
 
 ## 2. Architektur
 

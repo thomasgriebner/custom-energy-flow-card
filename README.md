@@ -235,6 +235,26 @@ Die Card stellt CSS `::part()`-Hooks bereit:
 
 ## Changelog
 
+## 0.14.0 — 2026-05-16
+
+### Englische Sprachunterstützung
+
+- Card und Editor folgen jetzt der Home-Assistant-Sprache (`hass.locale.language`).
+- `de` (inkl. `de-DE`, `de-AT`, `de-CH`) → deutsche Texte wie bisher.
+- Alle anderen Sprachen → englische Texte.
+- Kein Config-Eintrag nötig — wechselt automatisch beim HA-Sprachwechsel.
+
+### Breaking Visual Change
+
+User mit einer Home-Assistant-Sprache ≠ `de` sehen die Card ab v0.14.0 auf
+Englisch (vorher Deutsch). Wer beim alten Verhalten bleiben möchte, kann
+in den HA-Profil-Einstellungen die Sprache auf Deutsch stellen.
+
+### Was zu tun ist nach Update
+
+1. **Browser-Cache leeren** (Strg+Shift+R), falls die alte Sprache noch erscheint.
+2. Keine Config-Anpassung nötig.
+
 ### v0.13.0 — 2026-05-15 — Akku-Prozent im Ring + Theme-adaptive Schriftfarbe
 
 Neues User-facing Feature am Akku-Knoten:

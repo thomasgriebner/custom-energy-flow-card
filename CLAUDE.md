@@ -378,8 +378,9 @@ Volle Modulkarte: `architecture.md §2` und Spec §2.2.
    jedes globale State-Update. (Spec §5.7)
 7. **Crash-Resilient.** `willUpdate` mit try/catch + Fallback-UI. Engine wirft
    nicht bei Daten-Inkonsistenzen — nur Warnings. (Spec §5.10, §6.1 in conventions)
-8. **Strings aus `i18n/de.ts`.** Niemals user-facing Strings hardcoded in
-   Templates. (Spec §11.5)
+8. **Strings aus `i18n/`.** Niemals user-facing Strings hardcoded in
+   Templates. Caller holen `T = resolveT(lang)` und reichen `T` durch.
+   (Spec §11.5, Subspec 2026-05-15-en-i18n, ADR-0023)
 9. **Tests-driven für Engine.** Edge-Cases zuerst, Implementation danach.
    ≥ 90 % Coverage. (Spec §11.3)
 10. **HA-Custom-Elements (`ha-form`, `ha-entity-picker`) NICHT importieren.**

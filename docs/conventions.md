@@ -130,7 +130,7 @@ pure-functions-Linie (ADR-0004, ADR-0010).
   Card-Registrierung). Imports zeigen direkt auf die Quelle.
 - **Modul-Größenobergrenzen** (siehe Spec §2.2):
   - `card.ts` ≤ 200 LOC
-  - `editor.ts` ≤ 400 LOC
+  - `editor.ts` ≤ 430 LOC (Tech-Debt formalisiert seit i18n-Refactor + Argument-Objekt-Pattern; siehe ADR-0023)
   - `energy-engine.ts` ≤ 300 LOC
   - Andere: hartes Limit 250 LOC, dann splitten
 
@@ -325,7 +325,7 @@ Aus Spec §11.5 (verbindlich):
 - ❌ Berechnung in `render()` (gehört in `willUpdate`)
 - ❌ Lit's Default-Reactivity für `hass` unverändert lassen — wir filtern in `shouldUpdate(changedProperties)` auf relevante Sensor-IDs (Spec §5.7); `@property({ hasChanged })` funktioniert dafür nicht, weil das Callback `this` nicht erhält
 - ❌ Try-Catch-Schluck (immer mit `console.error` loggen)
-- ❌ Hardcoded User-Strings (immer aus `i18n/de.ts`)
+- ❌ Hardcoded User-Strings (immer aus `i18n/`, via `resolveT(lang)` aufgelöst — Modul-Singleton verboten)
 - ❌ TODO-Kommentar im Release
 
 ## 12. Doku-Pflicht
@@ -356,7 +356,15 @@ Aus Spec §11.5 (verbindlich):
 ## 15. Sprache
 
 - **Code-Identifier (TypeScript)**: Englisch
-- **User-facing Strings**: Deutsch (in `i18n/de.ts` zentralisiert)
+- **User-facing Strings**: Deutsch (`i18n/de.ts`) + Englisch (`i18n/en.ts`), Sprach-Auswahl
+  automatisch über `hass.locale.language` (`resolveT(lang)`-Factory in `i18n/index.ts`,
+  siehe ADR-0023). Default-Fallback: EN.
+
+**i18n-Pflege:** Bei jeder Änderung an `src/i18n/de.ts` MUSS `src/i18n/en.ts`
+synchron mitgepflegt werden. TypeScript verhindert struktur-Drift
+(`EN: Translations`), aber Wert-Drift („DE-Bullet hinzugefügt, EN vergessen")
+ist Reviewer-Pflicht. `pnpm typecheck` fängt fehlende Keys.
+
 - **Doku, Spec, ADRs**: Deutsch (Anwender + Maintainer sprechen Deutsch)
 - **Commit-Messages**: Deutsch oder Englisch — **konsistent innerhalb eines
   PRs / Branches**

@@ -17,7 +17,7 @@ const HISTORY_FILE = join(REPO_ROOT, 'metrics/kpi-history.json');
 // LOC-Limits aus conventions §3 — Pfad-Map, Fallback 250.
 const FILE_LOC_LIMITS = {
   'src/card.ts': 200,
-  'src/editor.ts': 400,
+  'src/editor.ts': 430,
   'src/engine/energy-engine.ts': 300,
 };
 const DEFAULT_LOC_LIMIT = 250;

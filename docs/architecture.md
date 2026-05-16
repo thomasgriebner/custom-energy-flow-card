@@ -47,7 +47,8 @@ Sieben Schichten mit klaren Aufgaben und **lint-erzwungenen** Import-Grenzen
                 │
        ┌────────────────┐
        │     i18n/      │
-       │   de.ts        │  (alle User-Strings)
+       │   de.ts + en.ts│  (alle User-Strings DE + EN;
+       │   index.ts     │   resolveT(lang) Factory + langFromHass(hass))
        └────────────────┘
 
        ┌────────────────┐
@@ -121,6 +122,8 @@ Siehe [ADR-0004](./adr/0004-pure-functions-engine.md),
 | [0019](./adr/0019-aspect-16-9-no-grid-options.md)            | ViewBox-Aspect 16:9 + Entfernung HA-Dashboard-Layout-API      | Card nutzt HA-Dashboard-Breite ohne Letterbox, Slider ohne künstliches Cap   |
 | [0020](./adr/0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | Dynamische User-/Area-Icons + null Wartungslast (Subspec 2026-05-13)         |
 | [0021](./adr/0021-code-review-workflow-pre-release-gate.md)  | Code-Review-Workflow als Pre-Release-Quality-Gate             | 6 Brillen + KPI-Skript + Lessons-Pipeline (Subspec 2026-05-15)               |
+| [0022](./adr/0022-bundle-budget-60-to-64-kib.md)             | Bundle-Budget 60 KiB → 64 KiB                                 | Whitespace-Optimierung erschöpft, Headroom für Render-Features nötig         |
+| [0023](./adr/0023-i18n-via-hass-locale.md)                   | i18n via HA-Locale (DE/EN) mit resolveT-Factory               | Auto-Sprachwechsel über `hass.locale.language`, kein Modul-Singleton         |
 
 ## 5. Konventionen kurz
 

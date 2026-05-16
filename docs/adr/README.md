@@ -68,3 +68,4 @@ siehe [`0000-template.md`](./0000-template.md).
 | [0020](./0020-ha-icon-via-foreignobject.md)              | `<ha-icon>` via `<foreignObject>` statt inline `mdi-paths.ts` | accepted                                                    |
 | [0021](./0021-code-review-workflow-pre-release-gate.md)  | Code-Review-Workflow als Pre-Release-Quality-Gate             | accepted                                                    |
 | [0022](./0022-bundle-budget-60-to-64-kib.md)             | Bundle-Budget 60 KiB → 64 KiB                                 | accepted                                                    |
+| [0023](./0023-i18n-via-hass-locale.md)                   | i18n via HA-Locale (DE/EN) mit resolveT-Factory               | accepted                                                    |
