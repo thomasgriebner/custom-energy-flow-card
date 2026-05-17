@@ -9,6 +9,7 @@
     "kpi": "node scripts/kpi.mjs",
     "kpi:snapshot": "node scripts/kpi.mjs --snapshot",
     "kpi:report": "node scripts/kpi.mjs --report",
+    "check:bundle": "node scripts/kpi.mjs --check-bundle",
     "build:analyze": "ANALYZE=1 rollup -c",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",

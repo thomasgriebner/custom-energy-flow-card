@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // scripts/kpi.mjs — Wartbarkeits-KPI-Snapshot für custom-energy-flow-card
 // Aufruf: pnpm kpi (JSON nach stdout) | pnpm kpi:snapshot --label X --phase Y
-// | pnpm kpi:report (Delta zwischen letzten zwei Snapshots).
+// | pnpm kpi:report (Delta zwischen letzten zwei Snapshots)
+// | pnpm check:bundle (nur Bundle-Budget-Gate, exit 1 bei Überschreitung).
 // Logging: keine Prefixe (analog smoke-test.mjs); stderr mit kpi.mjs:-Prefix.
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -603,7 +604,9 @@ const mode = args.includes('--snapshot')
   ? 'snapshot'
   : args.includes('--report')
     ? 'report'
-    : 'print';
+    : args.includes('--check-bundle')
+      ? 'check-bundle'
+      : 'print';
 const flagValue = (name) => {
   const i = args.indexOf(name);
   return i >= 0 && i + 1 < args.length ? args[i + 1] : null;
@@ -626,6 +629,19 @@ if (mode === 'snapshot') {
   }
   const [pre, post] = history.slice(-2);
   console.log(renderDeltaReport(pre, post));
+} else if (mode === 'check-bundle') {
+  const size = readBundleBytes();
+  if (size == null) process.exit(2);
+  const kib = (n) => `${(n / 1024).toFixed(1)} KiB`;
+  if (size > BUNDLE_BUDGET_BYTES) {
+    console.error(
+      `Bundle exceeds budget: ${size} B (${kib(size)}) > ${BUNDLE_BUDGET_BYTES} B (${kib(BUNDLE_BUDGET_BYTES)}) — ADR-0024`,
+    );
+    process.exit(1);
+  }
+  console.log(
+    `Bundle within budget: ${size} B (${kib(size)}) ≤ ${BUNDLE_BUDGET_BYTES} B (${kib(BUNDLE_BUDGET_BYTES)})`,
+  );
 } else {
   console.log(JSON.stringify(buildSnapshot('stdout', 'manual'), null, 2));
 }
