@@ -223,17 +223,17 @@ Erst dann Phase 1. **Ausnahme:** Bei Implementation des Code-Review-Workflows se
 
 Bevor der erste Implementations-Subagent gestartet wird:
 
-1. Plan einmal komplett lesen, alle Tasks/Phasen identifizieren
-2. **Alle Tasks** als TaskCreate-Batch anlegen (in einem Message-Block mit mehreren parallelen TaskCreate-Calls) — typischerweise 1 Task pro Plan-Phase, oder 1 Task pro Plan-Task wenn fein granular
-3. Sichtbares Format z. B. `[IMPL] Phase N — Kurzbeschreibung` als Subject
-4. User sieht: „N Tasks warten, X done, Y in_progress" — voller Überblick über Restarbeit
+1. Plan einmal komplett lesen, **alle Plan-Tasks** (nicht nur Phasen-Header) identifizieren
+2. **1 TaskCreate pro Plan-Task** (NICHT pro Phase!) als Batch anlegen — in einem Message-Block mit mehreren parallelen TaskCreate-Calls. Phasen sind nur Gruppierungs-Header im Plan, keine eigene Task. `superpowers:subagent-driven-development` ist hier explizit: „**Read plan, extract all tasks with full text, note context, create TodoWrite**" — alle Plan-Tasks upfront, 1:1
+3. Sichtbares Format z. B. `[IMPL] Task N.M — Kurzbeschreibung` als Subject (N = Phase, M = Task innerhalb der Phase)
+4. User sieht: „N Tasks warten, X done, Y in_progress" mit voller Plan-Granularität — Restarbeit pro Task sichtbar, nicht nur pro Phase
 
 **Phase 2 — Abarbeitung:**
 
-Tasks werden nach Plan-Reihenfolge abgearbeitet. Pro Task:
+Tasks werden nach Plan-Reihenfolge abgearbeitet. **Pro Task ein frischer Subagent** (Standard aus `superpowers:subagent-driven-development` — saubere Kontext-Isolation, kein Cross-Task-Bleed):
 
 - Eine TaskUpdate auf `in_progress`
-- Subagent dispatchen (mit Plan-Task-Text + Kontext)
+- **Neuen Subagent dispatchen** (mit Plan-Task-Text + Kontext) — KEIN Wiederverwenden eines früheren Subagents über mehrere Tasks hinweg (z. B. via `SendMessage` an alten Agent), auch nicht „kurz für den nächsten kleinen Task"
 - Two-Stage-Review (Spec-Compliance + Code-Quality) oder Inline-Review bei klar überschaubaren Tasks
 - TaskUpdate auf `completed`
 
@@ -260,8 +260,10 @@ Nach erfolgreichem Code-Review: `superpowers:finishing-a-development-branch` fü
 **Anti-Patterns (verboten):**
 
 - ❌ Inkrementell Todos anlegen („nächste Phase erst nach Abschluss der aktuellen"). Versteckt Restarbeit.
+- ❌ Phasen-Bündel statt Plan-Tasks als TaskCreate anlegen (z. B. „Phase 3 — Engine umbauen" als 1 Task statt der 5 Plan-Tasks darin). Versteckt Sub-Task-Granularität, User sieht Restarbeit nur grob.
 - ❌ Tasks im Hinterkopf führen statt als TaskCreate. Verliert Sichtbarkeit.
 - ❌ Neue notwendige Arbeit ohne TaskCreate machen („mal eben fixen"). Versteckt Scope-Drift.
+- ❌ Einen Subagent über mehrere Tasks wiederverwenden (`SendMessage` an alten Agent für „den nächsten kleinen Task"). Bricht die Kontext-Isolation, die `superpowers:subagent-driven-development` als Standard vorsieht — verschmutzt Folge-Task mit altem Kontext, erschwert Reviews und produziert versehentliche Kopplungen.
 - ❌ Implementation auf `main` ohne User-Consent (siehe `superpowers:using-git-worktrees`).
 - ❌ Phase 0 (Pre-Snapshot) überspringen — Code-Review-Pass 3 hat dann keine Delta-Baseline.
 - ❌ Phase 5 (Post-Snapshot + Code-Review) überspringen und direkt zu `finishing-a-development-branch` — Quality-Gate-Bypass.
